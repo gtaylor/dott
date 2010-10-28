@@ -17,8 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
                      
 # Name of the twistd binary to run
 TWISTED_BINARY = 'twistd' 
-
-# Setup access of the evennia server itself
+# The .py file twistd will run.
 SERVER_PY_FILE = os.path.join(settings.SRC_DIR, 'server/server.py')
 
 # Add this to the environmental variable for the 'twistd' command.
@@ -28,12 +27,18 @@ if 'PYTHONPATH' in os.environ:
 else:
     os.environ['PYTHONPATH'] = thispath
 
+def get_server_log_filename():
+    """
+    Returns the server's standard log filename.
+    """
+    return os.path.join(settings.LOG_DIR.strip(), 'server.log')
+
 def cycle_logfile():
     """
     Move the old log file to evennia.log.old (by default).
 
     """    
-    logfile = settings.DEFAULT_LOG_FILE.strip()
+    logfile = get_server_log_filename()
     logfile_old = logfile + '.old'
     if os.path.exists(logfile):
         # Cycle the old logfiles to *.old
@@ -52,15 +57,15 @@ def start_daemon(parser, options, args):
         print "A twistd.pid file exists in the current directory, which suggests that the server is already running."
         sys.exit()
     
-    print '\nStarting Evennia server in daemon mode ...'
-    print 'Logging to: %s.' % settings.DEFAULT_LOG_FILE
+    print '\nStarting %s server in daemon mode ...' % settings.GAME_NAME
+    print 'Logging to: %s.' % get_server_log_filename()
     
     # Move the old evennia.log file out of the way.
     #cycle_logfile()
 
     # Start it up
     Popen([TWISTED_BINARY, 
-           '--logfile=%s' % settings.DEFAULT_LOG_FILE, 
+           '--logfile=%s' % get_server_log_filename(), 
            '--python=%s' % SERVER_PY_FILE])
 
 def start_interactive(parser, options, args):
@@ -68,7 +73,7 @@ def start_interactive(parser, options, args):
     Start in interactive mode, which means the process is foregrounded and
     all logging output is directed to stdout.
     """
-    print '\nStarting Evennia server in interactive mode (stop with keyboard interrupt) ...'
+    print '\nStarting %s server in interactive mode (stop with keyboard interrupt) ...' % settings.GAME_NAME
     print 'Logging to: Standard output.'
 
     try:
@@ -84,7 +89,7 @@ def stop_server(parser, options, args):
     """
     if os.name == 'posix': 
         if os.path.exists('twistd.pid'):
-            print 'Stopping the Evennia server...'
+            print 'Stopping the %s server...' % settings.GAME_NAME
             f = open('twistd.pid', 'r')
             pid = f.read()
             os.kill(int(pid), signal.SIGINT)
@@ -103,7 +108,7 @@ def main():
     Beginning of the program logic.
     """
     parser = OptionParser(usage="%prog [options] <start|stop>",
-                          description="This command starts or stops the Evennia game server. Note that you have to setup the database by running  'manage.py syncdb' before starting the server for the first time.")
+                          description="This command starts or stops the %s game server. Note that you have to setup the database by running  'manage.py syncdb' before starting the server for the first time." % settings.GAME_NAME)
     parser.add_option('-i', '--interactive', action='store_true', 
                       dest='interactive', default=False,
                       help='Start in interactive mode')

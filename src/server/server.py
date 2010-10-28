@@ -1,5 +1,5 @@
 """
-This module implements the main Evennia server process, the core of the
+This module implements the main MongoMud server process, the core of the
 game engine. 
 """
 import time
@@ -9,9 +9,9 @@ from twisted.internet import protocol, reactor
 
 from mongomud import settings
 from mongomud.src.server.protocols.telnet import MudTelnetProtocol
-from mongomud.src.utils import logger
+from mongomud.src.server.session_manager import SessionManager
 
-class EvenniaService(service.Service):
+class MongoMudService(service.Service):
     """
     The main server service task.
     """    
@@ -30,17 +30,18 @@ class EvenniaService(service.Service):
         for port in settings.LISTEN_PORTS:
             print('  * %s' % port)              
         print('-'*50)
-    
+           
     def shutdown(self, message=None):
         """
         Gracefully disconnect everyone and kill the reactor.
         """
         if not message:
             message = 'The server has been shutdown. Please check back soon.'
-
+        SessionManager.announce_all(message)
+        SessionManager.disconnect_all_sessions()
         reactor.callLater(0, reactor.stop)
         
-    def getEvenniaServiceFactory(self):
+    def getMongoMudServiceFactory(self):
         """
         Retrieve instances of the server
         """
@@ -55,13 +56,13 @@ class EvenniaService(service.Service):
         """
         self.service_collection = service.IServiceCollection(application)
         for port in settings.LISTEN_PORTS:
-            evennia_server = \
-                internet.TCPServer(port, self.getEvenniaServiceFactory())
-            evennia_server.setName('Evennia%s' %port)
-            evennia_server.setServiceParent(self.service_collection)
+            mongomud_server = \
+                internet.TCPServer(port, self.getMongoMudServiceFactory())
+            mongomud_server.setName('mongomud%s' %port)
+            mongomud_server.setServiceParent(self.service_collection)
 
 # Twisted requires us to define an 'application' attribute.
 application = service.Application('mongomud') 
 # The main mud service. Import this for access to the server methods.
-mud_service = EvenniaService()
+mud_service = MongoMudService()
 mud_service.start_services(application)
