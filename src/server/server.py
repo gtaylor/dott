@@ -3,8 +3,6 @@ This module implements the main Evennia server process, the core of the
 game engine. 
 """
 import time
-import sys
-import os
 
 from twisted.application import internet, service
 from twisted.internet import protocol, reactor

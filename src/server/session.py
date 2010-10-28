@@ -3,10 +3,8 @@ This module contains classes related to Sessions. sessionhandler has the things
 needed to manage them.
 """
 import time
-from datetime import datetime
 
 from mongomud.src.utils import logger
-from mongomud.src.utils.general import to_unicode, to_str
 
 class Session(object):
     """
@@ -79,7 +77,7 @@ class Session(object):
             # Player-visible idle time, not used in idle timeout calcs.
             self.cmd_last_visible = time.time()
         
-    def game_connect_screen(self):
+    def show_game_connect_screen(self):
         """
         Show the banner screen. Grab from the 'connect_screen'
         config directive. If more than one connect screen is

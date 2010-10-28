@@ -2,9 +2,6 @@
 This module contains classes related to Sessions. sessionhandler has the things
 needed to manage them.
 """
-import time
-from datetime import datetime
-
 from twisted.conch.telnet import StatefulTelnetProtocol
 
 from mongomud.src.server.session import Session
@@ -25,14 +22,9 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
         """
         What to do when we get a connection.
         """
-        # setup the parameters
         self.session = Session(self)
-        # send info
-        logger.info('New connection from: %s' % self.getClientAddress()[0])        
-        # add this new session to handler
-        #sessionhandler.add_session(self)
-        # show a connect screen 
-        self.session.game_connect_screen()
+        logger.info('New connection from: %s' % self.getClientAddress()[0])
+        self.session.show_game_connect_screen()
 
     def getClientAddress(self):
         """
@@ -40,33 +32,6 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
         ('127.0.0.1', 41917)
         """
         return self.transport.client
-
-    def prep_session(self):
-        """
-        This sets up the main parameters of
-        the session. The game will poll these
-        properties to check the status of the
-        connection and to be able to contact
-        the connected player. 
-        """
-        # main server properties 
-        self.server = self.factory.server
-        self.address = self.getClientAddress()
-
-        # player setup 
-        self.name = None
-        self.uid = None
-        self.logged_in = False
-
-        # The time the user last issued a command.
-        self.cmd_last = time.time()
-        # Player-visible idle time, excluding the IDLE command.
-        self.cmd_last_visible = time.time()
-        # Total number of commands issued.
-        self.cmd_total = 0
-        # The time when the user connected.
-        self.conn_time = time.time()
-        #self.channels_subscribed = {}
 
     def disconnectClient(self):
         """
@@ -106,20 +71,6 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
             self.sendLine(str(e))
             return 
         self.sendLine(message)
-      
-    def update_counters(self, idle=False):
-        """
-        Hit this when the user enters a command in order to update idle timers
-        and command counters. If silently is True, the public-facing idle time
-        is not updated.
-        """
-        # Store the timestamp of the user's last command.
-        self.cmd_last = time.time()
-        if not idle:
-            # Increment the user's command counter.
-            self.cmd_total += 1
-            # Player-visible idle time, not used in idle timeout calcs.
-            self.cmd_last_visible = time.time()
             
     def handle_close(self):
         """
