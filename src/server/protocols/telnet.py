@@ -5,6 +5,7 @@ needed to manage them.
 from twisted.conch.telnet import StatefulTelnetProtocol
 
 from mongomud.src.server.session import Session
+from mongomud.src.server.session_manager import SessionManager
 from mongomud.src.utils import logger
 from mongomud.src.utils.general import to_unicode, to_str
 
@@ -23,8 +24,9 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
         What to do when we get a connection.
         """
         self.session = Session(self)
-        logger.info('New connection from: %s' % self.getClientAddress()[0])
+        logger.info('New connection: %s' % self)
         self.session.show_game_connect_screen()
+        SessionManager.add_session(self.session)
 
     def getClientAddress(self):
         """
@@ -35,16 +37,17 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
 
     def disconnectClient(self):
         """
-        Manually disconnect the client.
+        Ran when a client disconnects.
         """
-        self.transport.loseConnection()
+        SessionManager.remove_session(self.session)
+        self.transport.loseConnection()        
 
     def connectionLost(self, reason):
         """
         Execute this when a client abruplty loses their connection.
         """
         logger.info('Disconnected: %s' % self)
-        self.handle_close()
+        self.disconnectClient()
         
     def lineReceived(self, raw_string):
         """
@@ -71,11 +74,4 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
             self.sendLine(str(e))
             return 
         self.sendLine(message)
-            
-    def handle_close(self):
-        """
-        Break the connection and do some accounting.
-        """            
-        self.disconnectClient()
-        self.logged_in = False  
     
