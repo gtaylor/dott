@@ -10,7 +10,7 @@ from traceback import format_exc
 
 from twisted.python import log
 
-from mongomud.src.utils.general import to_str
+from dott.src.utils.general import to_str
 
 def trace(errmsg=None):
     """

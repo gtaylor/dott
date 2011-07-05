@@ -4,7 +4,7 @@ needed to manage them.
 """
 import time
 
-from mongomud.src.utils import logger
+from dott.src.utils import logger
 
 class Session(object):
     """

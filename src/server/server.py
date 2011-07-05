@@ -1,5 +1,5 @@
 """
-This module implements the main MongoMud server process, the core of the
+This module implements the main dott server process, the core of the
 game engine. 
 """
 import time
@@ -7,9 +7,9 @@ import time
 from twisted.application import internet, service
 from twisted.internet import protocol, reactor
 
-from mongomud import settings
-from mongomud.src.server.protocols.telnet import MudTelnetProtocol
-from mongomud.src.server.session_manager import SessionManager
+from dott import settings
+from dott.src.server.protocols.telnet import MudTelnetProtocol
+from dott.src.server.session_manager import SessionManager
 
 class MudService(service.Service):
     """
@@ -57,12 +57,12 @@ class MudService(service.Service):
         self.service_collection = service.IServiceCollection(app_to_start)
         for port in settings.LISTEN_PORTS:
             factory = self.get_mud_service_factory()
-            mongomud_server = internet.TCPServer(port, factory) #@UndefinedVariable
-            mongomud_server.setName('mongomud%s' % port)
-            mongomud_server.setServiceParent(self.service_collection)
+            server = internet.TCPServer(port, factory) #@UndefinedVariable
+            server.setName('dott%s' % port)
+            server.setServiceParent(self.service_collection)
 
 # Twisted requires us to define an 'application' attribute.
-application = service.Application('mongomud')
+application = service.Application('dott')
 # The main mud service. Import this for access to the server methods.
 mud_service = MudService()
 mud_service.start_services(application)
