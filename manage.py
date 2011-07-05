@@ -35,7 +35,7 @@ def get_server_log_filename():
 
 def cycle_logfile():
     """
-    Move the old log file to evennia.log.old (by default).
+    Move the old log file to server.log.old (by default).
 
     """    
     logfile = get_server_log_filename()
@@ -50,7 +50,7 @@ def cycle_logfile():
 def start_daemon(parser, options, args):
     """
     Start the server in daemon mode. This means that all logging output will
-    be directed to logs/evennia.log by default, and the process will be
+    be directed to logs/server.log by default, and the process will be
     backgrounded.
     """ 
     if os.path.exists('twistd.pid'):
@@ -60,7 +60,7 @@ def start_daemon(parser, options, args):
     print '\nStarting %s server in daemon mode ...' % settings.GAME_NAME
     print 'Logging to: %s.' % get_server_log_filename()
     
-    # Move the old evennia.log file out of the way.
+    # Move the old server.log file out of the way.
     #cycle_logfile()
 
     # Start it up
