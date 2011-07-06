@@ -1,1 +1,3 @@
 twisted
+couchdb
+nose

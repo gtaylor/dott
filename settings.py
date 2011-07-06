@@ -8,3 +8,9 @@ SRC_DIR = os.path.join(BASE_PATH, 'src')
 LOG_DIR = os.path.join(BASE_PATH, 'log')
 
 IDLE_TIMEOUT = 3600
+
+DATABASES = {
+    'objects': {
+        'NAME': 'dott_objects',
+    }
+}
