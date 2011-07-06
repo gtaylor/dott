@@ -7,9 +7,9 @@ import time
 from twisted.application import internet, service
 from twisted.internet import protocol, reactor
 
-from dott import settings
-from dott.src.server.protocols.telnet import MudTelnetProtocol
-from dott.src.server.session_manager import SessionManager
+import settings
+from src.server.protocols.telnet import MudTelnetProtocol
+from src.server.session_manager import SessionManager
 
 class MudService(service.Service):
     """
@@ -19,6 +19,9 @@ class MudService(service.Service):
         # Holds the TCP services.
         self.service_collection = None
         self.game_running = True
+
+        # Load up the object store.
+        from src.server.db.objects import OBJECT_STORE
 
         # Begin startup debug output.
         print('\n' + '-' * 50)
@@ -57,10 +60,11 @@ class MudService(service.Service):
         self.service_collection = service.IServiceCollection(app_to_start)
         for port in settings.LISTEN_PORTS:
             factory = self.get_mud_service_factory()
-            server = internet.TCPServer(port, factory) #@UndefinedVariable
+            server = internet.TCPServer(port, factory)
             server.setName('dott%s' % port)
             server.setServiceParent(self.service_collection)
 
+            
 # Twisted requires us to define an 'application' attribute.
 application = service.Application('dott')
 # The main mud service. Import this for access to the server methods.

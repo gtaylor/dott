@@ -1,5 +1,5 @@
 import unittest
-from dott.src.server.db.objects.in_memory_store import InMemoryObjectStore
+from src.server.db.objects.in_memory_store import InMemoryObjectStore
 
 class InMemoryStoreTests(unittest.TestCase):
     def setUp(self):
@@ -7,7 +7,7 @@ class InMemoryStoreTests(unittest.TestCase):
 
     def tearDown(self):
         pass
-        #del self.store._server['dott_objects_test']
+        del self.store._server['dott_objects_test']
 
     def test_basic(self):
         pass

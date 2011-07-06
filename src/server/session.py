@@ -4,7 +4,7 @@ needed to manage them.
 """
 import time
 
-from dott.src.utils import logger
+from src.utils import logger
 
 class Session(object):
     """

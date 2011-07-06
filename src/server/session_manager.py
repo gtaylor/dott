@@ -3,8 +3,8 @@ Sessionhandler, stores and handles a list of all player sessions.
 """
 import time
 
-from dott.src.utils import logger
-from dott import settings
+from src.utils import logger
+import settings
 
 class SessionManager(object):
     # Our list of connected sessions.
