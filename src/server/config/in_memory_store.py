@@ -4,6 +4,7 @@ from couchdb.http import ResourceNotFound
 from settings import DATABASES
 from src.utils import logger
 from src.server.config.defaults import DEFAULTS
+from src.server.config.exceptions import InvalidConfigParam
 
 class InMemoryConfigStore(object):
     """
@@ -61,11 +62,28 @@ class InMemoryConfigStore(object):
         """
         self._db.save(self._config)
 
-    def get_value(self, config_val):
+    def get_value(self, config_param):
         """
         Returns the value for a config key.
 
         :param str config_val: The config key whose value to retrieve.
         :returns: The value for the config key.
         """
-        return self._config.get(config_val, DEFAULTS[config_val])
+        if not DEFAULTS.has_key(config_param):
+            raise InvalidConfigParam('get_value: Invalid config parameter: %s' % config_param)
+
+        return self._config.get(config_param, DEFAULTS[config_param])
+
+    def set_value(self, config_param, config_value):
+        """
+        Updates a config parameter.
+
+        :param str config_param: Which config param to update.
+        :param object config_value: The new value for the param.
+        """
+        if not DEFAULTS.has_key(config_param):
+            raise InvalidConfigParam('set_value: Invalid config parameter: %s' % config_param)
+
+        self._config[config_param] = config_value
+
+        self.save_config()

@@ -1,6 +1,7 @@
 import unittest
 from src.server.config.in_memory_store import InMemoryConfigStore
 from src.server.config.defaults import DEFAULTS
+from src.server.config.exceptions import InvalidConfigParam
 
 class InMemoryConfigStoreTests(unittest.TestCase):
     def setUp(self):
@@ -15,3 +16,17 @@ class InMemoryConfigStoreTests(unittest.TestCase):
         """
         idle_timeout = self.store.get_value('IDLE_TIMEOUT')
         self.assertEqual(idle_timeout, DEFAULTS['IDLE_TIMEOUT'])
+
+        # Update config value.
+        self.store.set_value('IDLE_TIMEOUT', 3601)
+
+        # Check to see if the config value updated.
+        idle_timeout = self.store.get_value('IDLE_TIMEOUT')
+        self.assertEqual(idle_timeout, 3601)
+
+    def test_invalid_params(self):
+        """
+        Tests invalid get/set config values.
+        """
+        self.assertRaises(InvalidConfigParam, self.store.get_value, 'BLARTY')
+        self.assertRaises(InvalidConfigParam, self.store.set_value, 'BLARTY', 1)
