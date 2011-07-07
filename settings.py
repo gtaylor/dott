@@ -7,10 +7,11 @@ BASE_PATH = os.path.dirname(os.path.abspath(__file__))
 SRC_DIR = os.path.join(BASE_PATH, 'src')
 LOG_DIR = os.path.join(BASE_PATH, 'log')
 
-IDLE_TIMEOUT = 3600
-
 DATABASES = {
     'objects': {
         'NAME': 'dott_objects',
+    },
+    'config': {
+        'NAME': 'dott_config',
     }
 }
