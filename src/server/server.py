@@ -22,6 +22,7 @@ class MudService(service.Service):
 
         # Load up the object store.
         from src.server.db.objects import OBJECT_STORE
+        from src.server.config import CONFIG_STORE
 
         # Begin startup debug output.
         print('\n' + '-' * 50)

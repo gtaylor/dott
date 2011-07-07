@@ -77,7 +77,8 @@ class InMemoryObjectStore(object):
         """
         parent_path = 'src.game.parents.base_objects.room.RoomObject'
         RoomObject = PARENT_LOADER.load_parent(parent_path)
-        room = RoomObject(name='And so it begins...')
+        room = RoomObject(name='And so it begins...',
+                          parent=parent_path)
         self.save_object(room)
 
     def save_object(self, obj_or_id):
@@ -86,6 +87,4 @@ class InMemoryObjectStore(object):
         the raw dict that gets saved to and loaded from CouchDB.
         """
         odata = obj_or_id.odata
-        odata['parent'] = '%s.%s' % (obj_or_id.__module__,
-                                     obj_or_id.__class__.__name__)
         self._db.save(odata)
