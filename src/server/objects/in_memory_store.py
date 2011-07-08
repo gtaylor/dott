@@ -88,5 +88,10 @@ class InMemoryObjectStore(object):
         the raw dict that gets saved to and loaded from CouchDB.
         """
         odata = obj_or_id.odata
-        self._db.save(odata)
+        # Saves to CouchDB.
+        id, rev = self._db.save(odata)
+        # For new objects, update our in-memory object with the newly assigned
+        # _id in CouchDB.
+        obj_or_id._id = id
+        # Update our in-memory cache with the saved object.
         self._objects[odata['_id']] = obj_or_id
