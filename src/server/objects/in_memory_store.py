@@ -77,10 +77,13 @@ class InMemoryObjectStore(object):
         it and save it. Loading will be done later.
         """
         parent_path = 'src.game.parents.base_objects.room.RoomObject'
-        RoomObject = PARENT_LOADER.load_parent(parent_path)
-        room = RoomObject(name='And so it begins...',
-                          parent=parent_path)
-        self.save_object(room)
+        self.create_object(parent_path, name='And so it begins...')
+
+    def create_object(self, parent_path, **kwargs):
+        NewObject = PARENT_LOADER.load_parent(parent_path)
+        obj = NewObject(parent=parent_path, **kwargs)
+        self.save_object(obj)
+        return obj
 
     def save_object(self, obj_or_id):
         """

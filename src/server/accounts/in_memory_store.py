@@ -60,6 +60,10 @@ class PlayerAccount(object):
         """
         Given a new password, creates the proper password hash.
 
+        .. note:: You will still need to save this PlayerAccount after setting
+            a new password for the change to take affect. Saving is done
+            through :class:`InMemoryAccountStore`.
+
         :param str new_password: The new password to set.
         """
         self.password = self._get_hash_for_password(new_password)
