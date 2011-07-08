@@ -1,7 +1,7 @@
 import unittest
 from src.server.config.in_memory_store import InMemoryConfigStore
 from src.server.config.defaults import DEFAULTS
-from src.server.config.exceptions import InvalidConfigParam
+from src.server.config.exceptions import ConfigParamNotFound
 
 class InMemoryConfigStoreTests(unittest.TestCase):
     def setUp(self):
@@ -28,5 +28,5 @@ class InMemoryConfigStoreTests(unittest.TestCase):
         """
         Tests invalid get/set config values.
         """
-        self.assertRaises(InvalidConfigParam, self.store.get_value, 'BLARTY')
-        self.assertRaises(InvalidConfigParam, self.store.set_value, 'BLARTY', 1)
+        self.assertRaises(ConfigParamNotFound, self.store.get_value, 'BLARTY')
+        self.assertRaises(ConfigParamNotFound, self.store.set_value, 'BLARTY', 1)

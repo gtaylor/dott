@@ -1,5 +1,5 @@
 import unittest
-from src.server.db.objects.in_memory_store import InMemoryObjectStore
+from src.server.objects.in_memory_store import InMemoryObjectStore
 
 class InMemoryObjectStoreTests(unittest.TestCase):
     def setUp(self):

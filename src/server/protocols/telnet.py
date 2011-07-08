@@ -4,10 +4,10 @@ needed to manage them.
 """
 from twisted.conch.telnet import StatefulTelnetProtocol
 
-from dott.src.server.session import Session
-from dott.src.server.session_manager import SessionManager
-from dott.src.utils import logger
-from dott.src.utils.general import to_unicode, to_str
+from src.server.session import Session
+from src.server.session_manager import SessionManager
+from src.utils import logger
+from src.utils.general import to_unicode, to_str
 
 class MudTelnetProtocol(StatefulTelnetProtocol):
     """

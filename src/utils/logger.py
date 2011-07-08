@@ -5,12 +5,11 @@ This file should have an absolute minimum in imports. If you'd like to layer
 additional functionality on top of some of the methods below, wrap them in
 a higher layer module.
 """
-import sys
 from traceback import format_exc
 
 from twisted.python import log
 
-from dott.src.utils.general import to_str
+from src.utils.general import to_str
 
 def trace(errmsg=None):
     """

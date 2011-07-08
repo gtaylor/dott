@@ -20,7 +20,8 @@ Requirements
 ============
 
 * Python 2.6+
-* Twisted 11.0+
+* twisted 11.0+
+* python-couchdb
 
 License
 =======

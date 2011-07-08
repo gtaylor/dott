@@ -21,7 +21,8 @@ class MudService(service.Service):
         self.game_running = True
 
         # Load up the object store.
-        from src.server.db.objects import OBJECT_STORE
+        from src.server.accounts import ACCOUNT_STORE
+        from src.server.objects import OBJECT_STORE
         from src.server.config import CONFIG_STORE
 
         # Begin startup debug output.

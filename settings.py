@@ -13,5 +13,8 @@ DATABASES = {
     },
     'config': {
         'NAME': 'dott_config',
+    },
+    'accounts': {
+        'NAME': 'dott_accounts',
     }
 }

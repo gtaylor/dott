@@ -30,8 +30,7 @@ class BaseObject(object):
         :returns: The requested value, pulled from :attrib:`odata`.
         :raises: AttributeError if no match is found in :attrib:`odata`.
         """
-        try:
+        if self.odata.has_key(name):
             return self.odata[name]
-        except KeyError:
-            raise AttributeError()
 
+        raise AttributeError()

@@ -14,15 +14,16 @@ class InMemoryObjectStore(object):
         """
         :param str db_name: Overrides the DB name for the object DB.
         """
-        # Reference to CouchDB server connection.
-        self._server = couchdb.Server()
         # Eventually contains a CouchDB reference. Queries come through here.
         self._db = None
-        # Loads or creates+loads the CouchDB database.
-        self._prep_db(db_name=db_name)
         # Keys are CouchDB ids, values are the parent instances (children of
         # src.game.parents.base_objects.base.BaseObject
         self._objects = {}
+
+        # Reference to CouchDB server connection.
+        self._server = couchdb.Server()
+        # Loads or creates+loads the CouchDB database.
+        self._prep_db(db_name=db_name)
         # Loads all of the objects into RAM from CouchDB.
         self._load_objects_into_ram()
 
@@ -88,3 +89,4 @@ class InMemoryObjectStore(object):
         """
         odata = obj_or_id.odata
         self._db.save(odata)
+        self._objects[odata['_id']] = obj_or_id
