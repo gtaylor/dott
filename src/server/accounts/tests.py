@@ -1,5 +1,6 @@
 import unittest
 from src.server.accounts.in_memory_store import InMemoryAccountStore, PlayerAccount
+from src.server.accounts.exceptions import UsernameTakenException
 
 class DBAccountStoreTests(unittest.TestCase):
     def setUp(self):
@@ -21,10 +22,27 @@ class DBAccountStoreTests(unittest.TestCase):
         """
         Tests the creation and querying of an account.
         """
-        account = PlayerAccount(username='TestGuy', password='yay', email='woot@woot.com')
-        self.store.save_account(account)
+        account = self.store.create_account('TestGuy', 'yay')
+        # These two values should be the same. username is just a property
+        # that maps to _id.
+        self.assertEqual('TestGuy', account.username)
+        self.assertEqual('TestGuy', account._id)
+        # Make sure the password given at creation is valid.
+        self.assertEqual(account.check_password('yay'), True)
+        # Change the password.
+        account.set_password('flah')
+        # Make sure the newly calculated value matches.
+        self.assertEqual(account.check_password('flah'), True)
+        # Try the old original value and make sure it doesn't match.
+        self.assertEqual(account.check_password('yay'), False)
 
         num_accounts = len(self.store._db)
         self.assertEqual(num_accounts, 1)
 
-        testguy = self.store.get_account('TestGuy')
+        # Just make sure it works.
+        self.store.get_account('TestGuy')
+
+        # Trying to create an account with a username that is already
+        # in use.
+        self.assertRaises(UsernameTakenException,
+                          self.store.create_account, 'TestGuy', 'yay')

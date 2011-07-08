@@ -1,9 +1,11 @@
+import hashlib
+
 import couchdb
 from couchdb.http import ResourceNotFound
 
-from settings import DATABASES
+import settings
 from src.utils import logger
-from src.server.accounts.exceptions import AccountNotFoundException
+from src.server.accounts.exceptions import AccountNotFoundException, UsernameTakenException
 
 class PlayerAccount(object):
     """
@@ -40,7 +42,39 @@ class PlayerAccount(object):
         return self.odata['_id']
     def set_username(self, username):
         self.odata['_id'] = username
+    # This just acts as an alias to self.odata['_id'].
     username = property(get_username, set_username)
+
+    def _get_hash_for_password(self, password):
+        """
+        Given a password, calculate the hash value that would be stored
+        in the DB. Useful for setting new passwords, or authenticating
+        a login attempt by comparing calculated vs. expected hashes.
+
+        :param str password: The password to calc a hash for.
+        """
+        pass_str = 'sha512:%s:%s' % (settings.SECRET_KEY, password)
+        return hashlib.sha512(pass_str).hexdigest()
+
+    def set_password(self, new_password):
+        """
+        Given a new password, creates the proper password hash.
+
+        :param str new_password: The new password to set.
+        """
+        self.password = self._get_hash_for_password(new_password)
+
+    def check_password(self, password):
+        """
+        Given a password value, calculate its password hash and compare it to
+        the value in memory/DB.
+
+        :rtype: bool
+        :returns: If the given password's hash matches what we have for the
+            account, returns `True`. If not, `False.
+        """
+        given_hash = self._get_hash_for_password(password)
+        return given_hash == self.password
 
 
 class InMemoryAccountStore(object):
@@ -71,7 +105,7 @@ class InMemoryAccountStore(object):
         """
         if not db_name:
             # Use the default configured DB name for config DB.
-            db_name = DATABASES['accounts']['NAME']
+            db_name = settings.DATABASES['accounts']['NAME']
 
         try:
             # Try to get a reference to the CouchDB database.
@@ -89,6 +123,25 @@ class InMemoryAccountStore(object):
             doc = self._db[username]
             # Retrieves the JSON doc from CouchDB.
             self._accounts[username.lower()] = PlayerAccount(**doc)
+
+    def create_account(self, username, password):
+        """
+        Creates and returns a new account. Makes sure the username is unique.
+
+        :param str username: The username of the account to create.
+        :param str password: The raw (un-encrypted) password.
+        :rtype: :class:`PlayerAccount`
+        :returns: The newly created account.
+        :raises: :class:`UsernameTakenException` if someone attempts to create
+            a duplicate account.
+        """
+        if self._accounts.has_key(username.lower()):
+            raise UsernameTakenException('Username already taken.')
+
+        account = PlayerAccount(username=username)
+        account.set_password(password)
+        self.save_account(account)
+        return self.get_account(username)
 
     def save_account(self, account_or_username):
         """
