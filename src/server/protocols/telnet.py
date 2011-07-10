@@ -60,9 +60,9 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
             raw_string = to_unicode(raw_string)
         except Exception, e:
             self.sendLine(str(e))
-            return 
-        #self.execute_cmd(raw_string)
-        self.session.msg("ECHO: %s" % raw_string)        
+            return
+        self.session.msg("ECHO: %s" % raw_string)
+        self.session.execute_command(raw_string)
 
     def msg(self, message):
         """

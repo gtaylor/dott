@@ -1,7 +1,3 @@
-"""
-This module contains classes related to Sessions. sessionhandler has the things
-needed to manage them.
-"""
 import time
 
 from src.utils import logger
@@ -51,23 +47,19 @@ class Session(object):
             symbol = '?'
         return "<%s> %s@%s" % (symbol, self.name, self.address)
         
-    def msg(self, message, markup=True):
+    def msg(self, message):
         """
-        Communication Evennia -> Player
-        Sends a message to the session.
-
-        markup - determines if formatting markup should be 
-                 parsed or not. Currently this means ANSI
-                 colors, but could also be html tags for 
-                 web connections etc.        
+        Sends a message to the player.
         """
         self.protocol.msg(message)
       
     def update_counters(self, idle=False):
         """
         Hit this when the user enters a command in order to update idle timers
-        and command counters. If silently is True, the public-facing idle time
-        is not updated.
+        and command counters.
+
+        :keyword bool idle: When ``True``, the public-facing idle time is
+            not updated.
         """
         # Store the timestamp of the user's last command.
         self.cmd_last = time.time()
@@ -107,3 +99,17 @@ class Session(object):
         self.conn_time = time.time()
         
         logger.info("Logged in: %s" % self)
+
+    def execute_command(self, command_string):
+        """
+        Used to parse input from a protocol, or something forced.
+
+        :param str command_string: The raw command string to send off to the
+            command handler/parser.
+        """
+        if str(command_string).strip().lower() == 'idle':
+            # Ignore idle command. This is often used as a keep-alive for
+            # people with crappy NATs.
+            self.update_counters(idle=True)
+            return
+        
