@@ -20,3 +20,14 @@ DATABASES = {
         'NAME': 'dott_accounts',
     }
 }
+
+# Amazon Web Services credentials.
+AWS_ACCESS_KEY_ID = 'XXXXXXXXXXXXXXXXXXXXX'
+AWS_SECRET_ACCESS_KEY = 'YYYYYYYYYYYYYYYYYYYYYYYYYYY'
+# This needs to be set to one of your Amazon SES verified email addresses.
+SERVER_EMAIL_FROM = 'your@email.com'
+
+try:
+    from local_settings import *
+except ImportError:
+    pass

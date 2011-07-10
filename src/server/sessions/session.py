@@ -1,6 +1,7 @@
 import time
 
 from src.utils import logger
+from src.game.commands.shells.login import LoginShell
 
 class Session(object):
     """
@@ -27,6 +28,9 @@ class Session(object):
         self.uid = None
         self.logged_in = False
 
+        # This is the login shell.
+        self.interactive_shell = LoginShell(self)
+
         # The time the user last issued a command.
         self.cmd_last = time.time()
         # Player-visible idle time, excluding the IDLE command.
@@ -52,6 +56,12 @@ class Session(object):
         Sends a message to the player.
         """
         self.protocol.msg(message)
+
+    def disconnect_client(self):
+        """
+        Disconnects the user.
+        """
+        self.protocol.disconnectClient()
       
     def update_counters(self, idle=False):
         """
@@ -76,7 +86,7 @@ class Session(object):
         defined in the ConnectScreen attribute, it will be
         random which screen is used. 
         """
-        self.msg("THIS IS A CONNECT SCREEN")
+        self.interactive_shell.prompt_ask_username()
     
     def login(self, player):
         """
@@ -97,6 +107,7 @@ class Session(object):
         self.name = user.username
         self.logged_in = True
         self.conn_time = time.time()
+        self.interactive_shell = None
         
         logger.info("Logged in: %s" % self)
 
@@ -112,4 +123,7 @@ class Session(object):
             # people with crappy NATs.
             self.update_counters(idle=True)
             return
+
+        if self.interactive_shell:
+            self.interactive_shell.process_input(command_string)
         

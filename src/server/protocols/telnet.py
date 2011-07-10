@@ -4,10 +4,10 @@ needed to manage them.
 """
 from twisted.conch.telnet import StatefulTelnetProtocol
 
-from src.server.session import Session
-from src.server.session_manager import SessionManager
 from src.utils import logger
 from src.utils.general import to_unicode, to_str
+from src.server.sessions.session import Session
+from src.server.sessions.session_manager import SessionManager
 
 class MudTelnetProtocol(StatefulTelnetProtocol):
     """
@@ -61,7 +61,7 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
         except Exception, e:
             self.sendLine(str(e))
             return
-        self.session.msg("ECHO: %s" % raw_string)
+
         self.session.execute_command(raw_string)
 
     def msg(self, message):

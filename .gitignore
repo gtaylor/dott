@@ -6,3 +6,4 @@
 .pydevproject
 *.log
 .idea
+local_settings.py

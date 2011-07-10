@@ -1,3 +1,4 @@
 twisted
 couchdb
 nose
+boto
