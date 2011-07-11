@@ -66,7 +66,7 @@ class PlayerAccount(object):
 
         :param str new_password: The new password to set.
         """
-        self.password = self._get_hash_for_password(new_password)
+        self.odata['password'] = self._get_hash_for_password(new_password)
 
     def check_password(self, password):
         """

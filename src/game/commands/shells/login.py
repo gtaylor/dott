@@ -16,6 +16,9 @@ class LoginShell(InteractiveShell):
     :attr str username_given: The username the client connecting provided.
     :attr str email_given: For new characters, the email address the client
         connecting provided.
+    :attr PlayerAccount matched_account: If a user enters a username that
+        matches an existing account, this gets set so we can check to see
+        if they provide a valid password.
     :attr str generated_password: For new accounts, the randomly generated
         password to be emailed.
     """
@@ -24,6 +27,7 @@ class LoginShell(InteractiveShell):
 
         self.current_step = self.step_get_username
         self.username_given = None
+        self.matched_account = None
         self.email_given = None
         self.generated_password = None
 
@@ -67,11 +71,37 @@ class LoginShell(InteractiveShell):
         
         try:
             # See if there's an account match.
-            account = ACCOUNT_STORE.get_account(self.username_given)
+            self.matched_account = ACCOUNT_STORE.get_account(self.username_given)
         except AccountNotFoundException:
             # No account match, must be a new player.
             self.current_step = self.step_confirm_new_username
             self.prompt_confirm_new_username()
+            return
+
+        self.current_step = self.step_get_existing_user_password
+        self.prompt_get_existing_user_password()
+
+    def prompt_get_existing_user_password(self):
+        """
+        Ask an existing user for their password.
+        """
+        self.session.msg("Enter your password:")
+
+    def step_get_existing_user_password(self, user_input):
+        """
+        Retrieve and check an existing user's password.
+        """
+        if not user_input:
+            self.prompt_get_existing_user_password()
+
+        if self.matched_account.check_password(user_input):
+            self.session.msg("Logging in...")
+            # TODO: Do the login stuff here.
+        else:
+            self.session.msg("Invalid password specified. Login attempt logged.\n")
+            self.current_step = self.step_get_username
+            self.prompt_get_username()
+            return
 
     def prompt_confirm_new_username(self):
         """
