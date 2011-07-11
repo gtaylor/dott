@@ -86,7 +86,7 @@ class Session(object):
         defined in the ConnectScreen attribute, it will be
         random which screen is used. 
         """
-        self.interactive_shell.prompt_ask_username()
+        self.interactive_shell.prompt_get_username()
     
     def login(self, player):
         """

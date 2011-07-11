@@ -128,7 +128,7 @@ class InMemoryAccountStore(object):
             # Retrieves the JSON doc from CouchDB.
             self._accounts[username.lower()] = PlayerAccount(**doc)
 
-    def create_account(self, username, password):
+    def create_account(self, username, password, email):
         """
         Creates and returns a new account. Makes sure the username is unique.
 
@@ -142,7 +142,7 @@ class InMemoryAccountStore(object):
         if self._accounts.has_key(username.lower()):
             raise UsernameTakenException('Username already taken.')
 
-        account = PlayerAccount(username=username)
+        account = PlayerAccount(username=username, email=email)
         account.set_password(password)
         self.save_account(account)
         return self.get_account(username)
