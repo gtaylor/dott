@@ -19,11 +19,39 @@ package like Evennia_.
 
 .. _Evennia: http://evennia.com
 
-Status
-======
+The general idea
+================
+
+The general idea and goal of this project is to combine desirable elements from
+several of my favorite sci-fi games:
+
+* EVE Online
+* Battletech
+* Tradewars
+
+The space system will feel very much like text-based EVE online, some of the
+combat rules and units will feel Battletechy, and the econ and planetary
+interactions may borrow from Tradewars.
+
+In addition to a simple but interesting space system, we'd also like to
+eventually beef up meatspace (IE: things done outside and within ships,
+aside from controlling ships). Boarding parties, docking on stations,
+landing on planets, and all other sorts of things are possible.
+
+.. note:: We probably won't even get a quarter of these implemented, but
+   dream big, right?
+
+Status, contributing, and my self-serving greed
+===============================================
 
 DotT is under perpetual unstable development. This is a hobby project, and
-there are no guarantees of backwards compatibility at any time.
+there are no guarantees of backwards compatibility at any time. I am not
+extremely interested in spending time on anything but what my eventual game
+may need, so if you want/need something, you very well may be on your own.
+
+That said, post an issue and I'll let you know if we have mutual desires.
+Pull requests will be considered with an open mind (as long as they
+don't disrupt the standard feature set and include unit tests).
 
 Requirements
 ============
