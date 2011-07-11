@@ -5,27 +5,31 @@ from src.game.commands.shells.login import LoginShell
 
 class Session(object):
     """
-    This class represents a player's session. Each player
-    gets a session assigned to them whenever
-    they connect to the game server. All communication
+    This class represents a player's session. Each player gets a session
+    assigned to them whenever they connect to the game server. All communication
     between game and player goes through here. 
     """
     def __init__(self, protocol):
         """
-        This sets up the main parameters of
-        the session. The game will poll these
-        properties to check the status of the
-        connection and to be able to contact
-        the connected player. 
+        :attr Protocol protocol: Typically
+            :class:`src.server.protocols.telnet.MudTelnetProtocol`. This is
+            the lower level pipe to and from the user.
+        :attr MudService server: The top-level MudService instance found in
+            dott.tac.
+        :attr tuple address: The user's address and port.
+        :attr str username: The username this player is logged in under.
+        :attr str object_id: The object that the player is currently attached
+            to. This is in the form of the object's ID hash.
+        :attr bool logged_in: If ``True``, the user is authenticated
+            and logged in.
         """
         # main server properties
         self.protocol = protocol 
         self.server = self.protocol.factory.server
         self.address = self.protocol.getClientAddress()
 
-        # player setup 
-        self.name = None
-        self.uid = None
+        self.username = None
+        self.object_id = None
         self.logged_in = False
 
         # This is the login shell.
@@ -42,14 +46,14 @@ class Session(object):
 
     def __str__(self):
         """
-        String representation of the user session class. We use
-        this a lot in the server logs and stuff.
+        String representation of the user session class. We use this a lot in
+        the server logs and stuff.
         """
         if self.logged_in:
             symbol = '#'
         else:
             symbol = '?'
-        return "<%s> %s@%s" % (symbol, self.name, self.address)
+        return "<%s> %s@%s" % (symbol, self.username, self.address)
         
     def msg(self, message):
         """
@@ -81,30 +85,20 @@ class Session(object):
         
     def show_game_connect_screen(self):
         """
-        Show the banner screen. Grab from the 'connect_screen'
-        config directive. If more than one connect screen is
-        defined in the ConnectScreen attribute, it will be
-        random which screen is used. 
+        Show the connect screen.
         """
         self.interactive_shell.prompt_get_username()
     
     def login(self, player):
         """
-        After the user has authenticated, this actually
-        logs them in. At this point the session has
-        a User account tied to it. User is an django
-        object that handles stuff like permissions and
-        access, it has no visible precense in the game.
-        This User object is in turn tied to a game
-        Object, which represents whatever existence
-        the player has in the game world. This is the
-        'character' referred to in this module. 
+        After the user has authenticated, this actually logs them in. Attaches
+        the Session to the account's default PlayerObject instance.
         """
         # set the session properties 
 
         user = player.user
-        self.uid = user.id
-        self.name = user.username
+        self.object_id = user.id
+        self.username = user.username
         self.logged_in = True
         self.conn_time = time.time()
         self.interactive_shell = None

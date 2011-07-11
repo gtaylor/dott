@@ -1,6 +1,5 @@
 """
-This module contains classes related to Sessions. sessionhandler has the things
-needed to manage them.
+This module contains the basic telnet protocol.
 """
 from twisted.conch.telnet import StatefulTelnetProtocol
 
@@ -11,10 +10,9 @@ from src.server.sessions.session_manager import SessionManager
 
 class MudTelnetProtocol(StatefulTelnetProtocol):
     """
-    This class represents a player's session. Each player
-    gets a session assigned to them whenever
-    they connect to the game server. All communication
-    between game and player goes through here. 
+    This protocol class serves as the lowest level pipe between the server
+    and the player. There is no game or business logic here, just
+    communication-related stuff.
     """
     def __str__(self):
         return "MudTelnetProtocol conn from %s" % self.getClientAddress()[0]
@@ -51,10 +49,10 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
         
     def lineReceived(self, raw_string):
         """
-        Communication Player -> Evennia
-        Any line return indicates a command for the purpose of the MUD.
-        So we take the user input and pass it to the Player and their currently
-        connected character.
+        This is fired every time the server receives a line from the client.
+        This gets handed off to the command parser.
+
+        :param str raw_string: The raw string received from the client.
         """
         try:
             raw_string = to_unicode(raw_string)
@@ -62,16 +60,20 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
             self.sendLine(str(e))
             return
 
+        # Hand the input off to the command parser.
         self.session.execute_command(raw_string)
 
     def msg(self, message):
         """
-        Communication Evennia -> Player        
+        Sends a message to the client.
+
+        :param str message: The message to send to the client.
         """
         try:
             message = to_str(message)
         except Exception, e:
             self.sendLine(str(e))
-            return 
+            return
+
         self.sendLine(message)
     
