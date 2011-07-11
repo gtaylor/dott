@@ -31,6 +31,7 @@ Requirements
 * Python 2.6+
 * twisted 11.0+
 * python-couchdb
+* boto 2.0rc1+
 
 License
 =======
