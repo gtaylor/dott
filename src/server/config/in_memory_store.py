@@ -46,7 +46,7 @@ class InMemoryConfigStore(object):
         if not len(self._db):
             # No config values are in the config DB. Saving right now causes
             # an empty document to be created.
-            self.save_config()
+            self._save_config()
 
     def _load_config_into_ram(self):
         """
@@ -56,7 +56,7 @@ class InMemoryConfigStore(object):
             # Retrieves the JSON doc from CouchDB.
             self._config = self._db[doc_id]
 
-    def save_config(self):
+    def _save_config(self):
         """
         Saves the config dict to CouchDB.
         """
@@ -86,4 +86,4 @@ class InMemoryConfigStore(object):
 
         self._config[config_param] = config_value
 
-        self.save_config()
+        self._save_config()

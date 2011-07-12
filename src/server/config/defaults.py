@@ -4,4 +4,5 @@ in the config DB in in_memory_store, these values are pulled as defaults.
 """
 DEFAULTS = {
     'IDLE_TIMEOUT': 3600,
+    'NEW_PLAYER_ROOM': None,
 }
