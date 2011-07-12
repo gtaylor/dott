@@ -4,17 +4,25 @@ from couchdb.http import ResourceNotFound
 from settings import DATABASES
 from src.utils import logger
 from src.server.parent_loader import PARENT_LOADER
-from src.server.config import CONFIG_STORE
 
 class InMemoryObjectStore(object):
     """
     Serves as an in-memory object store for all "physical" entities in the
     game. An "object" can be stuff like a room or a thing.
     """
-    def __init__(self, db_name=None):
+    def __init__(self, db_name=None, config_store=None):
         """
         :keyword str db_name: Overrides the DB name for the object DB.
+        :keyword InMemoryConfigStore config_store: If specified, override
+            the default global config store. This is useful for unit testing.
         """
+        self._config_store = config_store
+
+        if not self._config_store:
+            # No config store specified, use the server's default.
+            from src.server.config import CONFIG_STORE
+            self._config_store = CONFIG_STORE
+
         # Eventually contains a CouchDB reference. Queries come through here.
         self._db = None
         # Keys are CouchDB ids, values are the parent instances (children of
@@ -78,7 +86,9 @@ class InMemoryObjectStore(object):
         it and save it. Loading will be done later.
         """
         parent_path = 'src.game.parents.base_objects.room.RoomObject'
-        self.create_object(parent_path, name='And so it begins...')
+        room = self.create_object(parent_path, name='And so it begins...')
+        # Sets the newly created room as the room that new players connect to.
+        self._config_store.set_value('NEW_PLAYER_ROOM', room._id)
 
     def create_object(self, parent_path, **kwargs):
         """

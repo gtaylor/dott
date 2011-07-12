@@ -1,13 +1,18 @@
 import unittest2
 from src.server.objects.in_memory_store import InMemoryObjectStore
+from src.server.config.in_memory_store import InMemoryConfigStore
 
 class InMemoryObjectStoreTests(unittest2.TestCase):
     def setUp(self):
-        self.store = InMemoryObjectStore(db_name='dott_objects_test')
+        self.config_store = InMemoryConfigStore(db_name='dott_config_test')
+        self.store = InMemoryObjectStore(
+            db_name='dott_objects_test',
+            config_store=self.config_store)
 
     def tearDown(self):
         #pass
         del self.store._server['dott_objects_test']
+        del self.config_store._server['dott_config_test']
 
     def test_starter_room_creation(self):
         """
@@ -22,6 +27,8 @@ class InMemoryObjectStoreTests(unittest2.TestCase):
         id, room = self.store._objects.items()[0]
         # It should have been created with the standard room parent.
         self.assertEqual(room.parent, 'src.game.parents.base_objects.room.RoomObject')
+        new_player_room = self.config_store.get_value('NEW_PLAYER_ROOM')
+        self.assertNotEqual(new_player_room, None)
 
     def test_create_room(self):
         """
