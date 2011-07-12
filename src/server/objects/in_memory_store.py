@@ -4,6 +4,7 @@ from couchdb.http import ResourceNotFound
 from settings import DATABASES
 from src.utils import logger
 from src.server.parent_loader import PARENT_LOADER
+from src.server.config import CONFIG_STORE
 
 class InMemoryObjectStore(object):
     """
@@ -12,7 +13,7 @@ class InMemoryObjectStore(object):
     """
     def __init__(self, db_name=None):
         """
-        :param str db_name: Overrides the DB name for the object DB.
+        :keyword str db_name: Overrides the DB name for the object DB.
         """
         # Eventually contains a CouchDB reference. Queries come through here.
         self._db = None
@@ -32,7 +33,7 @@ class InMemoryObjectStore(object):
         Sets the :attr:`_db` reference. Creates the CouchDB if the requested
         one doesn't exist already.
 
-        :param str db_name: Overrides the DB name for the object DB.
+        :keyword str db_name: Overrides the DB name for the object DB.
         """
         if not db_name:
             # Use the default configured DB name for objects DB.
@@ -80,6 +81,15 @@ class InMemoryObjectStore(object):
         self.create_object(parent_path, name='And so it begins...')
 
     def create_object(self, parent_path, **kwargs):
+        """
+        Creates and saves a new object of the specified parent.
+
+        :param str parent_path: The full Python path + class name for a parent.
+            for example, src.game.parents.base_objects.room.RoomObject.
+        :keyword dict kwargs: Additional attributes to set on the object.
+        :rtype: BaseObject
+        :returns: The newly created/instantiated/saved object.
+        """
         NewObject = PARENT_LOADER.load_parent(parent_path)
         obj = NewObject(parent=parent_path, **kwargs)
         self.save_object(obj)
@@ -89,6 +99,8 @@ class InMemoryObjectStore(object):
         """
         Saves an object to CouchDB. The odata attribute on each object is
         the raw dict that gets saved to and loaded from CouchDB.
+
+        :param BaseObject obj_or_id: The object to save to the DB.
         """
         odata = obj_or_id.odata
         # Saves to CouchDB.
