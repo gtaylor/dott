@@ -1,7 +1,6 @@
 import datetime
 import hashlib
 
-from src.server.accounts import ACCOUNT_STORE
 from src.server.accounts.validators import is_email_valid, is_username_valid
 from src.server.accounts.exceptions import AccountNotFoundException
 from src.server.commands.interactive import InteractiveShell
@@ -24,6 +23,10 @@ class LoginShell(InteractiveShell):
     """
     def __init__(self, *args, **kwargs):
         super(LoginShell, self).__init__(*args, **kwargs)
+
+        # We will need to get and/or set accounts through the account store,
+        # so here's a convenient reference to it.
+        self._account_store = self.session.server.account_store
 
         self.current_step = self.step_get_username
         self.username_given = None
@@ -71,7 +74,7 @@ class LoginShell(InteractiveShell):
         
         try:
             # See if there's an account match.
-            self.matched_account = ACCOUNT_STORE.get_account(self.username_given)
+            self.matched_account = self._account_store.get_account(self.username_given)
         except AccountNotFoundException:
             # No account match, must be a new player.
             self.current_step = self.step_confirm_new_username
@@ -231,7 +234,7 @@ class LoginShell(InteractiveShell):
         Creates the user's new account with the given info, and the randomly
         generated password.
         """
-        ACCOUNT_STORE.create_account(
+        self._account_store.create_account(
             self.username_given,
             self.generated_password,
             self.email_given)

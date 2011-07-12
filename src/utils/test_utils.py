@@ -31,6 +31,8 @@ class DottTestCase(unittest2.TestCase):
         self.account_store = InMemoryAccountStore(
             db_name='dott_accounts_test',
             object_store=self.object_store)
+        # Can't do recursive initialization, so do this after the fact.
+        self.object_store._account_store = self.account_store
 
     def cleanup_game_env(self):
         """

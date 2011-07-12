@@ -23,7 +23,7 @@ class ParentLoader(object):
         if not self._parent_cache.has_key(parent_str):
             module_str, class_str = self._split_parent(parent_str)
 
-            module = exocet.loadNamed('src.game.parents.base_objects.room',
+            module = exocet.loadNamed(str(module_str),
                                       exocet.pep302Mapper)
             parent = getattr(module, class_str)
 

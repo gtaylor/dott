@@ -1,6 +1,4 @@
-import unittest2
 from src.utils.test_utils import DottTestCase
-from src.server.accounts.in_memory_store import PlayerAccount
 from src.server.accounts.exceptions import UsernameTakenException
 from src.server.accounts.validators import is_email_valid, is_username_valid
 
@@ -18,10 +16,22 @@ class DBAccountStoreTests(DottTestCase):
         Tests the creation and querying of an account.
         """
         account = self.account_store.create_account('TestGuy', 'yay', 'some@guy.com')
+
         # These two values should be the same. username is just a property
         # that maps to _id.
         self.assertEqual('TestGuy', account.username)
         self.assertEqual('TestGuy', account._id)
+
+        # This should be the ID of the object this account is
+        # currently controlling.
+        self.assertIsInstance(account.currently_controlling_id, basestring)
+        # The object the account is controlling.
+        obj = account.get_controlled_object()
+        # If this returns a BaseObject, we should have an ID attribute.
+        self.assertIsInstance(obj.id, basestring)
+        # This should return the account we created.
+        self.assertIs(obj.get_account_controlled_by(), account)
+
         # Make sure the password given at creation is valid.
         self.assertEqual(account.check_password('yay'), True)
         # Change the password.
@@ -43,7 +53,12 @@ class DBAccountStoreTests(DottTestCase):
                           self.account_store.create_account,
                           'TestGuy', 'yay', 'some@guy.com')
 
+
 class ValidatorTests(DottTestCase):
+    """
+    Tests some account-related validators. These mostly come into play
+    during registration and login, but they are of general use.
+    """
     def setUp(self):
         pass
 

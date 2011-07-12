@@ -10,18 +10,14 @@ class InMemoryObjectStore(object):
     Serves as an in-memory object store for all "physical" entities in the
     game. An "object" can be stuff like a room or a thing.
     """
-    def __init__(self, db_name=None, config_store=None):
+    def __init__(self, db_name=None, config_store=None, account_store=None):
         """
         :keyword str db_name: Overrides the DB name for the object DB.
         :keyword InMemoryConfigStore config_store: If specified, override
             the default global config store. This is useful for unit testing.
         """
         self._config_store = config_store
-
-        if not self._config_store:
-            # No config store specified, use the server's default.
-            from src.server.config import CONFIG_STORE
-            self._config_store = CONFIG_STORE
+        self._account_store = account_store
 
         # Eventually contains a CouchDB reference. Queries come through here.
         self._db = None
@@ -78,7 +74,7 @@ class InMemoryObjectStore(object):
         # Loads the parent class so we can instantiate the object.
         parent = PARENT_LOADER.load_parent(doc['parent'])
         # Instantiate the object, using the values from the DB as kwargs.
-        self._objects[doc_id] = parent(**doc)
+        self._objects[doc_id] = parent(object_store=self, **doc)
 
     def _create_initial_room(self):
         """
@@ -101,22 +97,32 @@ class InMemoryObjectStore(object):
         :returns: The newly created/instantiated/saved object.
         """
         NewObject = PARENT_LOADER.load_parent(parent_path)
-        obj = NewObject(parent=parent_path, **kwargs)
-        self.save_object(obj)
+        obj = NewObject(object_store=self, parent=parent_path, **kwargs)
+        obj.save()
         return obj
 
-    def save_object(self, obj_or_id):
+    def save_object(self, obj):
         """
         Saves an object to CouchDB. The odata attribute on each object is
         the raw dict that gets saved to and loaded from CouchDB.
 
         :param BaseObject obj_or_id: The object to save to the DB.
         """
-        odata = obj_or_id.odata
+        odata = obj.odata
         # Saves to CouchDB.
         id, rev = self._db.save(odata)
         # For new objects, update our in-memory object with the newly assigned
         # _id in CouchDB.
-        obj_or_id._id = id
+        obj._id = id
         # Update our in-memory cache with the saved object.
-        self._objects[odata['_id']] = obj_or_id
+        self._objects[odata['_id']] = obj
+
+    def get_object(self, obj_id):
+        """
+        Given an object ID, return the object's instance.
+
+        :param str obj_id: The ID of the object to return.
+        :returns: The requested object, which will be a :class:`BaseObject`
+            sub-class of some sort.
+        """
+        return self._objects[obj_id]
