@@ -6,7 +6,6 @@ from twisted.conch.telnet import StatefulTelnetProtocol
 from src.utils import logger
 from src.utils.general import to_unicode, to_str
 from src.server.sessions.session import Session
-from src.server.sessions.session_manager import SessionManager
 
 class MudTelnetProtocol(StatefulTelnetProtocol):
     """
@@ -16,6 +15,14 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
     """
     def __str__(self):
         return "MudTelnetProtocol conn from %s" % self.getClientAddress()[0]
+
+    @property
+    def session_manager(self):
+        """
+        Shortcut to the SessionManager instance on the MudService in
+        ``dott.tac``.
+        """
+        return self.factory.server.session_manager
         
     def connectionMade(self):
         """
@@ -23,8 +30,8 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
         """
         self.session = Session(self)
         logger.info('New connection: %s' % self)
+        self.session_manager.add_session(self.session)
         self.session.show_game_connect_screen()
-        SessionManager.add_session(self.session)
 
     def getClientAddress(self):
         """
@@ -37,7 +44,7 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
         """
         Ran when a client disconnects.
         """
-        SessionManager.remove_session(self.session)
+        self.session_manager.remove_session(self.session)
         self.transport.loseConnection()        
 
     def connectionLost(self, reason):

@@ -9,7 +9,6 @@ from twisted.internet import protocol, reactor
 
 import settings
 from src.server.protocols.telnet import MudTelnetProtocol
-from src.server.sessions.session_manager import SessionManager
 
 class MudService(service.Service):
     """
@@ -23,6 +22,7 @@ class MudService(service.Service):
         from src.server.config.in_memory_store import InMemoryConfigStore
         from src.server.accounts.in_memory_store import InMemoryAccountStore
         from src.server.objects.in_memory_store import InMemoryObjectStore
+        from src.server.sessions.session_manager import SessionManager
 
         self.config_store = InMemoryConfigStore()
         self.object_store = InMemoryObjectStore(
@@ -33,6 +33,8 @@ class MudService(service.Service):
         )
         # Have to set this after account store initialization.
         self.object_store._account_store = self.account_store
+
+        self.session_manager = SessionManager()
         
         # Begin startup debug output.
         print('\n' + '-' * 50)
