@@ -1,7 +1,7 @@
-import unittest2
+from src.utils.test_utils import DottTestCase
 from src.server.commands.parser import CommandParser, ParsedCommand
 
-class CommandParserTests(unittest2.TestCase):
+class CommandParserTests(DottTestCase):
     def setUp(self):
         self.parser = CommandParser()
 

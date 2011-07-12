@@ -1,21 +1,15 @@
 import unittest2
-from src.server.accounts.in_memory_store import InMemoryAccountStore, PlayerAccount
+from src.utils.test_utils import DottTestCase
+from src.server.accounts.in_memory_store import PlayerAccount
 from src.server.accounts.exceptions import UsernameTakenException
 from src.server.accounts.validators import is_email_valid, is_username_valid
 
-class DBAccountStoreTests(unittest2.TestCase):
-    def setUp(self):
-        self.store = InMemoryAccountStore(db_name='dott_accounts_test')
-
-    def tearDown(self):
-        #pass
-        del self.store._server['dott_accounts_test']
-
+class DBAccountStoreTests(DottTestCase):
     def test_empty_db_creation(self):
         """
         Makes sure the default DB is created.
         """
-        num_objects = len(self.store._db)
+        num_objects = len(self.account_store._db)
         # The DB should be reachable, but empty.
         self.assertEqual(num_objects, 0)
 
@@ -23,7 +17,7 @@ class DBAccountStoreTests(unittest2.TestCase):
         """
         Tests the creation and querying of an account.
         """
-        account = self.store.create_account('TestGuy', 'yay', 'some@guy.com')
+        account = self.account_store.create_account('TestGuy', 'yay', 'some@guy.com')
         # These two values should be the same. username is just a property
         # that maps to _id.
         self.assertEqual('TestGuy', account.username)
@@ -37,19 +31,25 @@ class DBAccountStoreTests(unittest2.TestCase):
         # Try the old original value and make sure it doesn't match.
         self.assertEqual(account.check_password('yay'), False)
 
-        num_accounts = len(self.store._db)
+        num_accounts = len(self.account_store._db)
         self.assertEqual(num_accounts, 1)
 
         # Just make sure it works.
-        self.store.get_account('TestGuy')
+        self.account_store.get_account('TestGuy')
 
         # Trying to create an account with a username that is already
         # in use.
         self.assertRaises(UsernameTakenException,
-                          self.store.create_account,
+                          self.account_store.create_account,
                           'TestGuy', 'yay', 'some@guy.com')
 
-class ValidatorTests(unittest2.TestCase):
+class ValidatorTests(DottTestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+    
     def test_email_validator(self):
         """
         Tests the email validation function.

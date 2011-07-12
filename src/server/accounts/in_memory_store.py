@@ -85,10 +85,17 @@ class InMemoryAccountStore(object):
     """
     Serves as an in-memory store for all account values.
     """
-    def __init__(self, db_name=None):
+    def __init__(self, db_name=None, object_store=None):
         """
         :param str db_name: Overrides the DB name for the account DB.
         """
+        self._object_store = object_store
+
+        if not self._object_store:
+            # No config store specified, use the server's default.
+            from src.server.objects import OBJECT_STORE
+            self._object_store = OBJECT_STORE
+
         # Reference to CouchDB server connection.
         self._server = couchdb.Server()
         # Eventually contains a CouchDB reference. Queries come through here.
