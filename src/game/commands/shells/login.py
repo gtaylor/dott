@@ -55,7 +55,7 @@ class LoginShell(InteractiveShell):
         if not user_input:
             # Probably just hit enter. Ask again.
             self.prompt_get_username()
-            return
+            return False
 
         if not is_username_valid(user_input):
             self.session.msg(
@@ -64,7 +64,7 @@ class LoginShell(InteractiveShell):
                 'alphanumerics, spaces, and underscores.\n'
             )
             self.prompt_get_username()
-            return
+            return False
 
         # At this point, username is valid.
         self.username_given = user_input
@@ -76,10 +76,11 @@ class LoginShell(InteractiveShell):
             # No account match, must be a new player.
             self.current_step = self.step_confirm_new_username
             self.prompt_confirm_new_username()
-            return
+            return False
 
         self.current_step = self.step_get_existing_user_password
         self.prompt_get_existing_user_password()
+        return True
 
     def prompt_get_existing_user_password(self):
         """
@@ -93,6 +94,7 @@ class LoginShell(InteractiveShell):
         """
         if not user_input:
             self.prompt_get_existing_user_password()
+            return False
 
         if self.matched_account.check_password(user_input):
             self.session.msg("Logging in...")
@@ -101,7 +103,7 @@ class LoginShell(InteractiveShell):
             self.session.msg("Invalid password specified. Login attempt logged.\n")
             self.current_step = self.step_get_username
             self.prompt_get_username()
-            return
+            return False
 
     def prompt_confirm_new_username(self):
         """
@@ -120,7 +122,7 @@ class LoginShell(InteractiveShell):
         if user_input not in ['Y', 'y', 'N', 'n']:
             # Something other than y/n. Ask again.
             self.prompt_confirm_new_username()
-            return
+            return False
 
         if user_input.lower() == 'n':
             # User is not new. Must have just fat-fingered something. Send
@@ -128,11 +130,12 @@ class LoginShell(InteractiveShell):
             self.current_step = self.step_get_username
             self.username_given = None
             self.prompt_get_username()
-            return
+            return True
 
         # New player, start gathering email address for password generation.
         self.prompt_get_email_address_1()
         self.current_step = self.step_get_email_address_1
+        return True
 
     def prompt_get_email_address_1(self):
         """
@@ -154,12 +157,13 @@ class LoginShell(InteractiveShell):
         if not user_input or not is_email_valid(user_input):
             self.session.msg('Invalid email address.\n')
             self.prompt_get_email_address_1()
-            return
+            return False
 
         # Valid email address, ask again to verify.
         self.prompt_get_email_address_2()
         self.email_given = user_input
         self.current_step = self.step_get_email_address_2
+        return True
 
     def prompt_get_email_address_2(self):
         """
@@ -177,10 +181,11 @@ class LoginShell(InteractiveShell):
             self.session.msg("Your email addresses didn't match.\n")
             self.prompt_get_email_address_1()
             self.current_step = self.step_get_email_address_1
-            return
+            return False
 
         # Email address matches, create the account.
         self._create_new_account()
+        return True
 
     def _create_new_account(self):
         """
