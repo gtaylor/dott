@@ -12,6 +12,10 @@ class InMemoryObjectStore(object):
     """
     def __init__(self, db_name=None, config_store=None, account_store=None):
         """
+        .. warning:: Due to the order this class is instantiated in
+            ``dott.tac``, do not interact with self._account_store within
+            this constructor, as it won't be set yet.
+
         :keyword str db_name: Overrides the DB name for the object DB.
         :keyword InMemoryConfigStore config_store: If specified, override
             the default global config store. This is useful for unit testing.
