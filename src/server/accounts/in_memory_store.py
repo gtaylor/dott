@@ -99,12 +99,12 @@ class InMemoryAccountStore(object):
 
     def save_account(self, account):
         """
-        Saves an account to CouchDB. The odata attribute on each account is
+        Saves an account to CouchDB. The _odata attribute on each account is
         the raw dict that gets saved to and loaded from CouchDB.
 
         :param PlayerAccount account: The account to save.
         """
-        odata = account.odata
+        odata = account._odata
         username = odata['_id'].lower()
         self._db.save(odata)
         self._accounts[username] = account

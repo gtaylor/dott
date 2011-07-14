@@ -23,7 +23,7 @@ class PlayerAccount(object):
         self._account_store = account_store
         self._object_store = object_store
 
-        self.odata = kwargs
+        self._odata = kwargs
 
     def save(self):
         """
@@ -38,7 +38,7 @@ class PlayerAccount(object):
         :rtype: str
         :returns: The account's username.
         """
-        return self.odata['_id']
+        return self._odata['_id']
     def set_username(self, username):
         """
         Sets the account's username to something else.
@@ -46,7 +46,7 @@ class PlayerAccount(object):
         .. warning:: Be careful with this, we might need to detect for
             collisions manually, or risk over-writing accounts.
         """
-        self.odata['_id'] = username
+        self._odata['_id'] = username
     username = property(get_username, set_username)
 
     @property
@@ -57,7 +57,7 @@ class PlayerAccount(object):
         :rtype: str
         :returns: The SHA512 password hash.
         """
-        return self.odata['password']
+        return self._odata['password']
 
     def _get_hash_for_password(self, password):
         """
@@ -80,7 +80,7 @@ class PlayerAccount(object):
 
         :param str new_password: The new password to set.
         """
-        self.odata['password'] = self._get_hash_for_password(new_password)
+        self._odata['password'] = self._get_hash_for_password(new_password)
 
     def check_password(self, password):
         """
@@ -102,7 +102,7 @@ class PlayerAccount(object):
         :returns: An instance of a :class:`BaseObject` sub-class, or
             ``None`` if this account is not controlling anything.
         """
-        controlled_id = self.odata.get('currently_controlling_id')
+        controlled_id = self._odata.get('currently_controlling_id')
         if controlled_id:
             return self._object_store.get_object(controlled_id)
         return None
@@ -115,8 +115,8 @@ class PlayerAccount(object):
         :type obj_or_id: A ``BaseObject`` sub-class or a ``str``.
         """
         if isinstance(obj_or_id, basestring):
-            self.odata['currently_controlling_id'] = id
+            self._odata['currently_controlling_id'] = id
         else:
-            self.odata['currently_controlling_id'] = obj_or_id._id
+            self._odata['currently_controlling_id'] = obj_or_id._id
     currently_controlling = property(get_currently_controlling,
                                      set_currently_controlling)
