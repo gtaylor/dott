@@ -25,11 +25,9 @@ class PlayerAccount(object):
 
         self._odata = kwargs
 
-    def save(self):
-        """
-        Shortcut for saving an object to the account store.
-        """
-        self._account_store.save_account(self)
+    """
+    Begin properties
+    """
 
     def get_username(self):
         """
@@ -48,6 +46,43 @@ class PlayerAccount(object):
         """
         self._odata['_id'] = username
     username = property(get_username, set_username)
+
+    def get_currently_controlling(self):
+        """
+        Determines what object this account is currently controlling and
+        returns it.
+
+        :returns: An instance of a :class:`BaseObject` sub-class, or
+            ``None`` if this account is not controlling anything.
+        """
+        controlled_id = self._odata.get('currently_controlling_id')
+        if controlled_id:
+            return self._object_store.get_object(controlled_id)
+        return None
+    def set_currently_controlling(self, obj_or_id):
+        """
+        Sets what this account is controlling.
+
+        :param obj_or_id: The object or object ID to set as the thing
+            being controlled by this account.
+        :type obj_or_id: A ``BaseObject`` sub-class or a ``str``.
+        """
+        if isinstance(obj_or_id, basestring):
+            self._odata['currently_controlling_id'] = id
+        else:
+            self._odata['currently_controlling_id'] = obj_or_id._id
+    currently_controlling = property(get_currently_controlling,
+                                     set_currently_controlling)
+
+    """
+    Begin regular methods.
+    """
+
+    def save(self):
+        """
+        Shortcut for saving an object to the account store.
+        """
+        self._account_store.save_account(self)
 
     @property
     def password(self):
@@ -93,30 +128,3 @@ class PlayerAccount(object):
         """
         given_hash = self._get_hash_for_password(password)
         return given_hash == self.password
-
-    def get_currently_controlling(self):
-        """
-        Determines what object this account is currently controlling and
-        returns it.
-
-        :returns: An instance of a :class:`BaseObject` sub-class, or
-            ``None`` if this account is not controlling anything.
-        """
-        controlled_id = self._odata.get('currently_controlling_id')
-        if controlled_id:
-            return self._object_store.get_object(controlled_id)
-        return None
-    def set_currently_controlling(self, obj_or_id):
-        """
-        Sets what this account is controlling.
-
-        :param obj_or_id: The object or object ID to set as the thing
-            being controlled by this account.
-        :type obj_or_id: A ``BaseObject`` sub-class or a ``str``.
-        """
-        if isinstance(obj_or_id, basestring):
-            self._odata['currently_controlling_id'] = id
-        else:
-            self._odata['currently_controlling_id'] = obj_or_id._id
-    currently_controlling = property(get_currently_controlling,
-                                     set_currently_controlling)

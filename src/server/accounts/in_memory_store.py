@@ -78,8 +78,8 @@ class InMemoryAccountStore(object):
         # Create a PlayerObject for this PlayerAccount to control.
         player_obj = self._object_store.create_object(
             'src.game.parents.base_objects.player.PlayerObject',
-            original_account=username,
-            controlled_by_account=username,
+            original_account_id=username,
+            controlled_by_account_id=username,
         )
 
         # Create the PlayerAccount, pointed at the PlayerObject's _id.

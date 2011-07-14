@@ -107,12 +107,12 @@ class InMemoryObjectStore(object):
 
     def save_object(self, obj):
         """
-        Saves an object to CouchDB. The odata attribute on each object is
+        Saves an object to CouchDB. The _odata attribute on each object is
         the raw dict that gets saved to and loaded from CouchDB.
 
         :param BaseObject obj_or_id: The object to save to the DB.
         """
-        odata = obj.odata
+        odata = obj._odata
         # Saves to CouchDB.
         id, rev = self._db.save(odata)
         # For new objects, update our in-memory object with the newly assigned

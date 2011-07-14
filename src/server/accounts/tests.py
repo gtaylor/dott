@@ -29,7 +29,7 @@ class DBAccountStoreTests(DottTestCase):
         # If this returns a BaseObject, we should have an ID attribute.
         self.assertIsInstance(obj.id, basestring)
         # This should return the account we created.
-        self.assertIs(obj.get_account_controlled_by(), account)
+        self.assertIs(obj.controlled_by, account)
 
         # Make sure the password given at creation is valid.
         self.assertEqual(account.check_password('yay'), True)

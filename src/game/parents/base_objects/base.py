@@ -16,35 +16,18 @@ class BaseObject(object):
 
         # This stores all of the object's data. This includes core and
         # userspace attributes.
-        self.odata = kwargs
+        self._odata = kwargs
 
-        # The 'attributes' key in the odata dict contains userspace attributes,
+        # The 'attributes' key in the _odata dict contains userspace attributes,
         # which are "user" defined (user being the developer), rather than
         # the core attributes in the top level of the dict.
-        if not self.odata.has_key('attributes'):
+        if not self._odata.has_key('attributes'):
             # No attributes dict found, create one so it may be saved to the DB.
-            self.odata['attributes'] = {}
+            self._odata['attributes'] = {}
 
-    def __getattr__(self, name):
-        """
-        If the user requests an attribute that can't be found on an object,
-        assume they're looking for a core attribute. They can also get at the
-        userspace attributes.
-
-        :param str name: The attribute the user is looking for.
-        :returns: The requested value, pulled from :attrib:`odata`.
-        :raises: AttributeError if no match is found in :attrib:`odata`.
-        """
-        if self.odata.has_key(name):
-            return self.odata[name]
-
-        raise AttributeError()
-
-    def save(self):
-        """
-        Shortcut for saving an object to the object store it's a member of.
-        """
-        self._object_store.save_object(self)
+    """
+    Begin properties.
+    """
 
     def get_id(self):
         """
@@ -53,29 +36,50 @@ class BaseObject(object):
         :rtype: str
         :returns: The object's ID.
         """
-        return self.odata['_id']
-    def set_id(self, id):
+        return self._odata['_id']
+    def set_id(self, new_id):
         """
         Be really careful doing this. Sets the room's ID, but no duplication
         checks are performed.
 
-        :param str id: The new ID to set.
+        :param str new_id: The new ID to set.
         """
-        self.odata['_id'] = id
+        self._odata['_id'] = new_id
     id = property(get_id, set_id)
 
-    def get_account_controlled_by(self):
+    def get_name(self):
         """
-        Returns the PlayerAccount that is controlling this object, or ``None``
-        if the object is un-controlled.
+        Returns the object's name.
 
-        .. note:: Controlled does not mean connected.
-
-        :rtype: :class:`src.server.accounts.account.PlayerAccount` or ``None``
-        :returns: If controlled by an account, returns the account. If nothing
-            controls this object, returns ``None``.
+        :rtype: str
+        :returns: The object's name.
         """
-        return self._account_store.get_account(self.controlled_by_account)
+        return self._odata['name']
+    def set_name(self, name):
+        """
+        Sets the object's name.
+
+        :param str name: The new name for the object.
+        """
+        self._odata['name'] = name
+    name = property(get_name, set_name)
+
+    def get_parent(self):
+        """
+        Returns the object's parent class.
+
+        :rtype: str
+        :returns: The object's parent class.
+        """
+        return self._odata['parent']
+    def set_parent(self, parent_class_path):
+        """
+        Sets the object's parent.
+
+        :param str id: The new name for the object.
+        """
+        self._odata['parent'] = parent_class_path
+    parent = property(get_parent, set_parent)
 
     def get_location(self):
         """
@@ -86,7 +90,7 @@ class BaseObject(object):
             is currently in. Typically a ``RoomObject``, but can also be
             other types.
         """
-        loc_id = self.odata.get('location_id')
+        loc_id = self._odata.get('location_id')
         if loc_id:
             return self._object_store.get_object(loc_id)
         else:
@@ -100,7 +104,46 @@ class BaseObject(object):
         :type obj_or_id: A ``BaseObject`` sub-class or a ``str``.
         """
         if isinstance(obj_or_id, basestring):
-            self.odata['location_id'] = obj_or_id
+            self._odata['location_id'] = obj_or_id
         else:
-            self.odata['location_id'] = obj_or_id._id
+            self._odata['location_id'] = obj_or_id._id
     location = property(get_location, set_location)
+
+    def get_controlled_by(self):
+        """
+        Returns the PlayerAccount that is controlling this object, or ``None``
+        if the object is un-controlled.
+
+        .. note:: Controlled does not mean connected.
+
+        :rtype: :class:`src.server.accounts.account.PlayerAccount` or ``None``
+        :returns: If controlled by an account, returns the account. If nothing
+            controls this object, returns ``None``.
+        """
+        username = self._odata.get('controlled_by_account_id')
+        if username:
+            return self._account_store.get_account(username)
+        else:
+            return None
+    def set_controlled_by(self, account_or_username):
+        """
+        Sets the PlayerAccount that controls this object.
+
+        :param account_or_id: The account or username that controls this object.
+        :type obj_or_id: A :class:`src.accounts.account.PlayerAccount` or ``str``.
+        """
+        if isinstance(obj_or_id, basestring):
+            self._odata['controlled_by_account_id'] = account_or_username
+        else:
+            self._odata['controlled_by_account_id'] = account_or_username.username
+    controlled_by = property(get_controlled_by, set_controlled_by)
+
+    """
+    Begin regular methods.
+    """
+
+    def save(self):
+        """
+        Shortcut for saving an object to the object store it's a member of.
+        """
+        self._object_store.save_object(self)
