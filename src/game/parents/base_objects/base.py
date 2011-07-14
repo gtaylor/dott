@@ -47,10 +47,21 @@ class BaseObject(object):
         self._object_store.save_object(self)
 
     def get_id(self):
+        """
+        Returns the object's ID. This is a CouchDB hash string.
+
+        :rtype: str
+        :returns: The object's ID.
+        """
         return self.odata['_id']
     def set_id(self, id):
+        """
+        Be really careful doing this. Sets the room's ID, but no duplication
+        checks are performed.
+
+        :param str id: The new ID to set.
+        """
         self.odata['_id'] = id
-    # Aliases _id to id, since we really want it to be public.
     id = property(get_id, set_id)
 
     def get_account_controlled_by(self):
@@ -59,6 +70,10 @@ class BaseObject(object):
         if the object is un-controlled.
 
         .. note:: Controlled does not mean connected.
+
+        :rtype: :class:`src.server.accounts.account.PlayerAccount` or ``None``
+        :returns: If controlled by an account, returns the account. If nothing
+            controls this object, returns ``None``.
         """
         return self._account_store.get_account(self.controlled_by_account)
 
