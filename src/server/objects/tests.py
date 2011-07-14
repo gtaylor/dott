@@ -1,6 +1,12 @@
 from src.utils.test_utils import DottTestCase
 
 class InMemoryObjectStoreTests(DottTestCase):
+    """
+    Testing of the InMemoryObjectStore storage backend.
+    """
+    # Here for convenient reference.
+    ROOM_PARENT = 'src.game.parents.base_objects.room.RoomObject'
+
     def test_starter_room_creation(self):
         """
         Makes sure the default DB is created with one room. Check some
@@ -13,7 +19,7 @@ class InMemoryObjectStoreTests(DottTestCase):
         # Get the starter room instance.
         id, room = self.object_store._objects.items()[0]
         # It should have been created with the standard room parent.
-        self.assertEqual(room.parent, 'src.game.parents.base_objects.room.RoomObject')
+        self.assertEqual(room.parent, self.ROOM_PARENT)
         new_player_room = self.config_store.get_value('NEW_PLAYER_ROOM')
         self.assertNotEqual(new_player_room, None)
 
@@ -21,7 +27,7 @@ class InMemoryObjectStoreTests(DottTestCase):
         """
         Creates a room and double-checks some values.
         """
-        parent_path = 'src.game.parents.base_objects.room.RoomObject'
+        parent_path = self.ROOM_PARENT
         room = self.object_store.create_object(parent_path, name='Another room')
         # The _id attribute should have a value from CouchDB.
         self.assertIsInstance(room._id, basestring)

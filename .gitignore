@@ -9,3 +9,5 @@
 local_settings.py
 .coverage
 .DS_Store
+*,cover
+cover_html
