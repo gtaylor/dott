@@ -34,7 +34,7 @@ class MudService(service.Service):
         # Have to set this after account store initialization.
         self.object_store._account_store = self.account_store
 
-        self.session_manager = SessionManager()
+        self.session_manager = SessionManager(config_store=self.config_store)
         
         # Begin startup debug output.
         print('\n' + '-' * 50)

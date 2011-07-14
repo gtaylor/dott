@@ -10,7 +10,12 @@ class SessionManager(object):
 
     :attr list _sessions: The list of currently connected sessions.
     """
-    def __init__(self):
+    def __init__(self, config_store):
+        """
+        :param InMemoryConfigStore config_store: The config store to retrieve
+            settings from.
+        """
+        self._config_store = config_store
         self._sessions = []
 
     def add_session(self, session):
@@ -43,8 +48,7 @@ class SessionManager(object):
         if len(self._sessions) <= 0:
             return
 
-        # TODO: Make this use the new config backend.
-        idle_timeout = int(settings.IDLE_TIMEOUT)
+        idle_timeout = int(self._config_store.get_value('IDLE_TIMEOUT'))
         if idle_timeout <= 0:
             return
         

@@ -7,3 +7,5 @@
 *.log
 .idea
 local_settings.py
+.coverage
+.DS_Store
