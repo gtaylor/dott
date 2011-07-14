@@ -61,3 +61,31 @@ class BaseObject(object):
         .. note:: Controlled does not mean connected.
         """
         return self._account_store.get_account(self.controlled_by_account)
+
+    def get_location(self):
+        """
+        Determines the object's location and returns the instance representing
+        this object's location.
+
+        :returns: The ``BaseObject`` instance (sub-class) that this object
+            is currently in. Typically a ``RoomObject``, but can also be
+            other types.
+        """
+        loc_id = self.odata.get('location_id')
+        if loc_id:
+            return self._object_store.get_object(loc_id)
+        else:
+            return None
+    def set_location(self, obj_or_id):
+        """
+        Sets this object's location.
+
+        :param obj_or_id: The object or object ID to set as the
+            object's location.
+        :type obj_or_id: A ``BaseObject`` sub-class or a ``str``.
+        """
+        if isinstance(obj_or_id, basestring):
+            self.odata['location_id'] = obj_or_id
+        else:
+            self.odata['location_id'] = obj_or_id._id
+    location = property(get_location, set_location)

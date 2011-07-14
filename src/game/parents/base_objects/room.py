@@ -5,4 +5,9 @@ class RoomObject(BaseObject):
     All rooms inherit this parent class. It further extends BaseObject with
     room-specific behavior.
     """
-    pass
+    @property
+    def location(self):
+        """
+        Rooms never have a location.
+        """
+        return None

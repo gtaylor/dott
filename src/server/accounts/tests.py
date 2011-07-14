@@ -20,13 +20,12 @@ class DBAccountStoreTests(DottTestCase):
         # These two values should be the same. username is just a property
         # that maps to _id.
         self.assertEqual('TestGuy', account.username)
-        self.assertEqual('TestGuy', account._id)
 
         # This should be the ID of the object this account is
         # currently controlling.
-        self.assertIsInstance(account.currently_controlling_id, basestring)
+        self.assertIsInstance(account.currently_controlling.id, basestring)
         # The object the account is controlling.
-        obj = account.get_controlled_object()
+        obj = account.currently_controlling
         # If this returns a BaseObject, we should have an ID attribute.
         self.assertIsInstance(obj.id, basestring)
         # This should return the account we created.

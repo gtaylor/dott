@@ -113,6 +113,9 @@ class InMemoryObjectStore(object):
         :param BaseObject obj_or_id: The object to save to the DB.
         """
         odata = obj.odata
+        import pprint
+        print "SAVING"
+        pprint.pprint(odata)
         # Saves to CouchDB.
         id, rev = self._db.save(odata)
         # For new objects, update our in-memory object with the newly assigned

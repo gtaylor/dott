@@ -7,37 +7,23 @@ class PlayerAccount(object):
     This class abstracts accounts out, and is specific to the
     InMemoryAccountStore backend.
     """
-    def __init__(self, account_store, object_store, **kwargs):
+    def __init__(self, account_store, object_store,
+                 **kwargs):
         """
         :param InMemoryAccountStore account_store: The account store that
             instantiated this object.
         :param InMemoryObjectStore the global object store.
-        :param dict kwargs: All accounts are instantiated with the values from
-            the DB as kwargs. Since the DB representation of all of an
-            account attributes is just a dict, this works really well.
+
+        :keyword str _id: The username for the account.
+        :keyword str email: The email address associated with this account.
+        :keyword str password: The encrypted password string.
+        :keyword str currently_controlling_id: The ID of the Object this
+            account is currently controlling.
         """
         self._account_store = account_store
         self._object_store = object_store
 
-        if kwargs.has_key('username'):
-            kwargs['_id'] = kwargs.pop('username')
-
-        # This stores all of the account's data.
         self.odata = kwargs
-
-    def __getattr__(self, name):
-        """
-        If the user requests an attribute that can't be found on an account,
-        assume they're looking for an attribute.
-
-        :param str name: The attribute the user is looking for.
-        :returns: The requested value, pulled from :attrib:`odata`.
-        :raises: AttributeError if no match is found in :attrib:`odata`.
-        """
-        if self.odata.has_key(name):
-            return self.odata[name]
-
-        raise AttributeError()
 
     def save(self):
         """
@@ -46,11 +32,32 @@ class PlayerAccount(object):
         self._account_store.save_account(self)
 
     def get_username(self):
+        """
+        The account's username serves as its CouchDB _id.
+
+        :rtype: str
+        :returns: The account's username.
+        """
         return self.odata['_id']
     def set_username(self, username):
+        """
+        Sets the account's username to something else.
+
+        .. warning:: Be careful with this, we might need to detect for
+            collisions manually, or risk over-writing accounts.
+        """
         self.odata['_id'] = username
-    # This just acts as an alias to self.odata['_id'].
     username = property(get_username, set_username)
+
+    @property
+    def password(self):
+        """
+        Returns the raw, SHA512'd password hash.
+
+        :rtype: str
+        :returns: The SHA512 password hash.
+        """
+        return self.odata['password']
 
     def _get_hash_for_password(self, password):
         """
@@ -87,9 +94,29 @@ class PlayerAccount(object):
         given_hash = self._get_hash_for_password(password)
         return given_hash == self.password
 
-    def get_controlled_object(self):
+    def get_currently_controlling(self):
         """
         Determines what object this account is currently controlling and
         returns it.
+
+        :returns: An instance of a :class:`BaseObject` sub-class, or
+            ``None`` if this account is not controlling anything.
         """
-        return self._object_store.get_object(self.currently_controlling_id)
+        controlled_id = self.odata.get('currently_controlling_id')
+        if controlled_id:
+            return self._object_store.get_object(controlled_id)
+        return None
+    def set_currently_controlling(self, obj_or_id):
+        """
+        Sets what this account is controlling.
+
+        :param obj_or_id: The object or object ID to set as the thing
+            being controlled by this account.
+        :type obj_or_id: A ``BaseObject`` sub-class or a ``str``.
+        """
+        if isinstance(obj_or_id, basestring):
+            self.odata['currently_controlling_id'] = id
+        else:
+            self.odata['currently_controlling_id'] = obj_or_id._id
+    currently_controlling = property(get_currently_controlling,
+                                     set_currently_controlling)

@@ -53,7 +53,7 @@ class InMemoryAccountStore(object):
         """
         for doc_id in self._db:
             username = doc_id
-            doc = self._db[username]
+            doc = self._db[doc_id]
             # Retrieves the JSON doc from CouchDB.
             self._accounts[username.lower()] = PlayerAccount(
                 account_store=self,
@@ -86,9 +86,10 @@ class InMemoryAccountStore(object):
         account = PlayerAccount(
             account_store=self,
             object_store=self._object_store,
-            username=username,
+            _id=username,
             email=email,
-            currently_controlling_id=player_obj._id
+            currently_controlling_id=player_obj._id,
+            password=None
         )
         # Hashes the password for safety.
         account.set_password(password)

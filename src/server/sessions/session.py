@@ -17,20 +17,16 @@ class Session(object):
         :attr MudService server: The top-level MudService instance found in
             dott.tac.
         :attr tuple address: The user's address and port.
-        :attr str username: The username this player is logged in under.
-        :attr str object_id: The object that the player is currently attached
-            to. This is in the form of the object's ID hash.
-        :attr bool logged_in: If ``True``, the user is authenticated
-            and logged in.
+        :attr PlayerAccount account: The account this session is logged in
+            as (or None if not logged in.
         """
         # main server properties
         self.protocol = protocol 
         self.server = self.protocol.factory.server
         self.address = self.protocol.getClientAddress()
+        self._config_store = self.server.config_store
 
-        self.username = None
-        self.object_id = None
-        self.logged_in = False
+        self.account = None
 
         # This is the login shell.
         self.interactive_shell = LoginShell(self)
@@ -49,11 +45,11 @@ class Session(object):
         String representation of the user session class. We use this a lot in
         the server logs and stuff.
         """
-        if self.logged_in:
+        if self.account:
             symbol = '#'
         else:
             symbol = '?'
-        return "<%s> %s@%s" % (symbol, self.username, self.address)
+        return "<%s> %s@%s" % (symbol, self.account, self.address)
         
     def msg(self, message):
         """
@@ -82,6 +78,15 @@ class Session(object):
             self.cmd_total += 1
             # Player-visible idle time, not used in idle timeout calcs.
             self.cmd_last_visible = time.time()
+
+    def is_logged_in(self):
+        """
+        Determines whether this session is a logged in player.
+
+        :rtype: bool
+        :returns: ``True`` if this session is logged in, ``False`` otherwise.
+        """
+        return self.account is not None
         
     def show_game_connect_screen(self):
         """
@@ -89,21 +94,38 @@ class Session(object):
         """
         self.interactive_shell.prompt_get_username()
     
-    def login(self, player):
+    def login(self, account):
         """
         After the user has authenticated, this actually logs them in. Attaches
         the Session to the account's default PlayerObject instance.
         """
         # set the session properties 
-
-        user = player.user
-        self.object_id = user.id
-        self.username = user.username
-        self.logged_in = True
+        self.account = account
         self.conn_time = time.time()
         self.interactive_shell = None
-        
+
         logger.info("Logged in: %s" % self)
+
+        controlled = self.get_controlled_object()
+        if controlled.location == None:
+            starter_room = self._config_store.get_value('NEW_PLAYER_ROOM')
+            controlled.location = starter_room
+            logger.info("No location for PlayerObject(%s), setting to "\
+                        "NEW_PLAYER_ROOM.")
+            controlled.save()
+
+    def get_controlled_object(self):
+        """
+        Determines what object this session's account is currently
+        controlling and returns it.
+
+        :returns: The BaseObject sub-class instance the session's account is
+            controlling. If not logged in, ``None`` is returned instead.
+        """
+        if self.account:
+            return self.account.currently_controlling
+        else:
+            return None
 
     def execute_command(self, command_string):
         """

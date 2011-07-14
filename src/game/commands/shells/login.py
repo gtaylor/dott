@@ -101,7 +101,7 @@ class LoginShell(InteractiveShell):
 
         if self.matched_account.check_password(user_input):
             self.session.msg("Logging in...")
-            # TODO: Do the login stuff here.
+            self.session.login(self.matched_account)
         else:
             self.session.msg("Invalid password specified. Login attempt logged.\n")
             self.current_step = self.step_get_username
