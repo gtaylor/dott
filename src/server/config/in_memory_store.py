@@ -66,7 +66,7 @@ class InMemoryConfigStore(object):
         """
         Returns the value for a config key.
 
-        :param str config_val: The config key whose value to retrieve.
+        :param str config_param: The config key whose value to retrieve.
         :returns: The value for the config key.
         """
         if not DEFAULTS.has_key(config_param):

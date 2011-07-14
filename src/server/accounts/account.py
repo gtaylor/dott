@@ -25,9 +25,9 @@ class PlayerAccount(object):
 
         self._odata = kwargs
 
-    """
-    Begin properties
-    """
+    #
+    ## Begin properties
+    #
 
     def get_username(self):
         """
@@ -74,9 +74,9 @@ class PlayerAccount(object):
     currently_controlling = property(get_currently_controlling,
                                      set_currently_controlling)
 
-    """
-    Begin regular methods.
-    """
+    #
+    ## Begin regular methods.
+    #
 
     def save(self):
         """

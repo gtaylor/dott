@@ -25,9 +25,9 @@ class BaseObject(object):
             # No attributes dict found, create one so it may be saved to the DB.
             self._odata['attributes'] = {}
 
-    """
-    Begin properties.
-    """
+    #
+    ## Begin properties.
+    #
 
     def get_id(self):
         """
@@ -76,7 +76,7 @@ class BaseObject(object):
         """
         Sets the object's parent.
 
-        :param str id: The new name for the object.
+        :param str parent_class_path: The new name for the object.
         """
         self._odata['parent'] = parent_class_path
     parent = property(get_parent, set_parent)
@@ -129,18 +129,20 @@ class BaseObject(object):
         """
         Sets the PlayerAccount that controls this object.
 
-        :param account_or_id: The account or username that controls this object.
-        :type obj_or_id: A :class:`src.accounts.account.PlayerAccount` or ``str``.
+        :param account_or_username: The account or username that controls
+            this object.
+        :type account_or_username: A
+            :class:`src.accounts.account.PlayerAccount` or ``str``.
         """
-        if isinstance(obj_or_id, basestring):
+        if isinstance(account_or_username, basestring):
             self._odata['controlled_by_account_id'] = account_or_username
         else:
             self._odata['controlled_by_account_id'] = account_or_username.username
     controlled_by = property(get_controlled_by, set_controlled_by)
 
-    """
-    Begin regular methods.
-    """
+    #
+    ## Begin regular methods.
+    #
 
     def save(self):
         """

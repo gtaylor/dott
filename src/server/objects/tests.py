@@ -30,6 +30,6 @@ class InMemoryObjectStoreTests(DottTestCase):
         parent_path = self.ROOM_PARENT
         room = self.object_store.create_object(parent_path, name='Another room')
         # The _id attribute should have a value from CouchDB.
-        self.assertIsInstance(room._id, basestring)
+        self.assertIsInstance(room.id, basestring)
         # The room name should match what was given during creation.
         self.assertEqual('Another room', room.name)

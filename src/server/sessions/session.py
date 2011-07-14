@@ -107,7 +107,7 @@ class Session(object):
         logger.info("Logged in: %s" % self)
 
         controlled = self.get_controlled_object()
-        if controlled.location == None:
+        if controlled.location is None:
             starter_room = self._config_store.get_value('NEW_PLAYER_ROOM')
             controlled.location = starter_room
             logger.info("No location for PlayerObject(%s), setting to "\

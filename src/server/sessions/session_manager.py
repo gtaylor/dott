@@ -1,7 +1,6 @@
 import time
 
 from src.utils import logger
-import settings
 
 class SessionManager(object):
     """
