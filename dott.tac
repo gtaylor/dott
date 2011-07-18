@@ -23,6 +23,7 @@ class MudService(service.Service):
         from src.server.accounts.in_memory_store import InMemoryAccountStore
         from src.server.objects.in_memory_store import InMemoryObjectStore
         from src.server.sessions.session_manager import SessionManager
+        from src.game.commands.global_cmdtable import GlobalCommandTable
 
         self.config_store = InMemoryConfigStore()
         self.object_store = InMemoryObjectStore(
@@ -35,6 +36,9 @@ class MudService(service.Service):
         self.object_store._account_store = self.account_store
 
         self.session_manager = SessionManager(config_store=self.config_store)
+
+        # Global command table.
+        self.global_cmd_table = GlobalCommandTable()
         
         # Begin startup debug output.
         print('\n' + '-' * 50)
