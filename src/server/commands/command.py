@@ -2,7 +2,7 @@
 Contains a parent class which all commands should inherit from.
 """
 
-class Command(object):
+class BaseCommand(object):
     """
     A command. All commands should sub-class this.
 

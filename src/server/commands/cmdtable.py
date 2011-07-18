@@ -46,3 +46,42 @@ class CommandTable(object):
                 raise DuplicateCommandException(msg)
 
             self._aliases[alias] = command
+
+    def lookup_command(self, parsed_command):
+        """
+        Given a :class:`commands.parser.ParsedCommand` instance, lookup and
+        return the matching command in this command table. If no matches are
+        found, return ``None``.
+
+        :param ParsedCommand parsed_command: The ParsedCommand to attempt
+            to match against.
+        :returns: A reference to a ``BaseCommand`` child instance, or ``None``.
+        """
+        name_match = self.match_name(parsed_command.command_str)
+        if name_match:
+            return name_match
+
+        alias_match = self.match_alias(parsed_command.command_str)
+        if alias_match:
+            return alias_match
+
+        # No matches.
+        return None
+
+    def match_name(self, name):
+        """
+        Given a name, return the matching ``BaseCommand`` reference, or
+        ``None`` if no matches are found.
+
+        :returns: The matching command, or ``None``.
+        """
+        return self._commands.get(name)
+
+    def match_alias(self, alias):
+        """
+        Given a name, return the matching ``BaseCommand`` reference, or
+        ``None`` if no matches are found.
+
+        :returns: The matching command, or ``None``.
+        """
+        return self._aliases.get(alias)

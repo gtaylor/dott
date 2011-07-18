@@ -1,6 +1,6 @@
-from src.server.commands.command import Command
+from src.server.commands.command import BaseCommand
 
-class CmdLook(Command):
+class CmdLook(BaseCommand):
     name = 'look'
     aliases = ['l']
 

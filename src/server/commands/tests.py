@@ -1,7 +1,7 @@
 from src.utils.test_utils import DottTestCase
 from src.server.commands.parser import CommandParser, ParsedCommand
 from src.server.commands.cmdtable import CommandTable, DuplicateCommandException
-from src.server.commands.command import Command
+from src.server.commands.command import BaseCommand
 
 class CommandTableTests(DottTestCase):
     def setUp(self):
@@ -10,23 +10,47 @@ class CommandTableTests(DottTestCase):
     def tearDown(self):
         del self.table
 
-    def test_add(self):
+    def test_add_and_lookup(self):
         """
-        Tests a simple add.
+        Tests some simple success cases. A fake command is added to the
+        command table, we perform some lookups.
         """
-        cmd = Command()
+        # Create a fake command to add to the command table.
+        cmd = BaseCommand()
+        # This is the full name for the command.
         cmd.name = 'test'
+        # The command can also be called with these values.
+        cmd.aliases = ['t']
+        # Add command to command table.
         self.table.add_command(cmd)
+
+        # Perform a name-based lookup for the command. Result should be the
+        # BaseCommand() instance we created earlier.
+        self.assertIs(self.table.match_name('test'), cmd)
+        # Same as above, but this time look for alias matches.
+        self.assertIs(self.table.match_alias('t'), cmd)
+
+        # Now take a step back and create a fake parsed command (from the user).
+        # This is as if a user typed 'test'.
+        parsed = ParsedCommand('test', [], [])
+        # Hand the command off to the command table and ask it to return
+        # a match, if there is one. This should match the previously created
+        # test command.
+        self.assertIs(self.table.lookup_command(parsed), cmd)
+        # Now make the input something that definitely isn't in the command
+        # table. The return value should be None, meaning no match.
+        parsed.command_str = 'invalid'
+        self.assertEqual(self.table.lookup_command(parsed), None)
 
     def test_add_duplicate_name(self):
         """
         Tries to add a duplicate (name) command.
         """
-        cmd = Command()
+        cmd = BaseCommand()
         cmd.name = 'test'
         self.table.add_command(cmd)
 
-        cmd2 = Command()
+        cmd2 = BaseCommand()
         cmd2.name = 'test'
         # This is a duplicate, should raise exception.
         self.assertRaises(DuplicateCommandException, self.table.add_command, cmd2)
@@ -35,12 +59,12 @@ class CommandTableTests(DottTestCase):
         """
         Tries to add a duplicate (alias) command.
         """
-        cmd = Command()
+        cmd = BaseCommand()
         cmd.name = 'cmd'
         cmd.aliases = ['l', 't']
         self.table.add_command(cmd)
 
-        cmd2 = Command()
+        cmd2 = BaseCommand()
         cmd2.name = 'cmd2'
         cmd2.aliases = ['g', 't']
         # This is a duplicate, should raise exception.

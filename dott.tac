@@ -19,26 +19,54 @@ class MudService(service.Service):
         self.service_collection = None
         self.game_running = True
 
+        # The config store is a really basic key/value store used to get/set
+        # configuration values. This can be things like an idle timeouts,
+        # new player starting rooms, and etc. This varies from the 'settings'
+        # module, which only contains low-level server configuration values
+        # that can't go in the config store.
         from src.server.config.in_memory_store import InMemoryConfigStore
-        from src.server.accounts.in_memory_store import InMemoryAccountStore
-        from src.server.objects.in_memory_store import InMemoryObjectStore
-        from src.server.sessions.session_manager import SessionManager
-        from src.game.commands.global_cmdtable import GlobalCommandTable
-
         self.config_store = InMemoryConfigStore()
+
+        # The object store holds instances of all of the game's objects. It
+        # directs loading all objects from the DB at start time, and has some
+        # convenience method for finding and retrieving objects during
+        # runtime.
+        from src.server.objects.in_memory_store import InMemoryObjectStore
         self.object_store = InMemoryObjectStore(
             config_store=self.config_store,
         )
+
+        # The account store holds account data like usernames, emails, and
+        # encrypted passwords. This is primarily used to log users in.
+        from src.server.accounts.in_memory_store import InMemoryAccountStore
         self.account_store = InMemoryAccountStore(
             object_store=self.object_store,
         )
-        # Have to set this after account store initialization.
+
+        # Have to set this after account store initialization, since both
+        # objects refer to one another, but we can't instantiate them at the
+        # same time.
         self.object_store._account_store = self.account_store
 
-        self.session_manager = SessionManager(config_store=self.config_store)
+        # The session manager tracks all connections. Think of this as a list
+        # of who is currently playing.
+        from src.server.sessions.session_manager import SessionManager
+        self.session_manager = SessionManager(
+            config_store=self.config_store,
+        )
 
-        # Global command table.
+        # Global command table. This is consulted  by the command handler
+        # when users send input.
+        from src.game.commands.global_cmdtable import GlobalCommandTable
         self.global_cmd_table = GlobalCommandTable()
+
+        # The command handler takes user input and figures out what to do
+        # with it. This typically results in a command from a command table
+        # being ran.
+        from src.server.commands.handler import CommandHandler
+        self.command_handler = CommandHandler(
+            command_table=self.global_cmd_table,
+        )
         
         # Begin startup debug output.
         print('\n' + '-' * 50)

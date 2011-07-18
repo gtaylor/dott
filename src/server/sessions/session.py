@@ -25,6 +25,7 @@ class Session(object):
         self.server = self.protocol.factory.server
         self.address = self.protocol.getClientAddress()
         self._config_store = self.server.config_store
+        self._command_handler = self.server.command_handler
 
         self.account = None
 
@@ -141,5 +142,13 @@ class Session(object):
             return
 
         if self.interactive_shell:
+            # Session is "stuck" in an interactive shell. No command parsing
+            # happens beyond here, since it's handled by the shell.
             self.interactive_shell.process_input(command_string)
+            return
+
+        # This is the 'normal' case in that we just hand the input
+        # off to the command handler.
+        if not self._command_handler.handle_input(command_string):
+            print "NO MATCH"
         
