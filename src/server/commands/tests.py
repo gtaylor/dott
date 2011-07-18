@@ -1,5 +1,51 @@
 from src.utils.test_utils import DottTestCase
 from src.server.commands.parser import CommandParser, ParsedCommand
+from src.server.commands.cmdtable import CommandTable, DuplicateCommandException
+from src.server.commands.command import Command
+
+class CommandTableTests(DottTestCase):
+    def setUp(self):
+        self.table = CommandTable()
+
+    def tearDown(self):
+        del self.table
+
+    def test_add(self):
+        """
+        Tests a simple add.
+        """
+        cmd = Command()
+        cmd.name = 'test'
+        self.table.add_command(cmd)
+
+    def test_add_duplicate_name(self):
+        """
+        Tries to add a duplicate (name) command.
+        """
+        cmd = Command()
+        cmd.name = 'test'
+        self.table.add_command(cmd)
+
+        cmd2 = Command()
+        cmd2.name = 'test'
+        # This is a duplicate, should raise exception.
+        self.assertRaises(DuplicateCommandException, self.table.add_command, cmd2)
+
+    def test_add_duplicate_alias(self):
+        """
+        Tries to add a duplicate (alias) command.
+        """
+        cmd = Command()
+        cmd.name = 'cmd'
+        cmd.aliases = ['l', 't']
+        self.table.add_command(cmd)
+
+        cmd2 = Command()
+        cmd2.name = 'cmd2'
+        cmd2.aliases = ['g', 't']
+        # This is a duplicate, should raise exception.
+        self.assertRaises(DuplicateCommandException, self.table.add_command, cmd2)
+
 
 class CommandParserTests(DottTestCase):
     def setUp(self):
