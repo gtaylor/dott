@@ -48,11 +48,8 @@ class MudService(service.Service):
         # convenience method for finding and retrieving objects during
         # runtime.
         from src.server.objects.in_memory_store import InMemoryObjectStore
-        self.object_store = InMemoryObjectStore(
-            config_store=self.config_store,
-            command_handler=self.command_handler,
-            session_manager=self.session_manager,
-        )
+        self.account_store = None
+        self.object_store = InMemoryObjectStore(self)
 
         # The account store holds account data like usernames, emails, and
         # encrypted passwords. This is primarily used to log users in.

@@ -15,12 +15,8 @@ class MockMudService(object):
         self.command_handler = CommandHandler(self)
         self.config_store = InMemoryConfigStore(self, db_name='dott_config_test')
         self.session_manager = SessionManager(self)
-        self.object_store = InMemoryObjectStore(
-            db_name='dott_objects_test',
-            config_store=self.config_store,
-            command_handler=self.command_handler,
-            session_manager=self.session_manager,
-        )
+        self.account_store = None
+        self.object_store = InMemoryObjectStore(self, db_name='dott_objects_test')
         self.account_store = InMemoryAccountStore(
             db_name='dott_accounts_test',
             object_store=self.object_store)

@@ -10,21 +10,20 @@ class InMemoryObjectStore(object):
     Serves as an in-memory object store for all "physical" entities in the
     game. An "object" can be stuff like a room or a thing.
     """
-    def __init__(self, db_name=None, config_store=None, account_store=None,
-                 command_handler=None, session_manager=None):
+    def __init__(self, mud_service, db_name=None):
         """
         .. warning:: Due to the order this class is instantiated in
             ``dott.tac``, do not interact with self._account_store within
             this constructor, as it won't be set yet.
 
+        :param MudService mud_service: The MudService class running the game.
         :keyword str db_name: Overrides the DB name for the object DB.
-        :keyword InMemoryConfigStore config_store: If specified, override
-            the default global config store. This is useful for unit testing.
         """
-        self._config_store = config_store
-        self._account_store = account_store
-        self._command_handler = command_handler
-        self._session_manager = session_manager
+        self._mud_service = mud_service
+        self._config_store = self._mud_service.config_store
+        self._account_store = self._mud_service.account_store
+        self._command_handler = self._mud_service.command_handler
+        self._session_manager = self._mud_service.session_manager
 
         # Eventually contains a CouchDB reference. Queries come through here.
         self._db = None

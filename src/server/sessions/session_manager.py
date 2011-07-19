@@ -6,17 +6,15 @@ class SessionManager(object):
     """
     This class keeps track of all of the :class:`src.server.session.Session`
     objects that are currently connected to the game.
-
-    :attr list _sessions: The list of currently connected sessions.
-    :attr InMemoryConfigStore config_store: The config store to retrieve
-            settings from.
     """
     def __init__(self, mud_service):
         """
         :param MudService mud_service: The MudService class running the game.
         """
         self._mud_service = mud_service
+        # The config store to retrieve settings from.
         self._config_store = self._mud_service.config_store
+        # The list of currently connected sessions.
         self._sessions = []
 
     def add_session(self, session):
