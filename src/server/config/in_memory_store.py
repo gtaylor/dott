@@ -10,10 +10,13 @@ class InMemoryConfigStore(object):
     """
     Serves as an in-memory store for all config values.
     """
-    def __init__(self, db_name=None):
+    def __init__(self, mud_service, db_name=None):
         """
-        :param str db_name: Overrides the DB name for the config DB.
+        :param MudService mud_service: The MudService class running the game.
+        :keyword str db_name: Overrides the DB name for the config DB.
         """
+        # Reference to the MudService instance that ties everything together.
+        self._mud_service = mud_service
         # Reference to CouchDB server connection.
         self._server = couchdb.Server()
         # Eventually contains a CouchDB reference. Queries come through here.

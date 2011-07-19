@@ -36,7 +36,7 @@ class MudService(service.Service):
         # module, which only contains low-level server configuration values
         # that can't go in the config store.
         from src.server.config.in_memory_store import InMemoryConfigStore
-        self.config_store = InMemoryConfigStore()
+        self.config_store = InMemoryConfigStore(self)
 
         # The session manager tracks all connections. Think of this as a list
         # of who is currently playing.
