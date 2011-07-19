@@ -21,7 +21,7 @@ class SessionManager(object):
         """
         Adds a session to the session list.
         """
-        self._sessions.append(session)
+        self._sessions.insert(0, session)
         logger.info('Sessions active: %d' % len(self.get_sessions(return_unlogged=True)))
 
     def get_sessions(self, return_unlogged=False):
