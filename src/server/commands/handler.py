@@ -15,8 +15,8 @@ class CommandHandler(object):
         """
         :param MudService mud_service: The MudService class running the game.
         """
-        self.mud_service = mud_service
-        self.command_table = self.mud_service.global_cmd_table
+        self._mud_service = mud_service
+        self.command_table = self._mud_service.global_cmd_table
         self.parser = CommandParser()
 
     def handle_input(self, invoker, command_string):

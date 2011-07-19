@@ -14,9 +14,7 @@ class MockMudService(object):
         self.global_cmd_table = GlobalCommandTable(self)
         self.command_handler = CommandHandler(self)
         self.config_store = InMemoryConfigStore(self, db_name='dott_config_test')
-        self.session_manager = SessionManager(
-            config_store=self.config_store,
-        )
+        self.session_manager = SessionManager(self)
         self.object_store = InMemoryObjectStore(
             db_name='dott_objects_test',
             config_store=self.config_store,

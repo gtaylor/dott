@@ -8,13 +8,15 @@ class SessionManager(object):
     objects that are currently connected to the game.
 
     :attr list _sessions: The list of currently connected sessions.
-    """
-    def __init__(self, config_store):
-        """
-        :param InMemoryConfigStore config_store: The config store to retrieve
+    :attr InMemoryConfigStore config_store: The config store to retrieve
             settings from.
+    """
+    def __init__(self, mud_service):
         """
-        self._config_store = config_store
+        :param MudService mud_service: The MudService class running the game.
+        """
+        self._mud_service = mud_service
+        self._config_store = self._mud_service.config_store
         self._sessions = []
 
     def add_session(self, session):

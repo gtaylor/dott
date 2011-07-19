@@ -41,9 +41,7 @@ class MudService(service.Service):
         # The session manager tracks all connections. Think of this as a list
         # of who is currently playing.
         from src.server.sessions.session_manager import SessionManager
-        self.session_manager = SessionManager(
-            config_store=self.config_store,
-        )
+        self.session_manager = SessionManager(self)
 
         # The object store holds instances of all of the game's objects. It
         # directs loading all objects from the DB at start time, and has some
