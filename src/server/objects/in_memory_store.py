@@ -10,7 +10,8 @@ class InMemoryObjectStore(object):
     Serves as an in-memory object store for all "physical" entities in the
     game. An "object" can be stuff like a room or a thing.
     """
-    def __init__(self, db_name=None, config_store=None, account_store=None):
+    def __init__(self, db_name=None, config_store=None, account_store=None,
+                 command_handler=None):
         """
         .. warning:: Due to the order this class is instantiated in
             ``dott.tac``, do not interact with self._account_store within
@@ -22,6 +23,7 @@ class InMemoryObjectStore(object):
         """
         self._config_store = config_store
         self._account_store = account_store
+        self._command_handler = command_handler
 
         # Eventually contains a CouchDB reference. Queries come through here.
         self._db = None
@@ -78,7 +80,11 @@ class InMemoryObjectStore(object):
         # Loads the parent class so we can instantiate the object.
         parent = PARENT_LOADER.load_parent(doc['parent'])
         # Instantiate the object, using the values from the DB as kwargs.
-        self._objects[doc_id] = parent(object_store=self, **doc)
+        self._objects[doc_id] = parent(
+            object_store=self,
+            command_handler=self._command_handler,
+            **doc
+        )
 
     def _create_initial_room(self):
         """
@@ -101,7 +107,12 @@ class InMemoryObjectStore(object):
         :returns: The newly created/instantiated/saved object.
         """
         NewObject = PARENT_LOADER.load_parent(parent_path)
-        obj = NewObject(object_store=self, parent=parent_path, **kwargs)
+        obj = NewObject(
+            object_store=self,
+            command_handler=self._command_handler,
+            parent=parent_path,
+            **kwargs
+        )
         obj.save()
         return obj
 

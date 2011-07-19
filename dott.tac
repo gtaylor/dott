@@ -19,6 +19,19 @@ class MudService(service.Service):
         self.service_collection = None
         self.game_running = True
 
+        # Global command table. This is consulted  by the command handler
+        # when users send input.
+        from src.game.commands.global_cmdtable import GlobalCommandTable
+        self.global_cmd_table = GlobalCommandTable()
+
+        # The command handler takes user input and figures out what to do
+        # with it. This typically results in a command from a command table
+        # being ran.
+        from src.server.commands.handler import CommandHandler
+        self.command_handler = CommandHandler(
+            command_table=self.global_cmd_table,
+        )
+
         # The config store is a really basic key/value store used to get/set
         # configuration values. This can be things like an idle timeouts,
         # new player starting rooms, and etc. This varies from the 'settings'
@@ -34,6 +47,7 @@ class MudService(service.Service):
         from src.server.objects.in_memory_store import InMemoryObjectStore
         self.object_store = InMemoryObjectStore(
             config_store=self.config_store,
+            command_handler=self.command_handler,
         )
 
         # The account store holds account data like usernames, emails, and
@@ -55,19 +69,6 @@ class MudService(service.Service):
             config_store=self.config_store,
         )
 
-        # Global command table. This is consulted  by the command handler
-        # when users send input.
-        from src.game.commands.global_cmdtable import GlobalCommandTable
-        self.global_cmd_table = GlobalCommandTable()
-
-        # The command handler takes user input and figures out what to do
-        # with it. This typically results in a command from a command table
-        # being ran.
-        from src.server.commands.handler import CommandHandler
-        self.command_handler = CommandHandler(
-            command_table=self.global_cmd_table,
-        )
-        
         # Begin startup debug output.
         print('\n' + '-' * 50)
 

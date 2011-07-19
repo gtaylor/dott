@@ -149,6 +149,5 @@ class Session(object):
 
         # This is the 'normal' case in that we just hand the input
         # off to the command handler.
-        if not self._command_handler.handle_input(command_string):
-            print "NO MATCH"
+        self.get_controlled_object().execute_command(command_string)
         

@@ -3,15 +3,18 @@ class BaseObject(object):
     This is the base parent for every in-game "object". Rooms, Players, and
     Things are all considered objects. Behaviors here are very low level.
     """
-    def __init__(self, object_store, **kwargs):
+    def __init__(self, object_store, command_handler, **kwargs):
         """
         :param InMemoryObjectStore object_store: Reference to the global
             object store that is holding this object.
+        :param CommandHandler command_handler: Reference to the global
+            command handler.
         :keyword dict kwargs: All objects are instantiated with the values from
             the DB as kwargs. Since the DB representation of all of an
             objects attributes is just a dict, this works really well.
         """
         self._object_store = object_store
+        self._command_handler = command_handler
         self._account_store = object_store._account_store
 
         # This stores all of the object's data. This includes core and
