@@ -4,6 +4,7 @@ from src.server.commands.handler import CommandHandler
 from src.server.accounts.in_memory_store import InMemoryAccountStore
 from src.server.config.in_memory_store import InMemoryConfigStore
 from src.server.objects.in_memory_store import InMemoryObjectStore
+from src.server.sessions.session_manager import SessionManager
 
 class DottTestCase(unittest2.TestCase):
     """
@@ -25,17 +26,21 @@ class DottTestCase(unittest2.TestCase):
         """
         Creates a fresh set of stores, DBs, and etc.
         """
-
         self.global_cmd_table = GlobalCommandTable()
         self.command_handler = CommandHandler(
             command_table=self.global_cmd_table,
         )
         self.config_store = InMemoryConfigStore(
-            db_name='dott_config_test')
+            db_name='dott_config_test'
+        )
+        self.session_manager = SessionManager(
+            config_store=self.config_store,
+        )
         self.object_store = InMemoryObjectStore(
             db_name='dott_objects_test',
             config_store=self.config_store,
             command_handler=self.command_handler,
+            session_manager=self.session_manager,
         )
         self.account_store = InMemoryAccountStore(
             db_name='dott_accounts_test',

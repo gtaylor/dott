@@ -40,6 +40,13 @@ class MudService(service.Service):
         from src.server.config.in_memory_store import InMemoryConfigStore
         self.config_store = InMemoryConfigStore()
 
+        # The session manager tracks all connections. Think of this as a list
+        # of who is currently playing.
+        from src.server.sessions.session_manager import SessionManager
+        self.session_manager = SessionManager(
+            config_store=self.config_store,
+        )
+
         # The object store holds instances of all of the game's objects. It
         # directs loading all objects from the DB at start time, and has some
         # convenience method for finding and retrieving objects during
@@ -48,6 +55,7 @@ class MudService(service.Service):
         self.object_store = InMemoryObjectStore(
             config_store=self.config_store,
             command_handler=self.command_handler,
+            session_manager=self.session_manager,
         )
 
         # The account store holds account data like usernames, emails, and
@@ -61,13 +69,6 @@ class MudService(service.Service):
         # objects refer to one another, but we can't instantiate them at the
         # same time.
         self.object_store._account_store = self.account_store
-
-        # The session manager tracks all connections. Think of this as a list
-        # of who is currently playing.
-        from src.server.sessions.session_manager import SessionManager
-        self.session_manager = SessionManager(
-            config_store=self.config_store,
-        )
 
         # Begin startup debug output.
         print('\n' + '-' * 50)

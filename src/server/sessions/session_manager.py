@@ -74,3 +74,18 @@ class SessionManager(object):
         """
         for session in self.get_sessions():
             session.msg('%s' % message)
+
+    def get_session_for_object(self, obj):
+        """
+        Given an object, return the session controlling the object (if any).
+
+        :returns: The Session or ``None`` if no match was found.
+        """
+        for session in self._sessions:
+            controlled = session.get_controlled_object()
+            # Compare based on ID.
+            if controlled and controlled.id == obj.id:
+                return session
+
+        # No matches if we get to this point.
+        return None

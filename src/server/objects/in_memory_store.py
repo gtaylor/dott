@@ -11,7 +11,7 @@ class InMemoryObjectStore(object):
     game. An "object" can be stuff like a room or a thing.
     """
     def __init__(self, db_name=None, config_store=None, account_store=None,
-                 command_handler=None):
+                 command_handler=None, session_manager=None):
         """
         .. warning:: Due to the order this class is instantiated in
             ``dott.tac``, do not interact with self._account_store within
@@ -24,6 +24,7 @@ class InMemoryObjectStore(object):
         self._config_store = config_store
         self._account_store = account_store
         self._command_handler = command_handler
+        self._session_manager = session_manager
 
         # Eventually contains a CouchDB reference. Queries come through here.
         self._db = None
@@ -83,6 +84,7 @@ class InMemoryObjectStore(object):
         self._objects[doc_id] = parent(
             object_store=self,
             command_handler=self._command_handler,
+            session_manager=self._session_manager,
             **doc
         )
 
@@ -110,6 +112,7 @@ class InMemoryObjectStore(object):
         obj = NewObject(
             object_store=self,
             command_handler=self._command_handler,
+            session_manager=self._session_manager,
             parent=parent_path,
             **kwargs
         )

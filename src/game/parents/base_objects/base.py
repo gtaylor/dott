@@ -3,12 +3,14 @@ class BaseObject(object):
     This is the base parent for every in-game "object". Rooms, Players, and
     Things are all considered objects. Behaviors here are very low level.
     """
-    def __init__(self, object_store, command_handler, **kwargs):
+    def __init__(self, object_store, command_handler, session_manager, **kwargs):
         """
         :param InMemoryObjectStore object_store: Reference to the global
             object store that is holding this object.
         :param CommandHandler command_handler: Reference to the global
             command handler.
+        :param SessionManager session_manager: Reference to the global
+            session manager.
         :keyword dict kwargs: All objects are instantiated with the values from
             the DB as kwargs. Since the DB representation of all of an
             objects attributes is just a dict, this works really well.
@@ -16,6 +18,7 @@ class BaseObject(object):
         self._object_store = object_store
         self._command_handler = command_handler
         self._account_store = object_store._account_store
+        self._session_manager = session_manager
 
         # This stores all of the object's data. This includes core and
         # userspace attributes.
@@ -152,3 +155,26 @@ class BaseObject(object):
         Shortcut for saving an object to the object store it's a member of.
         """
         self._object_store.save_object(self)
+
+    def execute_command(self, command_string):
+        """
+        Directs the object to execute a certain command. Passes the command
+        string through the command handler.
+
+        :param str command_string: The command to run.
+        """
+        # This is the 'normal' case in that we just hand the input
+        # off to the command handler.
+        if not self._command_handler.handle_input(command_string):
+            self.emit_to('Huh?')
+
+    def emit_to(self, message):
+        """
+        Emits to any Session objects attached to this object.
+
+        :param str message: The message to emit to any Sessions attached to
+            the object.
+        """
+        session = self._session_manager.get_session_for_object(self)
+        if session:
+            session.msg(message)

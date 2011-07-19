@@ -11,3 +11,15 @@ class RoomObject(BaseObject):
         Rooms never have a location.
         """
         return None
+
+    def execute_command(self, command_string):
+        """
+        Rooms can not execute commands, since they can't be controlled.
+        """
+        pass
+
+    def emit_to(self, message):
+        """
+        Rooms can not receive emits, since they can't be controlled.
+        """
+        pass

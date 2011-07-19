@@ -14,8 +14,4 @@ class ThingObject(BaseObject):
     Unlike a RoomObject, ThingObject has a location, and may be picked up.
     However, a ThingObject can carry other ThingObjects, like a RoomObject.
     """
-    def execute_command(self, command_string):
-        # This is the 'normal' case in that we just hand the input
-        # off to the command handler.
-        if not self._command_handler.handle_input(command_string):
-            print "NO MATCH"
+    pass
