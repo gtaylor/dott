@@ -5,7 +5,7 @@ class GlobalCommandTable(CommandTable):
     """
     The standard, global command table.
     """
-    def __init__(self):
-        super(GlobalCommandTable, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(GlobalCommandTable, self).__init__(*args, **kwargs)
 
         self.add_command(general.CmdLook())

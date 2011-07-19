@@ -11,7 +11,7 @@ class MockMudService(object):
     Mocks up the MudService class found in dott.tac.
     """
     def __init__(self):
-        self.global_cmd_table = GlobalCommandTable()
+        self.global_cmd_table = GlobalCommandTable(self)
         self.command_handler = CommandHandler(
             command_table=self.global_cmd_table,
         )

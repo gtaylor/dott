@@ -20,7 +20,10 @@ class CommandTable(object):
         aliases and the values are references to the full entry in
         :attr:`_commands`.
     """
-    def __init__(self):
+    def __init__(self, mudservice):
+        """
+        :param MudService mudservice: The MudService class running the game.
+        """
         self._commands = {}
         self._aliases = {}
 

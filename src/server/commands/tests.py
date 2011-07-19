@@ -5,9 +5,9 @@ from src.server.commands.command import BaseCommand
 
 class CommandTableTests(DottTestCase):
     def setUp(self):
-        #super(CommandTableTests, self).setUp()
+        super(CommandTableTests, self).setUp()
 
-        self.table = CommandTable()
+        self.table = CommandTable(self.mud_service)
 
     def tearDown(self):
         del self.table

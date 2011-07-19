@@ -22,7 +22,7 @@ class MudService(service.Service):
         # Global command table. This is consulted  by the command handler
         # when users send input.
         from src.game.commands.global_cmdtable import GlobalCommandTable
-        self.global_cmd_table = GlobalCommandTable()
+        self.global_cmd_table = GlobalCommandTable(self)
 
         # The command handler takes user input and figures out what to do
         # with it. This typically results in a command from a command table
