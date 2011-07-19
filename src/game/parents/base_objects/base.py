@@ -163,9 +163,9 @@ class BaseObject(object):
 
         :param str command_string: The command to run.
         """
-        # This is the 'normal' case in that we just hand the input
-        # off to the command handler.
-        if not self._command_handler.handle_input(command_string):
+        # Input gets handed off to the command handler, where it is parsed
+        # and routed through various command tables.
+        if not self._command_handler.handle_input(self, command_string):
             self.emit_to('Huh?')
 
     def emit_to(self, message):

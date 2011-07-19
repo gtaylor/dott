@@ -4,6 +4,5 @@ class CmdLook(BaseCommand):
     name = 'look'
     aliases = ['l']
 
-    def func(self, parsed_cmd):
-        print "LOOK!"
-        pass
+    def func(self, invoker, parsed_cmd):
+        invoker.emit_to('WHO YOU LOOKIN AT?')

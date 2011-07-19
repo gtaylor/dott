@@ -15,13 +15,14 @@ class CommandHandler(object):
         self.parser = CommandParser()
         self.command_table = command_table
 
-    def handle_input(self, command_string):
+    def handle_input(self, invoker, command_string):
         """
         Given string-based input, parse for command details, then send the
         result off to various command tables to attempt execution. If no match
         is found, ``None`` is returned so this may be handled at the
         a higher level.
 
+        :param BaseObject invoker: The object generating the input.
         :param str command_string: The raw input to handle.
         :returns: The BaseCommand instance that was executed, or ``None`` if
             there was no match.
@@ -30,7 +31,7 @@ class CommandHandler(object):
 
         result = self.command_table.lookup_command(parsed_command)
         if result:
-            result.func(parsed_command)
+            result.func(invoker, parsed_command)
             return result
 
         return None
