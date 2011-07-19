@@ -28,9 +28,7 @@ class MudService(service.Service):
         # with it. This typically results in a command from a command table
         # being ran.
         from src.server.commands.handler import CommandHandler
-        self.command_handler = CommandHandler(
-            command_table=self.global_cmd_table,
-        )
+        self.command_handler = CommandHandler(self)
 
         # The config store is a really basic key/value store used to get/set
         # configuration values. This can be things like an idle timeouts,

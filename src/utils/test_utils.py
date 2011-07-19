@@ -12,9 +12,7 @@ class MockMudService(object):
     """
     def __init__(self):
         self.global_cmd_table = GlobalCommandTable(self)
-        self.command_handler = CommandHandler(
-            command_table=self.global_cmd_table,
-        )
+        self.command_handler = CommandHandler(self)
         self.config_store = InMemoryConfigStore(
             db_name='dott_config_test'
         )

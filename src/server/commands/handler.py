@@ -11,9 +11,13 @@ class CommandHandler(object):
     :attr CommandParser command_parser: The command parser to use in order to
         break raw input into useful components.
     """
-    def __init__(self, command_table):
+    def __init__(self, mud_service):
+        """
+        :param MudService mud_service: The MudService class running the game.
+        """
+        self.mud_service = mud_service
+        self.command_table = self.mud_service.global_cmd_table
         self.parser = CommandParser()
-        self.command_table = command_table
 
     def handle_input(self, invoker, command_string):
         """
