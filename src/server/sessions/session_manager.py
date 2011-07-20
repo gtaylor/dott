@@ -64,8 +64,7 @@ class SessionManager(object):
             self._sessions.remove(session)
             logger.info('Sessions active: %d' % len(self.get_sessions()))
         except ValueError:        
-            # the session was already removed.
-            logger.info("Unable to remove session: %s" % session)
+            # the session was already removed. Probably garbage collected.
             return 
     
     def announce_all(self, message):
@@ -75,17 +74,23 @@ class SessionManager(object):
         for session in self.get_sessions():
             session.msg('%s' % message)
 
-    def get_session_for_object(self, obj):
+    def get_sessions_for_object(self, obj):
         """
-        Given an object, return the session controlling the object (if any).
+        Given an object, return the sessions controlling the object (if any).
 
-        :returns: The Session or ``None`` if no match was found.
+        .. note:: This supports multiple sessions per object, though we
+            don't allow it.
+
+        :rtype: list
+        :returns: The sessions controlling the object, if any.
         """
+        sessions = []
+
         for session in self._sessions:
             controlled = session.get_controlled_object()
             # Compare based on ID.
             if controlled and controlled.id == obj.id:
-                return session
+                sessions.append(session)
 
         # No matches if we get to this point.
-        return None
+        return sessions

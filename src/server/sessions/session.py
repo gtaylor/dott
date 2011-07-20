@@ -21,11 +21,14 @@ class Session(object):
             as (or None if not logged in.
         """
         # main server properties
-        self.protocol = protocol 
-        self.server = self.protocol.factory.server
+        self.protocol = protocol
         self.address = self.protocol.getClientAddress()
-        self._config_store = self.server.config_store
-        self._command_handler = self.server.command_handler
+
+        self._mud_service = self.protocol.factory.server
+        self._config_store = self._mud_service.config_store
+        self._command_handler = self._mud_service.command_handler
+        self._session_manager = self._mud_service.session_manager
+        self._account_store = self._mud_service.account_store
 
         # This is a reference to a PlayerAccount object, if the user has
         # logged in. If this is None, this session is not logged in.
@@ -50,9 +53,11 @@ class Session(object):
         """
         if self.account:
             symbol = '#'
+            username = self.account.username
         else:
             symbol = '?'
-        return "<%s> %s@%s" % (symbol, self.account, self.address)
+            username = None
+        return "<%s> %s@%s" % (symbol, username, self.address)
         
     def msg(self, message):
         """
@@ -91,11 +96,23 @@ class Session(object):
         """
         return self.account is not None
         
-    def show_game_connect_screen(self):
+    def at_session_connect_event(self):
         """
         Show the connect screen.
         """
         self.interactive_shell.prompt_get_username()
+
+    def at_session_disconnect_event(self):
+        """
+        Triggered after the protocol breaks connection.
+        """
+        controlled = self.get_controlled_object()
+        if controlled:
+            # There won't be a controlled object during the account
+            # creation process.
+            controlled.at_player_disconnect_event()
+
+        self._session_manager.remove_session(self)
     
     def login(self, account):
         """
@@ -116,6 +133,8 @@ class Session(object):
             logger.info("No location for PlayerObject(%s), setting to "\
                         "NEW_PLAYER_ROOM.")
             controlled.save()
+
+        controlled.at_player_connect_event()
 
     def get_controlled_object(self):
         """

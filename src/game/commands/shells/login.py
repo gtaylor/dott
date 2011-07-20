@@ -26,7 +26,7 @@ class LoginShell(InteractiveShell):
 
         # We will need to get and/or set accounts through the account store,
         # so here's a convenient reference to it.
-        self._account_store = self.session.server.account_store
+        self._account_store = self.session._account_store
 
         self.current_step = self.step_get_username
         self.username_given = None
@@ -100,7 +100,7 @@ class LoginShell(InteractiveShell):
             return False
 
         if self.matched_account.check_password(user_input):
-            self.session.msg("Logging in...")
+            self.session.msg("You are now logged in.")
             self.session.login(self.matched_account)
         else:
             self.session.msg("Invalid password specified. Login attempt logged.\n")

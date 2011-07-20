@@ -171,8 +171,8 @@ class BaseObject(object):
         :param str message: The message to emit to any Sessions attached to
             the object.
         """
-        session = self._session_manager.get_session_for_object(self)
-        if session:
+        sessions = self._session_manager.get_sessions_for_object(self)
+        for session in sessions:
             session.msg(message)
 
     def get_contents(self):
@@ -184,3 +184,29 @@ class BaseObject(object):
             this object.
         """
         return self._object_store.get_object_contents(self)
+
+    def get_connected_sessions(self):
+        """
+        Returns any sessions that are currently controlling this object.
+        """
+        return self._session_manager.get_sessions_for_object(self)
+
+    #
+    ## Begin events
+    #
+
+    def at_player_connect_event(self):
+        """
+        This is called when a PlayerAccount logs in. Whatever object it is
+        controlling has this method called on it.
+        """
+        # Only PlayerObject does anything with this right now.
+        pass
+
+    def at_player_disconnect_event(self):
+        """
+        This is called when a PlayerAccount disconnects. Whatever object it is
+        controlling has this method called on it.
+        """
+        # Only PlayerObject does anything with this right now.
+        pass

@@ -31,7 +31,7 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
         self.session = Session(self)
         logger.info('New connection: %s' % self)
         self.session_manager.add_session(self.session)
-        self.session.show_game_connect_screen()
+        self.session.at_session_connect_event()
 
     def getClientAddress(self):
         """
@@ -44,14 +44,14 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
         """
         Ran when a client disconnects.
         """
-        self.session_manager.remove_session(self.session)
-        self.transport.loseConnection()        
+        self.transport.loseConnection()
 
     def connectionLost(self, reason):
         """
         Execute this when a client abruplty loses their connection.
         """
-        logger.info('Disconnected: %s' % self)
+        self.session.at_session_disconnect_event()
+        logger.info('Disconnected: %s, %s' % (self, reason))
         self.disconnectClient()
         
     def lineReceived(self, raw_string):

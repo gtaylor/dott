@@ -57,3 +57,16 @@ class CmdSay(BaseCommand):
                 neighbor.emit_to(speech_str)
             else:
                 invoker.emit_to(self_str)
+
+
+class CmdQuit(BaseCommand):
+    """
+    Disconnects from the game.
+    """
+    name = 'quit'
+
+    def func(self, invoker, parsed_cmd):
+        sessions = invoker.get_connected_sessions()
+        for session in sessions:
+            invoker.emit_to("Disconnecting...")
+            session.disconnect_client()
