@@ -11,3 +11,4 @@ local_settings.py
 .DS_Store
 *,cover
 cover_html
+*.pid
