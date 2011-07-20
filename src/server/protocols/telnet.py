@@ -17,7 +17,7 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
         return "MudTelnetProtocol conn from %s" % self.getClientAddress()[0]
 
     @property
-    def session_manager(self):
+    def _session_manager(self):
         """
         Shortcut to the SessionManager instance on the MudService in
         ``dott.tac``.
@@ -30,7 +30,7 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
         """
         self.session = Session(self)
         logger.info('New connection: %s' % self)
-        self.session_manager.add_session(self.session)
+        self._session_manager.add_session(self.session)
         self.session.at_session_connect_event()
 
     def getClientAddress(self):

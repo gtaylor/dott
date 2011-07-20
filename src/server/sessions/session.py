@@ -98,8 +98,9 @@ class Session(object):
         
     def at_session_connect_event(self):
         """
-        Show the connect screen.
+        Triggered right after a connection is established.
         """
+        # Shows the login prompt.
         self.interactive_shell.prompt_get_username()
 
     def at_session_disconnect_event(self):
