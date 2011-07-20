@@ -11,17 +11,21 @@ class MockMudService(object):
     Mocks up the MudService class found in dott.tac.
     """
     def __init__(self):
+        self.global_cmd_table = None
+        self.command_handler = None
+        self.config_store = None
+        self.session_manager = None
+        self.object_store = None
+        self.account_store = None
+
         self.global_cmd_table = GlobalCommandTable(self)
         self.command_handler = CommandHandler(self)
         self.config_store = InMemoryConfigStore(self, db_name='dott_config_test')
         self.session_manager = SessionManager(self)
-        self.account_store = None
         self.object_store = InMemoryObjectStore(self, db_name='dott_objects_test')
-        self.account_store = InMemoryAccountStore(
-            db_name='dott_accounts_test',
-            object_store=self.object_store)
-        # Can't do recursive initialization, so do this after the fact.
-        self.object_store._account_store = self.account_store
+        self.account_store = InMemoryAccountStore(self, db_name='dott_accounts_test')
+
+        self.object_store._prepare_at_load()
 
 class DottTestCase(unittest2.TestCase):
     """

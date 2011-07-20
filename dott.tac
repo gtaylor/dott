@@ -19,6 +19,33 @@ class MudService(service.Service):
         self.service_collection = None
         self.game_running = True
 
+        self.global_cmd_table = None
+        self.command_handler = None
+        self.config_store = None
+        self.session_manager = None
+        self.object_store = None
+        self.account_store = None
+
+        self.load_components()
+
+        # Begin startup debug output.
+        print('\n' + '-' * 50)
+
+        self.start_time = time.time()
+
+        # Make output to the terminal. 
+        print(' %s started on port(s):' % settings.GAME_NAME)
+        for port in settings.LISTEN_PORTS:
+            print('  * %s' % port)
+        print('-'*50)
+
+    def load_components(self):
+        """
+        Loads the various components of the service. Imports and instantiates
+        them, passes reference to self so the components can interact.
+
+        TODO: Load with exocet.
+        """
         # Global command table. This is consulted  by the command handler
         # when users send input.
         from src.game.commands.global_cmdtable import GlobalCommandTable
@@ -48,31 +75,14 @@ class MudService(service.Service):
         # convenience method for finding and retrieving objects during
         # runtime.
         from src.server.objects.in_memory_store import InMemoryObjectStore
-        self.account_store = None
         self.object_store = InMemoryObjectStore(self)
 
         # The account store holds account data like usernames, emails, and
         # encrypted passwords. This is primarily used to log users in.
         from src.server.accounts.in_memory_store import InMemoryAccountStore
-        self.account_store = InMemoryAccountStore(
-            object_store=self.object_store,
-        )
+        self.account_store = InMemoryAccountStore(self)
 
-        # Have to set this after account store initialization, since both
-        # objects refer to one another, but we can't instantiate them at the
-        # same time.
-        self.object_store._account_store = self.account_store
-
-        # Begin startup debug output.
-        print('\n' + '-' * 50)
-
-        self.start_time = time.time()
-
-        # Make output to the terminal. 
-        print(' %s started on port(s):' % settings.GAME_NAME)
-        for port in settings.LISTEN_PORTS:
-            print('  * %s' % port)
-        print('-'*50)
+        self.object_store._prepare_at_load()
 
     def shutdown(self, message=None):
         """

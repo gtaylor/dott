@@ -10,13 +10,13 @@ class InMemoryAccountStore(object):
     """
     Serves as an in-memory store for all account values.
     """
-    def __init__(self, db_name=None, object_store=None):
+    def __init__(self, mud_service, db_name=None):
         """
-        :param str db_name: Overrides the DB name for the account DB.
-        :keyword InMemoryObjectStore config_store: If specified, override
-            the default global object store. This is useful for unit testing.
+        :param MudService mud_service: The MudService class running the game.
+        :keyword str db_name: Overrides the DB name for the account DB.
         """
-        self._object_store = object_store
+        self._mud_service = mud_service
+        self._object_store = self._mud_service.object_store
 
         # Reference to CouchDB server connection.
         self._server = couchdb.Server()

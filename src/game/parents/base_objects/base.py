@@ -3,22 +3,18 @@ class BaseObject(object):
     This is the base parent for every in-game "object". Rooms, Players, and
     Things are all considered objects. Behaviors here are very low level.
     """
-    def __init__(self, object_store, command_handler, session_manager, **kwargs):
+    def __init__(self, mud_service, **kwargs):
         """
-        :param InMemoryObjectStore object_store: Reference to the global
-            object store that is holding this object.
-        :param CommandHandler command_handler: Reference to the global
-            command handler.
-        :param SessionManager session_manager: Reference to the global
-            session manager.
+        :param MudService mud_service: The MudService class running the game.
         :keyword dict kwargs: All objects are instantiated with the values from
             the DB as kwargs. Since the DB representation of all of an
             objects attributes is just a dict, this works really well.
         """
-        self._object_store = object_store
-        self._command_handler = command_handler
-        self._account_store = object_store._account_store
-        self._session_manager = session_manager
+        self._mud_service = mud_service
+        self._object_store = self._mud_service.object_store
+        self._command_handler = self._mud_service.command_handler
+        self._account_store = self._mud_service.account_store
+        self._session_manager = self._mud_service.session_manager
 
         # This stores all of the object's data. This includes core and
         # userspace attributes.

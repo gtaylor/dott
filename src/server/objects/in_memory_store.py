@@ -27,14 +27,23 @@ class InMemoryObjectStore(object):
 
         # Eventually contains a CouchDB reference. Queries come through here.
         self._db = None
+        # The string name of the DB.
+        self._db_name = db_name
         # Keys are CouchDB ids, values are the parent instances (children of
         # src.game.parents.base_objects.base.BaseObject
         self._objects = {}
 
         # Reference to CouchDB server connection.
+        self._server = None
+
+    def _prepare_at_load(self):
+        """
+        Prepares the store for duty.
+        """
+        # Reference to CouchDB server connection.
         self._server = couchdb.Server()
         # Loads or creates+loads the CouchDB database.
-        self._prep_db(db_name=db_name)
+        self._prep_db(db_name=self._db_name)
         # Loads all of the objects into RAM from CouchDB.
         self._load_objects_into_ram()
 
@@ -80,12 +89,7 @@ class InMemoryObjectStore(object):
         # Loads the parent class so we can instantiate the object.
         parent = PARENT_LOADER.load_parent(doc['parent'])
         # Instantiate the object, using the values from the DB as kwargs.
-        self._objects[doc_id] = parent(
-            object_store=self,
-            command_handler=self._command_handler,
-            session_manager=self._session_manager,
-            **doc
-        )
+        self._objects[doc_id] = parent(self._mud_service, **doc)
 
     def _create_initial_room(self):
         """
@@ -108,13 +112,7 @@ class InMemoryObjectStore(object):
         :returns: The newly created/instantiated/saved object.
         """
         NewObject = PARENT_LOADER.load_parent(parent_path)
-        obj = NewObject(
-            object_store=self,
-            command_handler=self._command_handler,
-            session_manager=self._session_manager,
-            parent=parent_path,
-            **kwargs
-        )
+        obj = NewObject(self._mud_service, parent=parent_path, **kwargs)
         obj.save()
         return obj
 
