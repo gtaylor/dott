@@ -16,8 +16,18 @@ class CommandHandler(object):
         :param MudService mud_service: The MudService class running the game.
         """
         self._mud_service = mud_service
-        self.command_table = self._mud_service.global_cmd_table
         self.parser = CommandParser()
+
+    @property
+    def command_table(self):
+        """
+        Returns a reference to the global CommandTable instance. Go through
+        a property to avoid reference counting, which would mess up code reload.
+
+        :rtype: :class:`src.game.commands.global_cmdtable.GlobalCommandTable`
+        :returns: A reference to the global command table instance.
+        """
+        return self._mud_service.global_cmd_table
 
     def handle_input(self, invoker, command_string):
         """

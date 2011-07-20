@@ -16,7 +16,6 @@ class InMemoryAccountStore(object):
         :keyword str db_name: Overrides the DB name for the account DB.
         """
         self._mud_service = mud_service
-        self._object_store = self._mud_service.object_store
 
         # Reference to CouchDB server connection.
         self._server = couchdb.Server()
@@ -28,6 +27,14 @@ class InMemoryAccountStore(object):
         self._prep_db(db_name=db_name)
         # Loads all config values into RAM from CouchDB.
         self._load_accounts_into_ram()
+
+    @property
+    def _object_store(self):
+        """
+        Returns a reference to the global object store. Do this instead of
+        a hard-coded instance variable to play nicely with code reloading.
+        """
+        return self._mud_service.object_store
 
     def _prep_db(self, db_name=None):
         """

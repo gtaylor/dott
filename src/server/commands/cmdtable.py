@@ -1,3 +1,4 @@
+from src.utils import logger
 from src.utils.exceptions import BaseException
 
 class DuplicateCommandException(BaseException):
@@ -28,7 +29,7 @@ class CommandTable(object):
         self._aliases = {}
 
     def __del__(self):
-        print "COMMAND TABLE BE GONE"
+        logger.info("CommandTable instance GC'd.")
 
     def add_command(self, command):
         """
