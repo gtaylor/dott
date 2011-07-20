@@ -60,12 +60,10 @@ class MudService(service.Service):
         SessionManager.disconnect_all_sessions()
         reactor.callLater(0, reactor.stop) #@UndefinedVariable
 
-    def load_components(self):
+    def load_components(self, is_reload=False):
         """
         Loads the various components of the service. Imports and instantiates
         them, passes reference to self so the components can interact.
-
-        TODO: Load with exocet.
         """
         # Global command table. This is consulted  by the command handler
         # when users send input.
@@ -95,13 +93,14 @@ class MudService(service.Service):
         )
         self.config_store = InMemoryConfigStore(self)
 
-        # The session manager tracks all connections. Think of this as a list
-        # of who is currently playing.
-        SessionManager = self._import_component(
-            'src.server.sessions.session_manager',
-            'SessionManager'
-        )
-        self.session_manager = SessionManager(self)
+        if not is_reload:
+            # The session manager tracks all connections. Think of this as a list
+            # of who is currently playing.
+            SessionManager = self._import_component(
+                'src.server.sessions.session_manager',
+                'SessionManager'
+            )
+            self.session_manager = SessionManager(self)
 
         # The object store holds instances of all of the game's objects. It
         # directs loading all objects from the DB at start time, and has some
@@ -124,6 +123,9 @@ class MudService(service.Service):
         # All of the instantiations above just prep data structures. The
         # following lines do all of the loading.
         self.object_store._prepare_at_load()
+
+    def reload_components(self):
+        self.load_components(is_reload=True)
 
     def get_mud_service_factory(self):
         """
