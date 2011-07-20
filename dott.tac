@@ -6,6 +6,7 @@ import time
 
 from twisted.application import internet, service
 from twisted.internet import protocol, reactor
+import exocet
 
 import settings
 from src.server.protocols.telnet import MudTelnetProtocol
@@ -39,52 +40,15 @@ class MudService(service.Service):
             print('  * %s' % port)
         print('-'*50)
 
-    def load_components(self):
+    def _import_component(self, path, class_name):
         """
-        Loads the various components of the service. Imports and instantiates
-        them, passes reference to self so the components can interact.
+        Loads a component with Exocet. This allows us to do really simple
+        code re-loading.
 
-        TODO: Load with exocet.
+        :returns: A reference to the requested class.
         """
-        # Global command table. This is consulted  by the command handler
-        # when users send input.
-        from src.game.commands.global_cmdtable import GlobalCommandTable
-        self.global_cmd_table = GlobalCommandTable(self)
-
-        # The command handler takes user input and figures out what to do
-        # with it. This typically results in a command from a command table
-        # being ran.
-        from src.server.commands.handler import CommandHandler
-        self.command_handler = CommandHandler(self)
-
-        # The config store is a really basic key/value store used to get/set
-        # configuration values. This can be things like an idle timeouts,
-        # new player starting rooms, and etc. This varies from the 'settings'
-        # module, which only contains low-level server configuration values
-        # that can't go in the config store.
-        from src.server.config.in_memory_store import InMemoryConfigStore
-        self.config_store = InMemoryConfigStore(self)
-
-        # The session manager tracks all connections. Think of this as a list
-        # of who is currently playing.
-        from src.server.sessions.session_manager import SessionManager
-        self.session_manager = SessionManager(self)
-
-        # The object store holds instances of all of the game's objects. It
-        # directs loading all objects from the DB at start time, and has some
-        # convenience method for finding and retrieving objects during
-        # runtime.
-        from src.server.objects.in_memory_store import InMemoryObjectStore
-        self.object_store = InMemoryObjectStore(self)
-
-        # The account store holds account data like usernames, emails, and
-        # encrypted passwords. This is primarily used to log users in.
-        from src.server.accounts.in_memory_store import InMemoryAccountStore
-        self.account_store = InMemoryAccountStore(self)
-
-        # All of the instantiations above just prep data structures. The
-        # following lines do all of the loading.
-        self.object_store._prepare_at_load()
+        mod = exocet.loadNamed(str(path), exocet.pep302Mapper)
+        return getattr(mod, class_name)
 
     def shutdown(self, message=None):
         """
@@ -95,6 +59,71 @@ class MudService(service.Service):
         SessionManager.announce_all(message)
         SessionManager.disconnect_all_sessions()
         reactor.callLater(0, reactor.stop) #@UndefinedVariable
+
+    def load_components(self):
+        """
+        Loads the various components of the service. Imports and instantiates
+        them, passes reference to self so the components can interact.
+
+        TODO: Load with exocet.
+        """
+        # Global command table. This is consulted  by the command handler
+        # when users send input.
+        GlobalCommandTable = self._import_component(
+            'src.game.commands.global_cmdtable',
+            'GlobalCommandTable'
+        )
+        self.global_cmd_table = GlobalCommandTable(self)
+
+        # The command handler takes user input and figures out what to do
+        # with it. This typically results in a command from a command table
+        # being ran.
+        CommandHandler = self._import_component(
+            'src.server.commands.handler',
+            'CommandHandler'
+        )
+        self.command_handler = CommandHandler(self)
+
+        # The config store is a really basic key/value store used to get/set
+        # configuration values. This can be things like an idle timeouts,
+        # new player starting rooms, and etc. This varies from the 'settings'
+        # module, which only contains low-level server configuration values
+        # that can't go in the config store.
+        InMemoryConfigStore = self._import_component(
+            'src.server.config.in_memory_store',
+            'InMemoryConfigStore'
+        )
+        self.config_store = InMemoryConfigStore(self)
+
+        # The session manager tracks all connections. Think of this as a list
+        # of who is currently playing.
+        SessionManager = self._import_component(
+            'src.server.sessions.session_manager',
+            'SessionManager'
+        )
+        self.session_manager = SessionManager(self)
+
+        # The object store holds instances of all of the game's objects. It
+        # directs loading all objects from the DB at start time, and has some
+        # convenience method for finding and retrieving objects during
+        # runtime.
+        InMemoryObjectStore = self._import_component(
+            'src.server.objects.in_memory_store',
+            'InMemoryObjectStore'
+        )
+        self.object_store = InMemoryObjectStore(self)
+
+        # The account store holds account data like usernames, emails, and
+        # encrypted passwords. This is primarily used to log users in.
+        InMemoryAccountStore = self._import_component(
+            'src.server.accounts.in_memory_store',
+            'InMemoryAccountStore'
+        )
+        self.account_store = InMemoryAccountStore(self)
+
+        # All of the instantiations above just prep data structures. The
+        # following lines do all of the loading.
+        self.object_store._prepare_at_load()
 
     def get_mud_service_factory(self):
         """
