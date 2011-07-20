@@ -10,3 +10,4 @@ class GlobalCommandTable(CommandTable):
 
         self.add_command(general.CmdLook())
         self.add_command(general.CmdWho())
+        self.add_command(general.CmdSay())

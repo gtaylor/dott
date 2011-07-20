@@ -10,6 +10,7 @@ class CmdLook(BaseCommand):
     def func(self, invoker, parsed_cmd):
         invoker.emit_to('WHO YOU LOOKIN AT?')
 
+
 class CmdWho(BaseCommand):
     """
     A REALLY basic WHO list.
@@ -32,3 +33,27 @@ class CmdWho(BaseCommand):
             retval += '%d players logged in.' % nplayers
 
         invoker.emit_to(retval)
+
+
+class CmdSay(BaseCommand):
+    """
+    Communicate with people in the same room as you.
+    """
+    name = 'say'
+
+    def func(self, invoker, parsed_cmd):
+        # The contents of the object's current location.
+        neighbors = invoker.location.get_contents()
+
+        # The sentence to speak.
+        speech = u' '.join(parsed_cmd.arguments)
+        # Presentational arrangement for other neighboring objects to see.
+        speech_str = u"%s says '%s'" % (invoker.name, speech)
+        # What the invoker sees.
+        self_str = u"You say '%s'" %  speech
+
+        for neighbor in neighbors:
+            if neighbor is not invoker:
+                neighbor.emit_to(speech_str)
+            else:
+                invoker.emit_to(self_str)

@@ -87,6 +87,7 @@ class InMemoryAccountStore(object):
             account_store=self,
             object_store=self._object_store,
             _id=username,
+            name=username,
             email=email,
             currently_controlling_id=player_obj._id,
             password=None

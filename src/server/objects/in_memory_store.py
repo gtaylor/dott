@@ -141,3 +141,14 @@ class InMemoryObjectStore(object):
             sub-class of some sort.
         """
         return self._objects[obj_id]
+
+    def get_object_contents(self, obj):
+        """
+        Returns all objects inside of the specified object.
+
+        :param BaseObject obj: The object whose contents to calculate.
+        :rtype: list
+        :returns: A list of BaseObject instances whose current location
+            is ``obj``.
+        """
+        return [omatch for omatch in self._objects.values() if omatch.location == obj]

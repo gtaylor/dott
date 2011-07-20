@@ -107,7 +107,7 @@ class Session(object):
         self.conn_time = datetime.time()
         self.interactive_shell = None
 
-        logger.info("Logged in: %s" % self)
+        logger.info("Logged in: %s" % self.account.username)
 
         controlled = self.get_controlled_object()
         if controlled.location is None:

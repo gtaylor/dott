@@ -174,3 +174,13 @@ class BaseObject(object):
         session = self._session_manager.get_session_for_object(self)
         if session:
             session.msg(message)
+
+    def get_contents(self):
+        """
+        Returns the list of objects 'inside' this object.
+
+        :rtype: list
+        :returns: A list of :class:`BaseObject` instances whose location is
+            this object.
+        """
+        return self._object_store.get_object_contents(self)
