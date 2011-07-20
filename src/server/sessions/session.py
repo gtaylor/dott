@@ -1,4 +1,4 @@
-import time
+import datetime
 
 from src.utils import logger
 from src.game.commands.shells.login import LoginShell
@@ -27,19 +27,21 @@ class Session(object):
         self._config_store = self.server.config_store
         self._command_handler = self.server.command_handler
 
+        # This is a reference to a PlayerAccount object, if the user has
+        # logged in. If this is None, this session is not logged in.
         self.account = None
 
         # This is the login shell.
         self.interactive_shell = LoginShell(self)
 
         # The time the user last issued a command.
-        self.cmd_last = time.time()
+        self.cmd_last = datetime.time()
         # Player-visible idle time, excluding the IDLE command.
-        self.cmd_last_visible = time.time()
+        self.cmd_last_visible = datetime.time()
         # Total number of commands issued.
         self.cmd_total = 0
         # The time when the user connected.
-        self.conn_time = time.time()
+        self.conn_time = datetime.time()
 
     def __str__(self):
         """
@@ -73,12 +75,12 @@ class Session(object):
             not updated.
         """
         # Store the timestamp of the user's last command.
-        self.cmd_last = time.time()
+        self.cmd_last = datetime.time()
         if not idle:
             # Increment the user's command counter.
             self.cmd_total += 1
             # Player-visible idle time, not used in idle timeout calcs.
-            self.cmd_last_visible = time.time()
+            self.cmd_last_visible = datetime.time()
 
     def is_logged_in(self):
         """
@@ -102,7 +104,7 @@ class Session(object):
         """
         # set the session properties 
         self.account = account
-        self.conn_time = time.time()
+        self.conn_time = datetime.time()
         self.interactive_shell = None
 
         logger.info("Logged in: %s" % self)
@@ -135,11 +137,19 @@ class Session(object):
         :param str command_string: The raw command string to send off to the
             command handler/parser.
         """
+        # The time the user last issued a command.
+        self.cmd_last = datetime.time()
+
         if str(command_string).strip().lower() == 'idle':
             # Ignore idle command. This is often used as a keep-alive for
             # people with crappy NATs.
             self.update_counters(idle=True)
             return
+
+        # Player-visible idle time, excluding the IDLE command.
+        self.cmd_last_visible = datetime.time()
+        # Increment command total
+        self.cmd_total += 1
 
         if self.interactive_shell:
             # Session is "stuck" in an interactive shell. No command parsing

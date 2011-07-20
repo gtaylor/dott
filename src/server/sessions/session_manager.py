@@ -31,7 +31,7 @@ class SessionManager(object):
         if return_unlogged:
             return self._sessions
         else:
-            return [sess for sess in self._sessions if sess.logged_in]
+            return [sess for sess in self._sessions if sess.is_logged_in()]
 
     def disconnect_all_sessions(self):
         """

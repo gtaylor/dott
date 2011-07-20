@@ -82,6 +82,8 @@ class MudService(service.Service):
         from src.server.accounts.in_memory_store import InMemoryAccountStore
         self.account_store = InMemoryAccountStore(self)
 
+        # All of the instantiations above just prep data structures. The
+        # following lines do all of the loading.
         self.object_store._prepare_at_load()
 
     def shutdown(self, message=None):

@@ -9,3 +9,4 @@ class GlobalCommandTable(CommandTable):
         super(GlobalCommandTable, self).__init__(*args, **kwargs)
 
         self.add_command(general.CmdLook())
+        self.add_command(general.CmdWho())
