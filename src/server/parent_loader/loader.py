@@ -1,4 +1,5 @@
 import exocet
+from src.utils import logger
 
 class ParentLoader(object):
     """
@@ -8,6 +9,9 @@ class ParentLoader(object):
         # The parent cache has keys matching the full path + class to the
         # parent, and the value being a reference to the class.
         self._parent_cache = {}
+
+    def __del__(self):
+        logger.info("ParentLoader instance GC'd.")
 
     def load_parent(self, parent_str):
         """

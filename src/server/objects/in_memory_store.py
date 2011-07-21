@@ -3,7 +3,7 @@ from couchdb.http import ResourceNotFound
 
 from settings import DATABASES
 from src.utils import logger
-from src.server.parent_loader import PARENT_LOADER
+from src.server.parent_loader.loader import ParentLoader
 
 class InMemoryObjectStore(object):
     """
@@ -20,15 +20,17 @@ class InMemoryObjectStore(object):
         :keyword str db_name: Overrides the DB name for the object DB.
         """
         self._mud_service = mud_service
+        # Instantiates a ParentLoader.
+        self._parent_loader = ParentLoader()
+
+        # Keys are CouchDB ids, values are the parent instances (children of
+        # src.game.parents.base_objects.base.BaseObject
+        self._objects = {}
 
         # Eventually contains a CouchDB reference. Queries come through here.
         self._db = None
         # The string name of the DB.
         self._db_name = db_name
-        # Keys are CouchDB ids, values are the parent instances (children of
-        # src.game.parents.base_objects.base.BaseObject
-        self._objects = {}
-
         # Reference to CouchDB server connection.
         self._server = None
 
@@ -79,6 +81,8 @@ class InMemoryObjectStore(object):
         """
         Prepares the store for duty.
         """
+        # Just in case this is a code reload.
+        self._objects = {}
         # Reference to CouchDB server connection.
         self._server = couchdb.Server()
         # Loads or creates+loads the CouchDB database.
@@ -126,7 +130,7 @@ class InMemoryObjectStore(object):
         # Retrieves the JSON doc from CouchDB.
         doc = self._db[doc_id]
         # Loads the parent class so we can instantiate the object.
-        parent = PARENT_LOADER.load_parent(doc['parent'])
+        parent = self._parent_loader.load_parent(doc['parent'])
         # Instantiate the object, using the values from the DB as kwargs.
         self._objects[doc_id] = parent(self._mud_service, **doc)
 
@@ -150,7 +154,7 @@ class InMemoryObjectStore(object):
         :rtype: BaseObject
         :returns: The newly created/instantiated/saved object.
         """
-        NewObject = PARENT_LOADER.load_parent(parent_path)
+        NewObject = self._parent_loader.load_parent(parent_path)
         obj = NewObject(self._mud_service, parent=parent_path, **kwargs)
         obj.save()
         return obj
