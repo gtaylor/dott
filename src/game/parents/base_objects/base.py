@@ -11,10 +11,6 @@ class BaseObject(object):
             objects attributes is just a dict, this works really well.
         """
         self._mud_service = mud_service
-        self._object_store = self._mud_service.object_store
-        self._command_handler = self._mud_service.command_handler
-        self._account_store = self._mud_service.account_store
-        self._session_manager = self._mud_service.session_manager
 
         # This stores all of the object's data. This includes core and
         # userspace attributes.
@@ -30,6 +26,46 @@ class BaseObject(object):
     #
     ## Begin properties.
     #
+
+    @property
+    def _session_manager(self):
+        """
+        Short-cut to the global session manager.
+
+        :rtype: SessionManager
+        :returns: Reference to the global session manager instance.
+        """
+        return self._mud_service.session_manager
+
+    @property
+    def _account_store(self):
+        """
+        Short-cut to the global account store.
+
+        :rtype: InMemoryAccountStore
+        :returns: Reference to the global account store instance.
+        """
+        return self._mud_service.account_store
+
+    @property
+    def _object_store(self):
+        """
+        Short-cut to the global object store.
+
+        :rtype: InMemoryObjectStore
+        :returns: Reference to the global object store instance.
+        """
+        return self._mud_service.object_store
+
+    @property
+    def _command_handler(self):
+        """
+        Short-cut to the global command handler.
+
+        :rtype: CommandHandler
+        :returns: Reference to the global command handler instance.
+        """
+        return self._mud_service.command_handler
 
     def get_id(self):
         """

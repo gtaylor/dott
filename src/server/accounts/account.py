@@ -7,12 +7,10 @@ class PlayerAccount(object):
     This class abstracts accounts out, and is specific to the
     InMemoryAccountStore backend.
     """
-    def __init__(self, account_store, object_store,
-                 **kwargs):
+    def __init__(self, mud_service, **kwargs):
         """
-        :param InMemoryAccountStore account_store: The account store that
-            instantiated this object.
-        :param InMemoryObjectStore the global object store.
+        :param MudService server: The top-level MudService instance found in
+            dott.tac.
 
         :keyword str _id: The username for the account.
         :keyword str email: The email address associated with this account.
@@ -20,14 +18,33 @@ class PlayerAccount(object):
         :keyword str currently_controlling_id: The ID of the Object this
             account is currently controlling.
         """
-        self._account_store = account_store
-        self._object_store = object_store
+        self._mud_service = mud_service
 
         self._odata = kwargs
 
     #
     ## Begin properties
     #
+
+    @property
+    def _object_store(self):
+        """
+        Short-cut to the global object store.
+
+        :rtype: InMemoryObjectStore
+        :returns: Reference to the global object store instance.
+        """
+        return self._mud_service.object_store
+
+    @property
+    def _account_store(self):
+        """
+        Short-cut to the global account store.
+
+        :rtype: InMemoryAccountStore
+        :returns: Reference to the global account store instance.
+        """
+        return self._mud_service.account_store
 
     def get_username(self):
         """

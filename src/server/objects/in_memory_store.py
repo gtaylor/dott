@@ -20,10 +20,6 @@ class InMemoryObjectStore(object):
         :keyword str db_name: Overrides the DB name for the object DB.
         """
         self._mud_service = mud_service
-        self._config_store = self._mud_service.config_store
-        self._account_store = self._mud_service.account_store
-        self._command_handler = self._mud_service.command_handler
-        self._session_manager = self._mud_service.session_manager
 
         # Eventually contains a CouchDB reference. Queries come through here.
         self._db = None
@@ -35,6 +31,49 @@ class InMemoryObjectStore(object):
 
         # Reference to CouchDB server connection.
         self._server = None
+
+    def __del__(self):
+        logger.info("InMemoryObjectStore instance GC'd.")
+
+    @property
+    def _session_manager(self):
+        """
+        Short-cut to the global session manager.
+
+        :rtype: SessionManager
+        :returns: Reference to the global session manager instance.
+        """
+        return self._mud_service.session_manager
+
+    @property
+    def _config_store(self):
+        """
+        Short-cut to the global config store.
+
+        :rtype: InMemoryConfigStore
+        :returns: Reference to the global config store instance.
+        """
+        return self._mud_service.config_store
+
+    @property
+    def _account_store(self):
+        """
+        Short-cut to the global account store.
+
+        :rtype: InMemoryAccountStore
+        :returns: Reference to the global account store instance.
+        """
+        return self._mud_service.account_store
+
+    @property
+    def _command_handler(self):
+        """
+        Short-cut to the global command handler.
+
+        :rtype: CommandHandler
+        :returns: Reference to the global command handler instance.
+        """
+        return self._mud_service.command_handler
 
     def _prepare_at_load(self):
         """

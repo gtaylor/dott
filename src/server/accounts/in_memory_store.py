@@ -28,11 +28,16 @@ class InMemoryAccountStore(object):
         # Loads all config values into RAM from CouchDB.
         self._load_accounts_into_ram()
 
+    def __del__(self):
+        logger.info("InMemoryAccountStore instance GC'd.")
+
     @property
     def _object_store(self):
         """
-        Returns a reference to the global object store. Do this instead of
-        a hard-coded instance variable to play nicely with code reloading.
+        Short-cut to the global object store.
+
+        :rtype: InMemoryObjectStore
+        :returns: Reference to the global object store instance.
         """
         return self._mud_service.object_store
 
@@ -63,8 +68,7 @@ class InMemoryAccountStore(object):
             doc = self._db[doc_id]
             # Retrieves the JSON doc from CouchDB.
             self._accounts[username.lower()] = PlayerAccount(
-                account_store=self,
-                object_store=self._object_store,
+                self._mud_service,
                 **doc
             )
 
@@ -92,8 +96,7 @@ class InMemoryAccountStore(object):
 
         # Create the PlayerAccount, pointed at the PlayerObject's _id.
         account = PlayerAccount(
-            account_store=self,
-            object_store=self._object_store,
+            self._mud_service,
             _id=username,
             email=email,
             currently_controlling_id=player_obj._id,

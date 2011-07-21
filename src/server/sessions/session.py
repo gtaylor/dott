@@ -25,10 +25,6 @@ class Session(object):
         self.address = self.protocol.getClientAddress()
 
         self._mud_service = self.protocol.factory.server
-        self._config_store = self._mud_service.config_store
-        self._command_handler = self._mud_service.command_handler
-        self._session_manager = self._mud_service.session_manager
-        self._account_store = self._mud_service.account_store
 
         # This is a reference to a PlayerAccount object, if the user has
         # logged in. If this is None, this session is not logged in.
@@ -58,6 +54,46 @@ class Session(object):
             symbol = '?'
             username = None
         return "<%s> %s@%s" % (symbol, username, self.address)
+
+    @property
+    def _config_store(self):
+        """
+        Short-cut to the global config store.
+
+        :rtype: InMemoryConfigStore
+        :returns: Reference to the global config store instance.
+        """
+        return self._mud_service.config_store
+
+    @property
+    def _command_handler(self):
+        """
+        Short-cut to the global command handler.
+
+        :rtype: CommandHandler
+        :returns: Reference to the global command handler instance.
+        """
+        return self._mud_service.command_handler
+
+    @property
+    def _account_store(self):
+        """
+        Short-cut to the global account store.
+
+        :rtype: InMemoryAccountStore
+        :returns: Reference to the global account store instance.
+        """
+        return self._mud_service.account_store
+
+    @property
+    def _session_manager(self):
+        """
+        Short-cut to the global session manager.
+
+        :rtype: SessionManager
+        :returns: Reference to the global session manager instance.
+        """
+        return self._mud_service.session_manager
         
     def msg(self, message):
         """

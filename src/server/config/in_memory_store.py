@@ -28,6 +28,9 @@ class InMemoryConfigStore(object):
         # Loads all config values into RAM from CouchDB.
         self._load_config_into_ram()
 
+    def __del__(self):
+        logger.info("InMemoryConfigStore instance GC'd.")
+
     def _prep_db(self, db_name=None):
         """
         Sets the :attr:`_db` reference. Creates the CouchDB if the requested

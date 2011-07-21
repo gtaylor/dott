@@ -1,5 +1,6 @@
 import exocet
 from src.server.commands.cmdtable import CommandTable
+from src.utils import logger
 
 class GlobalCommandTable(CommandTable):
     """
@@ -24,3 +25,6 @@ class GlobalCommandTable(CommandTable):
 
         # Staff commands
         self.add_command(staff_cmds.CmdReload())
+
+    def __del__(self):
+        logger.info("GlobalCommandTable instance GC'd.")

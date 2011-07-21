@@ -24,15 +24,21 @@ class LoginShell(InteractiveShell):
     def __init__(self, *args, **kwargs):
         super(LoginShell, self).__init__(*args, **kwargs)
 
-        # We will need to get and/or set accounts through the account store,
-        # so here's a convenient reference to it.
-        self._account_store = self.session._account_store
-
         self.current_step = self.step_get_username
         self.username_given = None
         self.matched_account = None
         self.email_given = None
         self.generated_password = None
+
+    @property
+    def _account_store(self):
+        """
+        Short-cut to the global account store.
+
+        :rtype: InMemoryAccountStore
+        :returns: Reference to the global account store instance.
+        """
+        return self.session._account_store
 
     def process_input(self, user_input):
         """
