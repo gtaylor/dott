@@ -1,7 +1,9 @@
 import os
 
 GAME_NAME = "Dawn of the Titans"
-LISTEN_PORTS = [4000]
+PROXY_LISTEN_PORTS = [4000]
+SERVER_AMP_HOST = 'localhost'
+SERVER_AMP_PORT = 4001
 
 BASE_PATH = os.path.dirname(os.path.abspath(__file__))
 SRC_DIR = os.path.join(BASE_PATH, 'src')

@@ -5,7 +5,7 @@ from twisted.conch.telnet import StatefulTelnetProtocol
 
 from src.utils import logger
 from src.utils.general import to_unicode, to_str
-from src.server.sessions.session import Session
+from src.proxy.sessions.session import Session
 
 class MudTelnetProtocol(StatefulTelnetProtocol):
     """
@@ -28,10 +28,10 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
         """
         What to do when we get a connection.
         """
-        self.session = Session(self)
+        #self.session = Session(self)
         logger.info('New connection: %s' % self)
-        self._session_manager.add_session(self.session)
-        self.session.at_session_connect_event()
+        #self._session_manager.add_session(self.session)
+        #self.session.at_session_connect_event()
 
     def getClientAddress(self):
         """
@@ -50,7 +50,7 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
         """
         Execute this when a client abruplty loses their connection.
         """
-        self.session.at_session_disconnect_event()
+        #self.session.at_session_disconnect_event()
         logger.info('Disconnected: %s, %s' % (self, reason))
         self.disconnectClient()
         
@@ -61,6 +61,8 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
 
         :param str raw_string: The raw string received from the client.
         """
+        #self.msg(raw_string)
+        self.factory.server.pipe_user_input(raw_string)
         try:
             raw_string = to_unicode(raw_string)
         except Exception, e:
@@ -68,7 +70,7 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
             return
 
         # Hand the input off to the command parser.
-        self.session.execute_command(raw_string)
+        #self.session.execute_command(raw_string)
 
     def msg(self, message):
         """
