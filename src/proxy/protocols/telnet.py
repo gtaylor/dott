@@ -9,7 +9,15 @@ from src.utils.general import to_unicode, to_str
 from src.proxy.sessions.session import Session
 
 class MudTelnetServerFactory(protocol.ServerFactory):
+    """
+    This is used by twisted.internet.TCPServer to create TCP Servers for each
+    port the proxy listens on.
+    """
     def __init__(self, server):
+        """
+        :attr ProxyService server: Reference to the proxy server.
+        :attr MudTelnetProtocol protocol: The protocol this factor spawns.
+        """
         self.server = server
         self.protocol = MudTelnetProtocol
 
@@ -25,8 +33,8 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
     @property
     def _session_manager(self):
         """
-        Shortcut to the SessionManager instance on the MudService in
-        ``dott.tac``.
+        Shortcut to the SessionManager instance on the ProxyService in
+        ``proxy.tac``.
         """
         return self.factory.server.session_manager
         
@@ -34,10 +42,10 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
         """
         What to do when we get a connection.
         """
-        #self.session = Session(self)
+        self.session = Session(self)
         logger.info('New connection: %s' % self)
-        #self._session_manager.add_session(self.session)
-        #self.session.at_session_connect_event()
+        self._session_manager.add_session(self.session)
+        self.session.at_session_connect_event()
 
     def getClientAddress(self):
         """
@@ -56,7 +64,7 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
         """
         Execute this when a client abruplty loses their connection.
         """
-        #self.session.at_session_disconnect_event()
+        self.session.at_session_disconnect_event()
         logger.info('Disconnected: %s, %s' % (self, reason))
         self.disconnectClient()
         
@@ -67,8 +75,6 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
 
         :param str raw_string: The raw string received from the client.
         """
-        #self.msg(raw_string)
-        self.factory.server.pipe_user_input(raw_string)
         try:
             raw_string = to_unicode(raw_string)
         except Exception, e:
@@ -76,7 +82,7 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
             return
 
         # Hand the input off to the command parser.
-        #self.session.execute_command(raw_string)
+        self.session.execute_command(raw_string)
 
     def msg(self, message):
         """

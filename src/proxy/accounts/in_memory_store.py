@@ -3,8 +3,8 @@ from couchdb.http import ResourceNotFound
 
 import settings
 from src.utils import logger
-from src.server.accounts.exceptions import AccountNotFoundException, UsernameTakenException
-from src.server.accounts.account import PlayerAccount
+from src.proxy.accounts.exceptions import AccountNotFoundException, UsernameTakenException
+from src.proxy.accounts.account import PlayerAccount
 
 class InMemoryAccountStore(object):
     """

@@ -1,6 +1,7 @@
 import time
 
 from src.utils import logger
+import settings
 
 class SessionManager(object):
     """
@@ -12,8 +13,6 @@ class SessionManager(object):
         :param MudService mud_service: The MudService class running the game.
         """
         self._mud_service = mud_service
-        # The config store to retrieve settings from.
-        self._config_store = self._mud_service.config_store
         # The list of currently connected sessions.
         self._sessions = []
 
@@ -47,7 +46,7 @@ class SessionManager(object):
         if len(self._sessions) <= 0:
             return
 
-        idle_timeout = int(self._config_store.get_value('IDLE_TIMEOUT'))
+        idle_timeout = settings.USER_IDLE_TIMEOUT
         if idle_timeout <= 0:
             return
         

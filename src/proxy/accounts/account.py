@@ -27,16 +27,6 @@ class PlayerAccount(object):
     #
 
     @property
-    def _object_store(self):
-        """
-        Short-cut to the global object store.
-
-        :rtype: InMemoryObjectStore
-        :returns: Reference to the global object store instance.
-        """
-        return self._mud_service.object_store
-
-    @property
     def _account_store(self):
         """
         Short-cut to the global account store.
@@ -64,7 +54,7 @@ class PlayerAccount(object):
         self._odata['_id'] = username
     username = property(get_username, set_username)
 
-    def get_currently_controlling(self):
+    def get_currently_controlling_id(self):
         """
         Determines what object this account is currently controlling and
         returns it.
@@ -72,24 +62,18 @@ class PlayerAccount(object):
         :returns: An instance of a :class:`BaseObject` sub-class, or
             ``None`` if this account is not controlling anything.
         """
-        controlled_id = self._odata.get('currently_controlling_id')
-        if controlled_id:
-            return self._object_store.get_object(controlled_id)
-        return None
-    def set_currently_controlling(self, obj_or_id):
+        return self._odata.get('currently_controlling_id')
+    def set_currently_controlling_id(self, obj_id):
         """
         Sets what this account is controlling.
 
-        :param obj_or_id: The object or object ID to set as the thing
+        :param obj_or_id: The object ID to set as the thing
             being controlled by this account.
-        :type obj_or_id: A ``BaseObject`` sub-class or a ``str``.
+        :type obj_id: ``str``
         """
-        if isinstance(obj_or_id, basestring):
-            self._odata['currently_controlling_id'] = id
-        else:
-            self._odata['currently_controlling_id'] = obj_or_id._id
-    currently_controlling = property(get_currently_controlling,
-                                     set_currently_controlling)
+        self._odata['currently_controlling_id'] = obj_id
+    currently_controlling_id = property(get_currently_controlling_id,
+                                        set_currently_controlling_id)
 
     #
     ## Begin regular methods.

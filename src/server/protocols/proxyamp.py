@@ -5,9 +5,18 @@ to service the MUD proxy.
 from twisted.protocols import amp
 from twisted.internet import protocol
 
-class Echo(amp.Command):
-    arguments = [('value', amp.String())]
-    response = [('value', amp.String())]
+class AmpServerFactory(protocol.ServerFactory):
+    """
+    This factory creates new ProxyAMP protocol instances to use for accepting
+    connections from TCPServer.
+    """
+    def __init__(self, server):
+        """
+        :attr ProxyService _mud_service: The global :class:`MudService` instance.
+        :attr ProxyAMP protocol: The protocol the factory creates instances of.
+        """
+        self._mud_service = server
+        self.protocol = ProxyAMP
 
 class AmpClientFactory(protocol.ReconnectingClientFactory):
     """
@@ -72,6 +81,22 @@ class AmpClientFactory(protocol.ReconnectingClientFactory):
         )
 
 
+class Echo(amp.Command):
+    arguments = [('value', amp.String())]
+    response = [('value', amp.String())]
+
+
+class SendThroughObjectCmd(amp.Command):
+    """
+    AMP command for sending player input from the proxy to the MUD server.
+    """
+    arguments = [
+        ('object_id', amp.Unicode()),
+        ('input', amp.Unicode()),
+    ]
+    response = []
+
+
 class ProxyAMP(amp.AMP):
     """
     This is the protocol that the MUD server and the proxy server
@@ -82,6 +107,13 @@ class ProxyAMP(amp.AMP):
     a responder, which is an amp.Command sub-class. The responder class
     dictates data types for arguments and response.
     """
+    def send_through_command(self, object_id, input):
+        print "OBJECT", object_id
+        print "INPUT", input
+        print self.factory._mud_service
+        return {}
+    SendThroughObjectCmd.responder(send_through_command)
+
     def echo(self, value):
         print 'Echo:', value
         print 'Factory', self.factory.server

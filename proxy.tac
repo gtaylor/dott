@@ -17,6 +17,8 @@ from twisted.application import internet, service
 
 import settings
 from src.proxy.protocols.telnet import MudTelnetServerFactory
+from src.proxy.sessions.session_manager import SessionManager
+from src.proxy.accounts.in_memory_store import InMemoryAccountStore
 from src.server.protocols.proxyamp import Echo, AmpClientFactory
 
 class ProxyService(service.Service):
@@ -30,18 +32,12 @@ class ProxyService(service.Service):
         :attr ProxyAMP proxyamp: The currently active ProxyAMP instance.
             This can be used to communicate with the MUD server through.
         """
-        self.session_manager = None
-        self.account_store = None
+        self.session_manager = SessionManager(self)
+        self.account_store = InMemoryAccountStore(self)
 
         self.proxyamp = None
 
         self.start_time = time.time()
-
-    def pipe_user_input(self, message):
-        """
-        Stub method to pipe user input from telnet to the MUD server.
-        """
-        self.proxyamp.callRemote(Echo, value=message)
 
     def start_services(self, app_to_start):
         """

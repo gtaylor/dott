@@ -1,7 +1,8 @@
 import datetime
 
 from src.utils import logger
-from src.game.commands.shells.login import LoginShell
+from src.server.protocols.proxyamp import SendThroughObjectCmd, Echo
+from src.proxy.sessions.login_shell import LoginShell
 
 class Session(object):
     """
@@ -143,11 +144,11 @@ class Session(object):
         """
         Triggered after the protocol breaks connection.
         """
-        controlled = self.get_controlled_object()
-        if controlled:
+        #controlled = self.get_controlled_object()
+        #if controlled:
             # There won't be a controlled object during the account
             # creation process.
-            controlled.at_player_disconnect_event()
+        #    controlled.at_player_disconnect_event()
 
         self._session_manager.remove_session(self)
     
@@ -163,28 +164,15 @@ class Session(object):
 
         logger.info("Logged in: %s" % self.account.username)
 
-        controlled = self.get_controlled_object()
-        if controlled.location is None:
-            starter_room = self._config_store.get_value('NEW_PLAYER_ROOM')
-            controlled.location = starter_room
-            logger.info("No location for PlayerObject(%s), setting to "\
-                        "NEW_PLAYER_ROOM.")
-            controlled.save()
+        #controlled = self.get_controlled_object()
+        #if controlled.location is None:
+        #    starter_room = self._config_store.get_value('NEW_PLAYER_ROOM')
+        #    controlled.location = starter_room
+        #    logger.info("No location for PlayerObject(%s), setting to "\
+        #                "NEW_PLAYER_ROOM.")
+        #    controlled.save()
 
-        controlled.at_player_connect_event()
-
-    def get_controlled_object(self):
-        """
-        Determines what object this session's account is currently
-        controlling and returns it.
-
-        :returns: The BaseObject sub-class instance the session's account is
-            controlling. If not logged in, ``None`` is returned instead.
-        """
-        if self.account:
-            return self.account.currently_controlling
-        else:
-            return None
+        #controlled.at_player_connect_event()
 
     def execute_command(self, command_string):
         """
@@ -215,5 +203,9 @@ class Session(object):
 
         # This is the 'normal' case in that we just hand the input
         # off to the command handler.
-        self.get_controlled_object().execute_command(command_string)
+        self._mud_service.proxyamp.callRemote(
+            SendThroughObjectCmd,
+            object_id=self.account.currently_controlling_id,
+            input=command_string,
+        )
         

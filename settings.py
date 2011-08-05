@@ -5,6 +5,8 @@ PROXY_LISTEN_PORTS = [4000]
 SERVER_AMP_HOST = 'localhost'
 SERVER_AMP_PORT = 4001
 
+USER_IDLE_TIMEOUT = 0
+
 BASE_PATH = os.path.dirname(os.path.abspath(__file__))
 SRC_DIR = os.path.join(BASE_PATH, 'src')
 LOG_DIR = os.path.join(BASE_PATH, 'log')

@@ -10,10 +10,9 @@ or the proxy to go up and down without the other really caring.
 import time
 
 from twisted.application import internet, service
-from twisted.internet import protocol
 
 import settings
-from src.server.protocols.proxyamp import ProxyAMP
+from src.server.protocols.proxyamp import AmpServerFactory
 
 class MudService(service.Service):
     """
@@ -49,9 +48,7 @@ class MudService(service.Service):
         """
         self.service_collection = service.IServiceCollection(app_to_start)
 
-        amp_factory = protocol.ServerFactory()
-        amp_factory.protocol = ProxyAMP
-        amp_factory.server = self
+        amp_factory = AmpServerFactory(self)
 
         port = settings.SERVER_AMP_PORT
         amp_server = internet.TCPServer(port, amp_factory)

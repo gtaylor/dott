@@ -1,8 +1,8 @@
 import datetime
 import hashlib
 
-from src.server.accounts.validators import is_email_valid, is_username_valid
-from src.server.accounts.exceptions import AccountNotFoundException
+from src.proxy.accounts.validators import is_email_valid, is_username_valid
+from src.proxy.accounts.exceptions import AccountNotFoundException
 from src.server.commands.interactive import InteractiveShell
 from src.server.email import EMAIL_SENDER
 
