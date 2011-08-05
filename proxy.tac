@@ -14,73 +14,10 @@ The benefits are twofold:
 import time
 
 from twisted.application import internet, service
-from twisted.internet import protocol
 
 import settings
-from src.proxy.protocols.telnet import MudTelnetProtocol
-from src.server.protocols.proxyamp import ProxyAMP, Echo
-
-class AmpClientFactory(protocol.ReconnectingClientFactory):
-    """
-    This factory creates new ProxyAMP protocol instances to use to connect
-    to the MUD server. It also maintains the :attr:`proxyamp` attribute
-    on the :class:`ProxyService` instance, which is used for piping input
-    fron Telnet to the MUD server.
-    """
-    # Initial reconnect delay in seconds.
-    initialDelay = 1
-    maxDelay = 1
-
-    def __init__(self, server):
-        """
-        :attr ProxyService server: The global :class:`ProxyService` instance.
-        """
-        self.server = server
-
-    def startedConnecting(self, connector):
-        """
-        Called when starting to try to connect to the MUD server.
-        """
-        print 'Started to connect.'
-
-    def buildProtocol(self, addr):
-        """
-        Pops out ProxyAMP() instances. Only one should ever be in use at a
-        time. This method also sets the :attr:`proxyamp` attribute
-        on the :class:`ProxyService` instance, which is used for piping input
-        fron Telnet to the MUD server.
-        """
-        print 'Connected.'
-        # Bring reconnect delay back down to initial value, in case the AMP
-        # connection is broken later on.
-        self.resetDelay()
-        # Update the MudService instance's proxyamp attribute to be the
-        # currently active ProxyAMP() instance, which we can communicate
-        # to the MUD server with.
-        self.server.proxyamp = ProxyAMP()
-        return self.server.proxyamp
-
-    def clientConnectionLost(self, connector, reason):
-        """
-        Called when the AMP connection to the MUD server is lost.
-        """
-        print 'Lost connection.  Reason:', reason
-        protocol.ReconnectingClientFactory.clientConnectionLost(
-            self,
-            connector,
-            reason
-        )
-
-    def clientConnectionFailed(self, connector, reason):
-        """
-        Called when an AMP connection attempt to the MUD server fails.
-        """
-        print 'Connection failed. Reason:', reason
-        protocol.ReconnectingClientFactory.clientConnectionFailed(
-            self,
-            connector,
-            reason
-        )
+from src.proxy.protocols.telnet import MudTelnetServerFactory
+from src.server.protocols.proxyamp import Echo, AmpClientFactory
 
 class ProxyService(service.Service):
     """
@@ -112,9 +49,7 @@ class ProxyService(service.Service):
         """
         self.service_collection = service.IServiceCollection(app_to_start)
 
-        telnet_factory = protocol.ServerFactory()
-        telnet_factory.protocol = MudTelnetProtocol
-        telnet_factory.server = self
+        telnet_factory = MudTelnetServerFactory(self)
 
         print('\n' + '-' * 50)
         print(' %s started on port(s):' % settings.GAME_NAME)

@@ -2,10 +2,16 @@
 This module contains the basic telnet protocol.
 """
 from twisted.conch.telnet import StatefulTelnetProtocol
+from twisted.internet import protocol
 
 from src.utils import logger
 from src.utils.general import to_unicode, to_str
 from src.proxy.sessions.session import Session
+
+class MudTelnetServerFactory(protocol.ServerFactory):
+    def __init__(self, server):
+        self.server = server
+        self.protocol = MudTelnetProtocol
 
 class MudTelnetProtocol(StatefulTelnetProtocol):
     """
