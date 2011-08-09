@@ -73,9 +73,9 @@ class SessionManager(object):
         for session in self.get_sessions():
             session.msg('%s' % message)
 
-    def get_sessions_for_object(self, obj):
+    def get_sessions_for_object_id(self, obj_id):
         """
-        Given an object, return the sessions controlling the object (if any).
+        Given an object ID, return the sessions controlling the object (if any).
 
         .. note:: This supports multiple sessions per object, though we
             don't allow it.
@@ -86,10 +86,21 @@ class SessionManager(object):
         sessions = []
 
         for session in self._sessions:
-            controlled = session.get_controlled_object()
+            controlling_id = session.account.currently_controlling_id
             # Compare based on ID.
-            if controlled and controlled.id == obj.id:
+            if controlling_id == obj_id:
                 sessions.append(session)
 
         # No matches if we get to this point.
         return sessions
+
+    def emit_to_object(self, obj_id, message):
+        """
+        Emits to all sessions controlling the given object ID.
+
+        :param str obj_id: The object whose sessions to emit to.
+        :param str message: The message to emit.
+        """
+        sessions = self.get_sessions_for_object_id(obj_id)
+        for session in sessions:
+            session.msg(message)

@@ -1,7 +1,7 @@
 import datetime
 
 from src.utils import logger
-from src.server.protocols.proxyamp import SendThroughObjectCmd, Echo
+from src.server.protocols.proxyamp import SendThroughObjectCmd
 from src.proxy.sessions.login_shell import LoginShell
 
 class Session(object):
@@ -55,26 +55,6 @@ class Session(object):
             symbol = '?'
             username = None
         return "<%s> %s@%s" % (symbol, username, self.address)
-
-    @property
-    def _config_store(self):
-        """
-        Short-cut to the global config store.
-
-        :rtype: InMemoryConfigStore
-        :returns: Reference to the global config store instance.
-        """
-        return self._mud_service.config_store
-
-    @property
-    def _command_handler(self):
-        """
-        Short-cut to the global command handler.
-
-        :rtype: CommandHandler
-        :returns: Reference to the global command handler instance.
-        """
-        return self._mud_service.command_handler
 
     @property
     def _account_store(self):

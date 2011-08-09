@@ -19,7 +19,7 @@ import settings
 from src.proxy.protocols.telnet import MudTelnetServerFactory
 from src.proxy.sessions.session_manager import SessionManager
 from src.proxy.accounts.in_memory_store import InMemoryAccountStore
-from src.server.protocols.proxyamp import Echo, AmpClientFactory
+from src.server.protocols.proxyamp import AmpClientFactory
 
 class ProxyService(service.Service):
     """

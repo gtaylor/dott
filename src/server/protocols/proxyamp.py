@@ -19,7 +19,18 @@ class AmpServerFactory(protocol.ServerFactory):
         self.protocol = ProxyAMP
 
     def buildProtocol(self, addr):
+        """
+        Creates new ProxyAMP instances for the MUD server (MudService) to
+        accept connections from the proxy with. This method also sets
+        the :attr:`proxyamp` attribute on the :class:`MudService` instance,
+        which is used for piping input fron MUD server to the proxy.
+
+        :rtype: ProxyAMP
+        :returns: A newly minted ProxyAMP instance. MudService uses this to
+            accept connections from ProxyService.
+        """
         self._mud_service.proxyamp = ProxyAMP()
+        self._mud_service.proxyamp.factory = self
         return self._mud_service.proxyamp
 
 class AmpClientFactory(protocol.ReconnectingClientFactory):
@@ -47,10 +58,14 @@ class AmpClientFactory(protocol.ReconnectingClientFactory):
 
     def buildProtocol(self, addr):
         """
-        Pops out ProxyAMP() instances. Only one should ever be in use at a
+        Pops out ProxyAMP instances. Only one should ever be in use at a
         time. This method also sets the :attr:`proxyamp` attribute
         on the :class:`ProxyService` instance, which is used for piping input
-        fron Telnet to the MUD server.
+        from the proxy to the MUD server.
+
+        :rtype: ProxyAMP
+        :returns: A newly minted ProxyAMP instance. ProxyService uses this
+            to connect to the MUD server (MudService).
         """
         print 'Connected.'
         # Bring reconnect delay back down to initial value, in case the AMP
@@ -60,6 +75,7 @@ class AmpClientFactory(protocol.ReconnectingClientFactory):
         # currently active ProxyAMP() instance, which we can communicate
         # to the MUD server with.
         self._proxy_service.proxyamp = ProxyAMP()
+        self._proxy_service.proxyamp.factory = self
         return self._proxy_service.proxyamp
 
     def clientConnectionLost(self, connector, reason):
@@ -85,11 +101,6 @@ class AmpClientFactory(protocol.ReconnectingClientFactory):
         )
 
 
-class Echo(amp.Command):
-    arguments = [('value', amp.String())]
-    response = [('value', amp.String())]
-
-
 class SendThroughObjectCmd(amp.Command):
     """
     AMP command for sending player input from the proxy to the MUD server.
@@ -97,6 +108,16 @@ class SendThroughObjectCmd(amp.Command):
     arguments = [
         ('object_id', amp.Unicode()),
         ('input', amp.Unicode()),
+    ]
+    response = []
+
+class EmitToObjectCmd(amp.Command):
+    """
+    AMP command for sending output to a player connected on the proxy.
+    """
+    arguments = [
+        ('object_id', amp.Unicode()),
+        ('message', amp.Unicode()),
     ]
     response = []
 
@@ -112,18 +133,36 @@ class ProxyAMP(amp.AMP):
     dictates data types for arguments and response.
     """
     def send_through_object_command(self, object_id, input):
-        print "OBJECT", object_id
-        print "INPUT", input
+        """
+        Handles sending the input through the given object, and ultimately
+        the command handler.
+
+        :param str object_id: The object ID to send this command as.
+        :param str input: The command to send to the command handler through
+            the object.
+        """
+        # The root MudService instance.
         service = self.factory._mud_service
-        print service
+        # Get a reference to the object that will send the command.
         obj = service.object_store.get_object(object_id)
-        print "RUNNING ON", obj
+        # Send the command to the command handler as this object.
         obj.execute_command(input)
+
         return {}
     SendThroughObjectCmd.responder(send_through_object_command)
 
-    def echo(self, value):
-        print 'Echo:', value
-        print 'Factory', self.factory.server
-        return {'value':value}
-    Echo.responder(echo)
+    def emit_to_object_command(self, object_id, message):
+        """
+        Pipe output to a player connected on the proxy, who controls the
+        specified object (if any).
+
+        :param str object_id: The object whose session to emit to.
+        :param str message: The message to emit to any sessions on the object.
+        """
+        # The root ProxyService instance.
+        service = self.factory._proxy_service
+        # Emit to the any Session objects responsible for object_id.
+        service.session_manager.emit_to_object(object_id, message)
+
+        return {}
+    EmitToObjectCmd.responder(emit_to_object_command)

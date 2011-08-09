@@ -1,3 +1,5 @@
+from src.server.protocols.proxyamp import EmitToObjectCmd
+
 class BaseObject(object):
     """
     This is the base parent for every in-game "object". Rooms, Players, and
@@ -178,6 +180,11 @@ class BaseObject(object):
             the object.
         """
         print "EMITTED TO %s: %s" % (self, message)
+        self._mud_service.proxyamp.callRemote(
+            EmitToObjectCmd,
+            object_id=self.id,
+            message=message
+        )
         #sessions = self._session_manager.get_sessions_for_object(self)
         #for session in sessions:
         #    session.msg(message)
