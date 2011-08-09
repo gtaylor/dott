@@ -107,12 +107,16 @@ class ProxyAMP(amp.AMP):
     a responder, which is an amp.Command sub-class. The responder class
     dictates data types for arguments and response.
     """
-    def send_through_command(self, object_id, input):
+    def send_through_object_command(self, object_id, input):
         print "OBJECT", object_id
         print "INPUT", input
-        print self.factory._mud_service
+        service = self.factory._mud_service
+        print service
+        obj = service.object_store.get_object(object_id)
+        print "RUNNING ON", obj
+        obj.execute_command(input)
         return {}
-    SendThroughObjectCmd.responder(send_through_command)
+    SendThroughObjectCmd.responder(send_through_object_command)
 
     def echo(self, value):
         print 'Echo:', value

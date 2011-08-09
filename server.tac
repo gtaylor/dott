@@ -13,6 +13,9 @@ from twisted.application import internet, service
 
 import settings
 from src.server.protocols.proxyamp import AmpServerFactory
+from src.game.commands.global_cmdtable import GlobalCommandTable
+from src.server.commands.handler import CommandHandler
+from src.server.objects.in_memory_store import InMemoryObjectStore
 
 class MudService(service.Service):
     """
@@ -25,12 +28,24 @@ class MudService(service.Service):
 
         self.proxyamp = None
 
-        self.global_cmd_table = None
-        self.command_handler = None
-        self.config_store = None
-        self.session_manager = None
-        self.object_store = None
-        self.account_store = None
+        # Global command table. This is consulted  by the command handler
+        # when users send input.
+        self.global_cmd_table = GlobalCommandTable(self)
+
+        # The command handler takes user input and figures out what to do
+        # with it. This typically results in a command from a command table
+        # being ran.
+        self.command_handler = CommandHandler(self)
+
+        # The object store holds instances of all of the game's objects. It
+        # directs loading all objects from the DB at start time, and has some
+        # convenience method for finding and retrieving objects during
+        # runtime.
+        self.object_store = InMemoryObjectStore(self)
+        
+        # All of the instantiations above just prep data structures. The
+        # following lines do all of the loading.
+        self.object_store._prepare_at_load()
 
         # Begin startup debug output.
         print('\n' + '-' * 50)

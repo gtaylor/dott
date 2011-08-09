@@ -207,9 +207,10 @@ class BaseObject(object):
         :param str message: The message to emit to any Sessions attached to
             the object.
         """
-        sessions = self._session_manager.get_sessions_for_object(self)
-        for session in sessions:
-            session.msg(message)
+        print "EMITTED TO %s: %s" % (self, message)
+        #sessions = self._session_manager.get_sessions_for_object(self)
+        #for session in sessions:
+        #    session.msg(message)
 
     def get_contents(self):
         """
