@@ -28,26 +28,6 @@ class BaseObject(object):
     #
 
     @property
-    def _session_manager(self):
-        """
-        Short-cut to the global session manager.
-
-        :rtype: SessionManager
-        :returns: Reference to the global session manager instance.
-        """
-        return self._mud_service.session_manager
-
-    @property
-    def _account_store(self):
-        """
-        Short-cut to the global account store.
-
-        :rtype: InMemoryAccountStore
-        :returns: Reference to the global account store instance.
-        """
-        return self._mud_service.account_store
-
-    @property
     def _object_store(self):
         """
         Short-cut to the global object store.
@@ -147,36 +127,26 @@ class BaseObject(object):
             self._odata['location_id'] = obj_or_id._id
     location = property(get_location, set_location)
 
-    def get_controlled_by(self):
+    def get_controlled_by_id(self):
         """
-        Returns the PlayerAccount that is controlling this object, or ``None``
-        if the object is un-controlled.
+        Returns the ID of the PlayerAccount that is controlling this object,
+        or ``None`` if the object is un-controlled.
 
         .. note:: Controlled does not mean connected.
 
-        :rtype: :class:`src.server.accounts.account.PlayerAccount` or ``None``
-        :returns: If controlled by an account, returns the account. If nothing
-            controls this object, returns ``None``.
+        :rtype: str
+        :returns: The CouchDB ID of the PlayerAccount that controls this object.
         """
-        username = self._odata.get('controlled_by_account_id')
-        if username:
-            return self._account_store.get_account(username)
-        else:
-            return None
-    def set_controlled_by(self, account_or_username):
+        return self._odata.get('controlled_by_account_id')
+    def set_controlled_by_id(self, account_id):
         """
-        Sets the PlayerAccount that controls this object.
+        Sets the PlayerAccount ID that controls this object.
 
-        :param account_or_username: The account or username that controls
-            this object.
-        :type account_or_username: A
-            :class:`src.accounts.account.PlayerAccount` or ``str``.
+        :param str account_id: The CouchDB ID of the PlayerAccount that
+            controls this object.
         """
-        if isinstance(account_or_username, basestring):
-            self._odata['controlled_by_account_id'] = account_or_username
-        else:
-            self._odata['controlled_by_account_id'] = account_or_username.username
-    controlled_by = property(get_controlled_by, set_controlled_by)
+        self._odata['controlled_by_account_id'] = account_id
+    controlled_by_id = property(get_controlled_by_id, set_controlled_by_id)
 
     #
     ## Begin regular methods.
@@ -222,11 +192,6 @@ class BaseObject(object):
         """
         return self._object_store.get_object_contents(self)
 
-    def get_connected_sessions(self):
-        """
-        Returns any sessions that are currently controlling this object.
-        """
-        return self._session_manager.get_sessions_for_object(self)
 
     #
     ## Begin events

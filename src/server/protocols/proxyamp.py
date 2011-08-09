@@ -18,6 +18,10 @@ class AmpServerFactory(protocol.ServerFactory):
         self._mud_service = server
         self.protocol = ProxyAMP
 
+    def buildProtocol(self, addr):
+        self._mud_service.proxyamp = ProxyAMP()
+        return self._mud_service.proxyamp
+
 class AmpClientFactory(protocol.ReconnectingClientFactory):
     """
     This factory creates new ProxyAMP protocol instances to use to connect
@@ -33,7 +37,7 @@ class AmpClientFactory(protocol.ReconnectingClientFactory):
         """
         :attr ProxyService server: The global :class:`ProxyService` instance.
         """
-        self.server = server
+        self._proxy_service = server
 
     def startedConnecting(self, connector):
         """
@@ -55,8 +59,8 @@ class AmpClientFactory(protocol.ReconnectingClientFactory):
         # Update the MudService instance's proxyamp attribute to be the
         # currently active ProxyAMP() instance, which we can communicate
         # to the MUD server with.
-        self.server.proxyamp = ProxyAMP()
-        return self.server.proxyamp
+        self._proxy_service.proxyamp = ProxyAMP()
+        return self._proxy_service.proxyamp
 
     def clientConnectionLost(self, connector, reason):
         """
