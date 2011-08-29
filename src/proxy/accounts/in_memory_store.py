@@ -95,7 +95,7 @@ class InMemoryAccountStore(object):
             username=username,
         )
 
-        def obj_created_callback(result):
+        def obj_created_callback(results):
             """
             This is ran once the mud server creates a new PlayerObject. The
             proxy then creates a matching PlayerAccount, set to controlling
