@@ -1,4 +1,5 @@
 from src.server.commands.command import BaseCommand
+from src.server.protocols.proxyamp import WhoConnectedCmd
 
 class CmdLook(BaseCommand):
     """
@@ -18,15 +19,30 @@ class CmdWho(BaseCommand):
     name = 'who'
 
     def func(self, invoker, parsed_cmd):
-        session_mgr = invoker._session_manager
-        sessions = session_mgr.get_sessions()
+        """
+        The proxy has all of the details on who is connected, so the mud server
+        has to ask. This is handled through a deferred and a callback.
+        """
+        service = invoker._mud_service
+        deferred = service.proxyamp.callRemote(WhoConnectedCmd)
+        deferred.addCallback(self._wholist_callback, invoker)
+
+    def _wholist_callback(self, results, invoker):
+        """
+        Once the proxy gets back to us on who is connected, this callback
+        triggers.
+
+        :param dict results: The details returned by the proxy.
+        :param PlayerObject invoker: The player who ran the command.
+        """
+        accounts = results['accounts']
 
         retval = "Player\n"
 
-        for session in sessions:
-            retval += " %s\n" % session.account.username
+        for account in accounts:
+            retval += " %s\n" % account
 
-        nplayers = len(sessions)
+        nplayers = len(accounts)
         if nplayers == 1:
             retval += 'One player logged in.'
         else:

@@ -100,6 +100,16 @@ class AmpClientFactory(protocol.ReconnectingClientFactory):
             reason
         )
 
+class WhoConnectedCmd(amp.Command):
+    """
+    Command for asking the proxy for which accounts are connected.
+    """
+    arguments = []
+    response = [
+        ('accounts', amp.ListOf(amp.Unicode())),
+    ]
+
+
 class CreatePlayerObjectCmd(amp.Command):
     """
     AMP command for creating a new PlayerObject for a new PlayerAccount.
@@ -108,7 +118,9 @@ class CreatePlayerObjectCmd(amp.Command):
     arguments = [
         ('username', amp.Unicode()),
     ]
-    response = [('object_id', amp.Unicode())]
+    response = [
+        ('object_id', amp.Unicode()),
+    ]
 
 
 class SendThroughObjectCmd(amp.Command):
@@ -184,7 +196,7 @@ class ProxyAMP(amp.AMP):
 
         :param str username: The username of the PlayerAccount.
         """
-        # The root ProxyService instance.
+        # The root MudService instance.
         service = self.factory._mud_service
 
         # Create the new PlayerObject.
@@ -201,3 +213,20 @@ class ProxyAMP(amp.AMP):
             'object_id': player_obj._id
         }
     CreatePlayerObjectCmd.responder(create_player_object_command)
+
+    def who_connected_command(self):
+        """
+        Asks the proxy for a list of connected/authenticated accounts.
+        """
+        # The root ProxyService instance.
+        service = self.factory._proxy_service
+        sessions = service.session_manager.get_sessions()
+
+        accounts = []
+        for session in sessions:
+            accounts.append(session.account.username)
+
+        return {
+            'accounts': accounts
+        }
+    WhoConnectedCmd.responder(who_connected_command)
