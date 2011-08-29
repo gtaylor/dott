@@ -3,6 +3,7 @@ from couchdb.http import ResourceNotFound
 
 import settings
 from src.utils import logger
+from src.server.protocols.proxyamp import CreatePlayerObjectCmd
 from src.proxy.accounts.exceptions import AccountNotFoundException, UsernameTakenException
 from src.proxy.accounts.account import PlayerAccount
 
@@ -86,27 +87,35 @@ class InMemoryAccountStore(object):
         if self._accounts.has_key(username.lower()):
             raise UsernameTakenException('Username already taken.')
 
-        # Create a PlayerObject for this PlayerAccount to control.
-        player_obj = self._object_store.create_object(
-            'src.game.parents.base_objects.player.PlayerObject',
-            name=username,
-            original_account_id=username,
-            controlled_by_account_id=username,
+        # Tells the mud server to create a new PlayerObject to go with the
+        # eventual new PlayerAccount. Returns a deferred, which we add
+        # a callback for and handle in obj_created_callback.
+        p_obj_created_deferred = self._mud_service.proxyamp.callRemote(
+            CreatePlayerObjectCmd,
+            username=username,
         )
 
-        # Create the PlayerAccount, pointed at the PlayerObject's _id.
-        account = PlayerAccount(
-            self._mud_service,
-            _id=username,
-            email=email,
-            currently_controlling_id=player_obj._id,
-            password=None
-        )
-        # Hashes the password for safety.
-        account.set_password(password)
-        account.save()
-        
-        return self.get_account(username)
+        def obj_created_callback(object_id):
+            """
+            This is ran once the mud server creates a new PlayerObject. The
+            proxy then creates a matching PlayerAccount, set to controlling
+            the newly created PlayerObject.
+
+            :param str object_id: The newly created PlayerObject on the
+                mud server.
+            """
+            # Create the PlayerAccount, pointed at the PlayerObject's _id.
+            account = PlayerAccount(
+                self._mud_service,
+                _id=username,
+                email=email,
+                currently_controlling_id=object_id,
+                password=None
+            )
+            # Hashes the password for safety.
+            account.set_password(password)
+            account.save()
+        p_obj_created_deferred.addCallback(obj_created_callback)
 
     def save_account(self, account):
         """

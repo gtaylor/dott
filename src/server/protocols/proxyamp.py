@@ -100,6 +100,16 @@ class AmpClientFactory(protocol.ReconnectingClientFactory):
             reason
         )
 
+class CreatePlayerObjectCmd(amp.Command):
+    """
+    AMP command for creating a new PlayerObject for a new PlayerAccount.
+    Called by the proxy during character creation.
+    """
+    arguments = [
+        ('username', amp.Unicode()),
+    ]
+    response = [('object_id', amp.Unicode())]
+
 
 class SendThroughObjectCmd(amp.Command):
     """
@@ -110,6 +120,7 @@ class SendThroughObjectCmd(amp.Command):
         ('input', amp.Unicode()),
     ]
     response = []
+
 
 class EmitToObjectCmd(amp.Command):
     """
@@ -166,3 +177,27 @@ class ProxyAMP(amp.AMP):
 
         return {}
     EmitToObjectCmd.responder(emit_to_object_command)
+
+    def create_player_object_command(self, username):
+        """
+        Creates a PlayerObject to match a newly created PlayerAccount.
+
+        :param str username: The username of the PlayerAccount.
+        """
+        # The root ProxyService instance.
+        service = self.factory._mud_service
+
+        # Create the new PlayerObject.
+        player_obj = service.object_store.create_object(
+            'src.game.parents.base_objects.player.PlayerObject',
+            name=username,
+            original_account_id=username,
+            controlled_by_account_id=username,
+        )
+
+        # The object's ID gets returned so the account creation code can
+        # set the account to control the new object.
+        return {
+            'object_id': player_obj._id
+        }
+    CreatePlayerObjectCmd.responder(create_player_object_command)
