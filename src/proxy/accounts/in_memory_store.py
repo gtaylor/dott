@@ -22,11 +22,11 @@ class InMemoryAccountStore(object):
         self._server = couchdb.Server()
         # Eventually contains a CouchDB reference. Queries come through here.
         self._db = None
-        # Keys are config keys, values are config values.
+        # Keys are usernames, values are PlayerAccount instances.
         self._accounts = {}
         # Loads or creates+loads the CouchDB database.
         self._prep_db(db_name=db_name)
-        # Loads all config values into RAM from CouchDB.
+        # Loads all PlayerAccount objects into RAM from CouchDB.
         self._load_accounts_into_ram()
 
     def __del__(self):
@@ -52,7 +52,6 @@ class InMemoryAccountStore(object):
         if not db_name:
             # Use the default configured DB name for config DB.
             db_name = settings.DATABASES['accounts']['NAME']
-
         try:
             # Try to get a reference to the CouchDB database.
             self._db = self._server[db_name]
@@ -62,7 +61,7 @@ class InMemoryAccountStore(object):
 
     def _load_accounts_into_ram(self):
         """
-        Loads all of the config values from the DB into RAM.
+        Loads all of the PlayerAccount instances from the DB into RAM.
         """
         for doc_id in self._db:
             username = doc_id
@@ -110,7 +109,7 @@ class InMemoryAccountStore(object):
                 _id=username,
                 email=email,
                 currently_controlling_id=results['object_id'],
-                password=None
+                password=None,
             )
             # Hashes the password for safety.
             account.set_password(password)

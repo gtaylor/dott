@@ -48,16 +48,6 @@ class InMemoryObjectStore(object):
         return self._mud_service.session_manager
 
     @property
-    def _config_store(self):
-        """
-        Short-cut to the global config store.
-
-        :rtype: InMemoryConfigStore
-        :returns: Reference to the global config store instance.
-        """
-        return self._mud_service.config_store
-
-    @property
     def _account_store(self):
         """
         Short-cut to the global account store.
@@ -141,8 +131,6 @@ class InMemoryObjectStore(object):
         """
         parent_path = 'src.game.parents.base_objects.room.RoomObject'
         room = self.create_object(parent_path, name='And so it begins...')
-        # Sets the newly created room as the room that new players connect to.
-        self._config_store.set_value('NEW_PLAYER_ROOM', room.id)
 
     def create_object(self, parent_path, **kwargs):
         """

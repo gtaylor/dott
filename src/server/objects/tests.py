@@ -20,8 +20,6 @@ class InMemoryObjectStoreTests(DottTestCase):
         id, room = self.object_store._objects.items()[0]
         # It should have been created with the standard room parent.
         self.assertEqual(room.parent, self.ROOM_PARENT)
-        new_player_room = self.config_store.get_value('NEW_PLAYER_ROOM')
-        self.assertNotEqual(new_player_room, None)
 
     def test_create_room(self):
         """

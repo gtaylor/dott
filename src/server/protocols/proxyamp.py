@@ -4,6 +4,7 @@ to service the MUD proxy.
 """
 from twisted.protocols import amp
 from twisted.internet import protocol
+import settings
 
 class AmpServerFactory(protocol.ServerFactory):
     """
@@ -205,6 +206,7 @@ class ProxyAMP(amp.AMP):
             name=username,
             original_account_id=username,
             controlled_by_account_id=username,
+            location_id=settings.NEW_PLAYER_LOCATION_ID,
         )
 
         # The object's ID gets returned so the account creation code can

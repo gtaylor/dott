@@ -179,15 +179,11 @@ class BaseObject(object):
         :param str message: The message to emit to any Sessions attached to
             the object.
         """
-        print "EMITTED TO %s: %s" % (self, message)
         self._mud_service.proxyamp.callRemote(
             EmitToObjectCmd,
             object_id=self.id,
             message=message
         )
-        #sessions = self._session_manager.get_sessions_for_object(self)
-        #for session in sessions:
-        #    session.msg(message)
 
     def get_contents(self):
         """

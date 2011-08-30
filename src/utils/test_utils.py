@@ -2,7 +2,6 @@ import unittest2
 from src.game.commands.global_cmdtable import GlobalCommandTable
 from src.server.commands.handler import CommandHandler
 from src.server.accounts.in_memory_store import InMemoryAccountStore
-from src.server.config.in_memory_store import InMemoryConfigStore
 from src.server.objects.in_memory_store import InMemoryObjectStore
 from src.server.sessions.session_manager import SessionManager
 
@@ -13,14 +12,12 @@ class MockMudService(object):
     def __init__(self):
         self.global_cmd_table = None
         self.command_handler = None
-        self.config_store = None
         self.session_manager = None
         self.object_store = None
         self.account_store = None
 
         self.global_cmd_table = GlobalCommandTable(self)
         self.command_handler = CommandHandler(self)
-        self.config_store = InMemoryConfigStore(self, db_name='dott_config_test')
         self.session_manager = SessionManager(self)
         self.object_store = InMemoryObjectStore(self, db_name='dott_objects_test')
         self.account_store = InMemoryAccountStore(self, db_name='dott_accounts_test')
@@ -50,7 +47,6 @@ class DottTestCase(unittest2.TestCase):
         self.mud_service = MockMudService()
         self.global_cmd_table = self.mud_service.global_cmd_table
         self.command_handler = self.mud_service.command_handler
-        self.config_store = self.mud_service.config_store
         self.session_manager = self.mud_service.session_manager
         self.object_store = self.mud_service.object_store
         self.account_store = self.mud_service.account_store
@@ -59,6 +55,5 @@ class DottTestCase(unittest2.TestCase):
         """
         Cleans up the created environment.
         """
-        del self.config_store._server['dott_config_test']
         del self.object_store._server['dott_objects_test']
         del self.account_store._server['dott_accounts_test']
