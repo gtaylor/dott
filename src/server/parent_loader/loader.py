@@ -1,5 +1,3 @@
-import exocet
-from src.utils import logger
 
 class ParentLoader(object):
     """
@@ -13,7 +11,7 @@ class ParentLoader(object):
     def load_parent(self, parent_str):
         """
         Checks the parent cache for the presence of the requested parent class,
-        loading it with exocet if it's missing. Returns a reference to the
+        loading it with __import__ if it's missing. Returns a reference to the
         parent class once all is done.
 
         :param str parent_str: The full module + class Python path to the
@@ -22,21 +20,21 @@ class ParentLoader(object):
         :returns: The requested parent class.
         """
         if not self._parent_cache.has_key(parent_str):
-            module_str, class_str = self._split_parent(parent_str)
+            # __import__ doesn't play nicely with class names within the
+            # module you're importing. Split the parent class off from the
+            # module path.
+            module_str, parent_class = parent_str.rsplit('.', 1)
 
-            module = exocet.loadNamed(str(module_str),
-                                      exocet.pep302Mapper)
-            parent = getattr(module, class_str)
+            # This imports the top-level src module, from which we have to
+            # iterate through sub-modules to eventually get to what we want.
+            # For example, src -> game -> parents -> base_objects.
+            mod = __import__(module_str)
+            components = module_str.split('.')
+            for comp in components[1:]:
+                # Enhance. ENHANCE!
+                mod = getattr(mod, comp)
 
-            self._parent_cache[parent_str] = parent
+            # Finally, we're at the lowest module in the python module
+            # path. Get the parent class from this.
+            self._parent_cache[parent_str] = getattr(mod, parent_class)
         return self._parent_cache[parent_str]
-
-    def _split_parent(self, parent_str):
-        """
-        Given a full Python path to a parent class, returns a 
-
-        :param str parent_str: The full Python path to the parent class.
-        :rtype: tuple
-        :returns: A tuple in the format of (path, class).
-        """
-        return parent_str.rsplit('.', 1)
