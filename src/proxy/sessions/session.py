@@ -174,11 +174,15 @@ class Session(object):
             self.interactive_shell.process_input(command_string)
             return
 
-        # This is the 'normal' case in that we just hand the input
-        # off to the command handler.
-        self._mud_service.proxyamp.callRemote(
-            SendThroughObjectCmd,
-            object_id=self.account.currently_controlling_id,
-            input=command_string,
-        )
-        
+        try:
+            # This is the 'normal' case in that we just hand the input
+            # off to the command handler.
+            self._mud_service.proxyamp.callRemote(
+                SendThroughObjectCmd,
+                object_id=self.account.currently_controlling_id,
+                input=command_string,
+            )
+        except AttributeError:
+            # proxyamp is a None value, mud server is unavailable.
+            self.msg("The MUD server is currently re-loading. Please try "\
+                     "your command again in a few seconds.")
