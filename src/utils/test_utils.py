@@ -1,26 +1,28 @@
 import unittest2
 from src.game.commands.global_cmdtable import GlobalCommandTable
 from src.server.commands.handler import CommandHandler
-from src.server.accounts.in_memory_store import InMemoryAccountStore
 from src.server.objects.in_memory_store import InMemoryObjectStore
-from src.server.sessions.session_manager import SessionManager
+from src.proxy.accounts.in_memory_store import InMemoryAccountStore
+from src.proxy.sessions.session_manager import SessionManager
+
+class FakeProxyAMP(object):
+    """
+    Fake AMP protocol instance.
+    """
+    def callRemote(self, *args, **kwargs):
+        pass
 
 class MockMudService(object):
     """
     Mocks up the MudService class found in dott.tac.
     """
     def __init__(self):
-        self.global_cmd_table = None
-        self.command_handler = None
-        self.session_manager = None
-        self.object_store = None
-        self.account_store = None
-
         self.global_cmd_table = GlobalCommandTable(self)
         self.command_handler = CommandHandler(self)
         self.session_manager = SessionManager(self)
         self.object_store = InMemoryObjectStore(self, db_name='dott_objects_test')
         self.account_store = InMemoryAccountStore(self, db_name='dott_accounts_test')
+        self.proxyamp = FakeProxyAMP()
 
         self.object_store._prepare_at_load()
 

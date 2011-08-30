@@ -1,6 +1,7 @@
-import exocet
 from src.server.commands.cmdtable import CommandTable
-from src.utils import logger
+
+from src.game.commands import general as general_cmds
+from src.game.commands import staff as staff_cmds
 
 class GlobalCommandTable(CommandTable):
     """
@@ -9,15 +10,6 @@ class GlobalCommandTable(CommandTable):
     def __init__(self, *args, **kwargs):
         super(GlobalCommandTable, self).__init__(*args, **kwargs)
 
-        general_cmds = exocet.loadNamed(
-            'src.game.commands.general',
-            exocet.pep302Mapper
-        )
-        staff_cmds = exocet.loadNamed(
-            'src.game.commands.staff',
-            exocet.pep302Mapper
-        )
-
         self.add_command(general_cmds.CmdLook())
         self.add_command(general_cmds.CmdWho())
         self.add_command(general_cmds.CmdSay())
@@ -25,6 +17,3 @@ class GlobalCommandTable(CommandTable):
 
         # Staff commands
         self.add_command(staff_cmds.CmdReload())
-
-    def __del__(self):
-        logger.info("GlobalCommandTable instance GC'd.")
