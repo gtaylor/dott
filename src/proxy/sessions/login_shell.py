@@ -4,7 +4,7 @@ import hashlib
 from src.proxy.accounts.validators import is_email_valid, is_username_valid
 from src.proxy.accounts.exceptions import AccountNotFoundException
 from src.server.commands.interactive import InteractiveShell
-from src.server.email import EMAIL_SENDER
+from src.utils.email import OutboundEmail
 
 class LoginShell(InteractiveShell):
     """
@@ -229,11 +229,12 @@ class LoginShell(InteractiveShell):
         )
 
         # Bombs away.
-        EMAIL_SENDER.send_email(
+        email = OutboundEmail(
             subject,
             body,
             [self.email_given]
         )
+        email.send_email()
 
     def _create_account(self):
         """
