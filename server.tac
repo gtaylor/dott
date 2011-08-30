@@ -10,6 +10,7 @@ or the proxy to go up and down without the other really caring.
 import time
 
 from twisted.application import internet, service
+from twisted.internet import reactor
 
 import settings
 from src.server.protocols.proxyamp import AmpServerFactory
@@ -70,6 +71,11 @@ class MudService(service.Service):
         amp_server.setName('dott%s' % port)
         amp_server.setServiceParent(self.service_collection)
 
+    def shutdown(self):
+        """
+        Gracefully shuts down the service.
+        """
+        reactor.callLater(0, reactor.stop)
             
 # Putting it all together
 application = service.Application('dott_server')
