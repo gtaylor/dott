@@ -29,9 +29,6 @@ class InMemoryAccountStore(object):
         # Loads all PlayerAccount objects into RAM from CouchDB.
         self._load_accounts_into_ram()
 
-    def __del__(self):
-        logger.info("InMemoryAccountStore instance GC'd.")
-
     @property
     def _object_store(self):
         """

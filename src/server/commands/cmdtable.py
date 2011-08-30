@@ -28,9 +28,6 @@ class CommandTable(object):
         self._commands = {}
         self._aliases = {}
 
-    def __del__(self):
-        logger.info("CommandTable instance GC'd.")
-
     def add_command(self, command):
         """
         Adds a command to the command table.

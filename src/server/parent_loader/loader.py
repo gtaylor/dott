@@ -10,9 +10,6 @@ class ParentLoader(object):
         # parent, and the value being a reference to the class.
         self._parent_cache = {}
 
-    def __del__(self):
-        logger.info("ParentLoader instance GC'd.")
-
     def load_parent(self, parent_str):
         """
         Checks the parent cache for the presence of the requested parent class,

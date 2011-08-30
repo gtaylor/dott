@@ -34,9 +34,6 @@ class InMemoryObjectStore(object):
         # Reference to CouchDB server connection.
         self._server = None
 
-    def __del__(self):
-        logger.info("InMemoryObjectStore instance GC'd.")
-
     @property
     def _session_manager(self):
         """

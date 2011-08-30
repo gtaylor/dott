@@ -19,9 +19,6 @@ class CommandHandler(object):
         self._mud_service = mud_service
         self.parser = CommandParser()
 
-    def __del__(self):
-        logger.info("CommandHandler instance GC'd.")
-
     @property
     def command_table(self):
         """
