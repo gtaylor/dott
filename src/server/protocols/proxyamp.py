@@ -55,7 +55,7 @@ class AmpClientFactory(protocol.ReconnectingClientFactory):
         """
         Called when starting to try to connect to the MUD server.
         """
-        print 'Started to connect.'
+        print 'Attempting to connect to MUD server...'
 
     def buildProtocol(self, addr):
         """
@@ -68,7 +68,6 @@ class AmpClientFactory(protocol.ReconnectingClientFactory):
         :returns: A newly minted ProxyAMP instance. ProxyService uses this
             to connect to the MUD server (MudService).
         """
-        print 'Connected.'
         # Bring reconnect delay back down to initial value, in case the AMP
         # connection is broken later on.
         self.resetDelay()
@@ -94,7 +93,7 @@ class AmpClientFactory(protocol.ReconnectingClientFactory):
         """
         Called when an AMP connection attempt to the MUD server fails.
         """
-        print 'Connection failed. Reason:', reason
+        print 'Proxy->MUD server Connection failed. Reason:', reason
         protocol.ReconnectingClientFactory.clientConnectionFailed(
             self,
             connector,
