@@ -9,7 +9,10 @@ class CmdLook(BaseCommand):
     aliases = ['l']
 
     def func(self, invoker, parsed_cmd):
-        invoker.emit_to('WHO YOU LOOKIN AT?')
+        if not invoker.location:
+            invoker.emit_to('You appear to be nowhere. Bummer.')
+
+        invoker.emit_to(invoker.location.get_appearance(invoker=invoker))
 
 
 class CmdWho(BaseCommand):

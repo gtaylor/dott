@@ -49,6 +49,18 @@ class BaseObject(object):
         """
         return self._mud_service.command_handler
 
+    @property
+    def attributes(self):
+        """
+        Returns a reference to the attributes dict within self._odata.
+        These are anything but the bare minimum things like object ID,
+        location, parent, name, etc.
+
+        :rtype: dict
+        :returns: A dict of additional attributes for the object.
+        """
+        return self._odata['attributes']
+
     def get_id(self):
         """
         Returns the object's ID. This is a CouchDB hash string.
@@ -195,6 +207,42 @@ class BaseObject(object):
         """
         return self._object_store.get_object_contents(self)
 
+    def get_description(self, from_inside=False):
+        """
+        Returns the description of this object. Typically just hits the
+        'description' odata attribute.
+
+        :keyword bool from_inside: If True, use an internal description instead
+            of the normal description, if available. For example, the inside
+            of a vehicle should have a different description than the outside.
+        """
+        if from_inside:
+            idesc = self.attributes.get('internal_description')
+            if idesc:
+                return idesc
+
+        description = self.attributes.get(
+            'description',
+            'You see nothing special.'
+        )
+        return description
+
+    def get_appearance(self, invoker):
+        """
+        Shows the full appearance for an object. Includes description, contents,
+        exits, and everything else.
+
+        :param BaseObject invoker: The object asking for the appearance.
+        """
+        is_inside = invoker.location.id == self.id
+
+        ansi_hilight = "\033[1m"
+        ansi_normal = "\033[0m"
+        name = "%s%s%s" % (ansi_hilight, self.name, ansi_normal)
+
+        desc = self.get_description(from_inside=is_inside)
+
+        return "%s\n%s" % (name, desc)
 
     #
     ## Begin events

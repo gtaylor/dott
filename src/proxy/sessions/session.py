@@ -147,6 +147,8 @@ class Session(object):
         #controlled = self.get_controlled_object()
         #controlled.at_player_connect_event()
 
+        self.execute_command('look')
+
     def execute_command(self, command_string):
         """
         Used to parse input from a protocol, or something forced.
