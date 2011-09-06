@@ -1,3 +1,4 @@
+from fuzzywuzzy import fuzz
 import couchdb
 from couchdb.http import ResourceNotFound
 
@@ -180,3 +181,15 @@ class InMemoryObjectStore(object):
             is ``obj``.
         """
         return [omatch for omatch in self._objects.values() if omatch.location == obj]
+
+    def global_name_search(self, name):
+        """
+        Does a global name search of all objects. Compares input to the name
+        odata key on all objects.
+
+        :param str name: The name to search for.
+        """
+        for id, obj in self._objects.iteritems():
+            ratio = fuzz.partial_ratio(name, obj.name)
+            if ratio > 50:
+                yield obj

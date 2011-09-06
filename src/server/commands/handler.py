@@ -1,5 +1,4 @@
 from src.server.commands.parser import CommandParser
-from src.utils import logger
 
 class CommandHandler(object):
     """
