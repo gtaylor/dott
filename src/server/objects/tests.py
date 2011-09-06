@@ -31,3 +31,29 @@ class InMemoryObjectStoreTests(DottTestCase):
         self.assertIsInstance(room.id, basestring)
         # The room name should match what was given during creation.
         self.assertEqual('Another room', room.name)
+
+    def test_global_name_search(self):
+        """
+        Tests the global_name_search method on the object store. Fuzzy
+        name matching.
+        """
+        parent_path = self.ROOM_PARENT
+        room1 = self.object_store.create_object(parent_path, name='Some room')
+        room2 = self.object_store.create_object(parent_path, name='Another room')
+        room3 = self.object_store.create_object(parent_path, name='Funny room')
+
+        # Search for 'some', we should have room1 as the sole result.
+        matches1 = self.object_store.global_name_search('some')
+        num_found = 0
+        for match in matches1:
+            if room1 == match:
+                num_found += 1
+        self.assertEqual(num_found, 1)
+
+        # Search for 'room', which should yield three results.
+        matches2 = self.object_store.global_name_search('room')
+        num_found = 0
+        for match in matches2:
+            if room1 == match or room2 == match or room3 == match:
+                num_found += 1
+        self.assertEqual(num_found, 3)
