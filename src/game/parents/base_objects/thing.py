@@ -14,4 +14,13 @@ class ThingObject(BaseObject):
     Unlike a RoomObject, ThingObject has a location, and may be picked up.
     However, a ThingObject can carry other ThingObjects, like a RoomObject.
     """
-    pass
+
+    @property
+    def base_type(self):
+        """
+        Return's this object's type lineage.
+
+        :rtype: str
+        :returns: ``'thing'``
+        """
+        return 'thing'

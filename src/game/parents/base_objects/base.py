@@ -162,6 +162,24 @@ class BaseObject(object):
         self._odata['controlled_by_account_id'] = account_id
     controlled_by_id = property(get_controlled_by_id, set_controlled_by_id)
 
+    @property
+    def base_type(self):
+        """
+        BaseObject's primary three sub-classes are Room, Player, Exit,
+        and Thing. These are all considered the top-level children, and
+        everything else will be children of them. Room, Player, Exit, and
+        Thing are the only three valid base types, and each parent should
+        return one of the following for quick-and-easy type checking:
+
+            * room
+            * player
+            * exit
+            * thing
+
+        :rtype: str
+        """
+        raise NotImplementedError('Over-ride in sub-class.')
+
     #
     ## Begin regular methods.
     #

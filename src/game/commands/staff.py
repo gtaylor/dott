@@ -30,7 +30,7 @@ class CmdFind(BaseCommand):
         search_str = ' '.join(parsed_cmd.arguments)
 
         if search_str.strip() == '':
-            invoker.emit_to('No name to find specified.')
+            invoker.emit_to('@find requires a name to search for.')
             return
 
         invoker.emit_to("Searching for: %s" % search_str)
@@ -42,8 +42,38 @@ class CmdFind(BaseCommand):
         retval = ''
         match_counter = 0
         for match in matches:
-            retval += '\n  %s   %s' % (match.id, match.name[:80])
+            retval += '\n  %s   %s %s' % (
+                match.id,
+                match.base_type.ljust(8),
+                match.name[:80]
+            )
             match_counter += 1
         # Send the results in one burst.
         invoker.emit_to(retval)
         invoker.emit_to('\nMatches found: %d' % match_counter)
+
+
+class CmdDig(BaseCommand):
+    """
+    Digs a new room.
+    """
+    name = '@dig'
+
+    def func(self, invoker, parsed_cmd):
+        mud_service = invoker._mud_service
+
+        name_str = ' '.join(parsed_cmd.arguments)
+
+        if name_str.strip() == '':
+            invoker.emit_to('@dig requires a name for the new room.')
+            return
+
+        room_parent = 'src.game.parents.base_objects.room.RoomObject'
+        new_room = mud_service.object_store.create_object(
+            room_parent,
+            name=name_str,
+        )
+        invoker.emit_to('You have dug a new room: %s(%s)' % (
+            new_room.name,
+            new_room.id,
+        ))

@@ -6,6 +6,16 @@ class PlayerObject(ThingObject):
     player-specific behavior.
     """
 
+    @property
+    def base_type(self):
+        """
+        Return's this object's type lineage.
+
+        :rtype: str
+        :returns: ``'player'``
+        """
+        return 'player'
+
     #
     ## Begin events
     #

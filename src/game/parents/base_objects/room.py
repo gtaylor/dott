@@ -5,6 +5,17 @@ class RoomObject(BaseObject):
     All rooms inherit this parent class. It further extends BaseObject with
     room-specific behavior.
     """
+
+    @property
+    def base_type(self):
+        """
+        Return's this object's type lineage.
+
+        :rtype: str
+        :returns: ``'room'``
+        """
+        return 'room'
+
     @property
     def location(self):
         """

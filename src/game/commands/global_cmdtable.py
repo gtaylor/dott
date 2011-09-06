@@ -18,3 +18,4 @@ class GlobalCommandTable(CommandTable):
         # Staff commands
         self.add_command(staff_cmds.CmdRestart())
         self.add_command(staff_cmds.CmdFind())
+        self.add_command(staff_cmds.CmdDig())
