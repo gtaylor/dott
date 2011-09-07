@@ -31,9 +31,7 @@ AWS_SECRET_ACCESS_KEY = 'YYYYYYYYYYYYYYYYYYYYYYYYYYY'
 # This needs to be set to one of your Amazon SES verified email addresses.
 SERVER_EMAIL_FROM = 'your@email.com'
 # The ID of the room or object that new PlayerObjects are created in.
-# Start the mud server for the first time, which will create the initial
-# starter room. Look at Futon for its ID, and paste it here as a string.
-NEW_PLAYER_LOCATION_ID = None
+NEW_PLAYER_LOCATION_ID = 1
 
 try:
     from local_settings import *

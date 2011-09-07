@@ -35,6 +35,11 @@ class InMemoryObjectStore(object):
         # Reference to CouchDB server connection.
         self._server = None
 
+        # This is used to determine what the next dbref number will be.
+        # It's initially set at start time, then incremented as new objects
+        # are created.
+        self.__next_dbref = 1
+
     @property
     def _session_manager(self):
         """
@@ -108,6 +113,11 @@ class InMemoryObjectStore(object):
         for doc_id in self._db:
             self._load_object(doc_id)
 
+            # See if this is the new highest dbref.
+            doc_id_int = int(doc_id)
+            if doc_id_int >= self.__next_dbref:
+                self.__next_dbref = doc_id_int + 1
+
     def _load_object(self, doc_id):
         """
         This loads the parent class, instantiates the object through the
@@ -141,8 +151,15 @@ class InMemoryObjectStore(object):
         :returns: The newly created/instantiated/saved object.
         """
         NewObject = self._parent_loader.load_parent(parent_path)
-        obj = NewObject(self._mud_service, parent=parent_path, **kwargs)
+        obj = NewObject(
+            self._mud_service,
+            _id='%s' % self.__next_dbref,
+            parent=parent_path,
+            **kwargs
+        )
         obj.save()
+        # Increment the next dbref counter for the next object.
+        self.__next_dbref += 1
         return obj
 
     def save_object(self, obj):
@@ -169,7 +186,7 @@ class InMemoryObjectStore(object):
         :returns: The requested object, which will be a :class:`BaseObject`
             sub-class of some sort.
         """
-        return self._objects[obj_id]
+        return self._objects[str(obj_id)]
 
     def get_object_contents(self, obj):
         """
