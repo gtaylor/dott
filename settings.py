@@ -17,9 +17,6 @@ DATABASES = {
     'objects': {
         'NAME': 'dott_objects',
     },
-    'config': {
-        'NAME': 'dott_config',
-    },
     'accounts': {
         'NAME': 'dott_accounts',
     }
