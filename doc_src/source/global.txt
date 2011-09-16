@@ -1,5 +1,6 @@
 .. _GitHub project: https://github.com/gtaylor/dott
 .. _issue tracker: https://github.com/gtaylor/dott/issues
+.. _gtaylor: https://github.com/gtaylor
 
 .. _Python: http://python.org
 .. _Twisted: http://twistedmatrix.com/trac/
