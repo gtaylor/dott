@@ -58,6 +58,21 @@ Signup is free, and I'll be shocked if you manage to even ring up a few
 pennies worth of usage. Sign up for both of these, and get your AWS API keys.
 You'll need them for the next step.
 
+Once you're signed up, copy/paste the following into a Python module then
+run it::
+
+    import boto
+
+    # Substitute these two values with your own.
+    conn = boto.connect_ses('ACCESS_KEY', 'SECRET_KEY')
+    # A verification email will be sent to whatever address you want to send
+    # as, so you'll need to be able to check the inbox.
+    conn.verify_email_address('your.email@somewhere.com')
+
+Once you receive the verification email for whatever address you state that
+you'll be sending as, follow the link in the email and that specific address
+will be verified as a valid "Send As" value for SES_.
+
 Configuration
 -------------
 
@@ -68,10 +83,10 @@ the setting you'd like to override into said new file.
 
 You'll need to change the following values at minimum:
 
-* ``SECRET_KEY``
-* ``AWS_ACCESS_KEY_ID``
-* ``AWS_SECRET_ACCESS_KEY``
-* ``SERVER_EMAIL_FROM``
+* ``SECRET_KEY`` (used for hashing account passwords)
+* ``AWS_ACCESS_KEY_ID`` (get this from your AWS account web dashboard)
+* ``AWS_SECRET_ACCESS_KEY`` (get this from your AWS account web dashboard)
+* ``SERVER_EMAIL_FROM`` (must be the email address you verified with SES_)
 
 Starting the game
 -----------------
