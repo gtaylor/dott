@@ -1,0 +1,29 @@
+.. _GitHub project: https://github.com/gtaylor/dott
+.. _issue tracker: https://github.com/gtaylor/dott/issues
+
+.. _Python: http://python.org
+.. _Twisted: http://twistedmatrix.com/trac/
+.. _suds: https://fedorahosted.org/suds/
+.. _nose: http://somethingaboutorange.com/mrl/projects/nose/
+.. _CouchDB: http://couchdb.apache.org/
+.. _Futon: http://wiki.apache.org/couchdb/Getting_started_with_Futon
+
+.. _virtualenv: http://pypi.python.org/pypi/virtualenv
+.. _virtualenvwrapper: http://www.doughellmann.com/projects/virtualenvwrapper/
+
+.. _git: http://git-scm.com/
+.. _FFmpeg: http://www.ffmpeg.org/
+.. _Supervisor: http://supervisord.org/
+
+.. _GitHub: https://github.com/
+.. _EC2: http://aws.amazon.com/ec2/
+.. _SES: http://aws.amazon.com/ses/
+.. _S3: http://aws.amazon.com/s3/
+.. _SQS: http://aws.amazon.com/sqs/
+.. _SimpleDB: http://aws.amazon.com/simpledb/
+.. _CloudFront: http://aws.amazon.com/cloudfront/
+.. _Amazon AWS: http://aws.amazon.com/
+.. _AWS: http://aws.amazon.com/
+.. _SOAP: http://en.wikipedia.org/wiki/SOAP
+
+.. _BSD License: http://opensource.org/licenses/bsd-license.php
