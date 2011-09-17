@@ -1,5 +1,5 @@
 from src.server.commands.command import BaseCommand
-from src.server.protocols.proxyamp import WhoConnectedCmd
+from src.server.protocols.proxyamp import WhoConnectedCmd, DisconnectSessionsOnObjectCmd
 
 class CmdLook(BaseCommand):
     """
@@ -85,7 +85,12 @@ class CmdQuit(BaseCommand):
     name = 'quit'
 
     def func(self, invoker, parsed_cmd):
-        sessions = invoker.get_connected_sessions()
-        for session in sessions:
-            invoker.emit_to("Disconnecting...")
-            session.disconnect_client()
+        invoker.emit_to("Quitting...")
+        
+        service = invoker._mud_service
+        # This asks the proxy to disconnect any sessions that are currently
+        # controlling this object.
+        service.proxyamp.callRemote(
+            DisconnectSessionsOnObjectCmd,
+            object_id=invoker.id,
+        )

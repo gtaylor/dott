@@ -37,7 +37,7 @@ class SessionManager(object):
         Cleanly disconnect all of the connected sessions.
         """
         for sess in self.get_sessions():
-            sess.handle_close()
+            sess.disconnect_client()
 
     def check_all_sessions(self):
         """

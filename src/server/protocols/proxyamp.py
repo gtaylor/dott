@@ -100,6 +100,23 @@ class AmpClientFactory(protocol.ReconnectingClientFactory):
             reason
         )
 
+#
+## MUD Server to Proxy commands.
+#
+
+class DisconnectSessionsOnObjectCmd(amp.Command):
+    """
+    AMP command for disconnecting all sessions that control the specified
+    object. Used in the voluntary 'quit' command and forceful '@boot'.
+    """
+    arguments = [
+        ('object_id', amp.Unicode()),
+    ]
+    response = [
+        ('num_sessions_closed', amp.Integer()),
+    ]
+
+
 class WhoConnectedCmd(amp.Command):
     """
     Command for asking the proxy for which accounts are connected.
@@ -109,6 +126,9 @@ class WhoConnectedCmd(amp.Command):
         ('accounts', amp.ListOf(amp.Unicode())),
     ]
 
+#
+## Proxy to MUD Server commands.
+#
 
 class CreatePlayerObjectCmd(amp.Command):
     """
@@ -155,6 +175,70 @@ class ProxyAMP(amp.AMP):
     a responder, which is an amp.Command sub-class. The responder class
     dictates data types for arguments and response.
     """
+
+    #
+    ## MUD Server to Proxy commands.
+    #
+
+    def emit_to_object_command(self, object_id, message):
+        """
+        Pipe output to a player connected on the proxy, who controls the
+        specified object (if any).
+
+        :param str object_id: The object whose session to emit to.
+        :param str message: The message to emit to any sessions on the object.
+        """
+        # The root ProxyService instance.
+        service = self.factory._proxy_service
+        # Emit to the any Session objects responsible for object_id.
+        service.session_manager.emit_to_object(object_id, message)
+
+        return {}
+    EmitToObjectCmd.responder(emit_to_object_command)
+
+    def who_connected_command(self):
+        """
+        Asks the proxy for a list of connected/authenticated accounts.
+        """
+        # The root ProxyService instance.
+        service = self.factory._proxy_service
+        sessions = service.session_manager.get_sessions()
+
+        accounts = []
+        for session in sessions:
+            accounts.append(session.account.username)
+
+        return {
+            'accounts': accounts,
+        }
+    WhoConnectedCmd.responder(who_connected_command)
+
+    def disconnect_sessions_on_object_command(self, object_id):
+        """
+        Given an object ID on the MUD Server side, tells the Proxy to disconnect
+        any sessions controlling the object with the given ``object_id``.
+
+        :param str object_id: Sessions that are controlling this object will
+            be disconnected.
+        """
+        service = self.factory._proxy_service
+        session_mgr = service.session_manager
+
+        sessions = session_mgr.get_sessions_for_object_id(object_id)
+        disco_counter = 0
+        for session in sessions:
+            session.disconnect_client()
+            disco_counter += 1
+
+        return {
+            'num_sessions_closed': disco_counter,
+        }
+    DisconnectSessionsOnObjectCmd.responder(disconnect_sessions_on_object_command)
+
+    #
+    ## Proxy to MUD Server commands.
+    #
+
     def send_through_object_command(self, object_id, input):
         """
         Handles sending the input through the given object, and ultimately
@@ -173,22 +257,6 @@ class ProxyAMP(amp.AMP):
 
         return {}
     SendThroughObjectCmd.responder(send_through_object_command)
-
-    def emit_to_object_command(self, object_id, message):
-        """
-        Pipe output to a player connected on the proxy, who controls the
-        specified object (if any).
-
-        :param str object_id: The object whose session to emit to.
-        :param str message: The message to emit to any sessions on the object.
-        """
-        # The root ProxyService instance.
-        service = self.factory._proxy_service
-        # Emit to the any Session objects responsible for object_id.
-        service.session_manager.emit_to_object(object_id, message)
-
-        return {}
-    EmitToObjectCmd.responder(emit_to_object_command)
 
     def create_player_object_command(self, username):
         """
@@ -211,23 +279,6 @@ class ProxyAMP(amp.AMP):
         # The object's ID gets returned so the account creation code can
         # set the account to control the new object.
         return {
-            'object_id': player_obj._id
+            'object_id': player_obj._id,
         }
     CreatePlayerObjectCmd.responder(create_player_object_command)
-
-    def who_connected_command(self):
-        """
-        Asks the proxy for a list of connected/authenticated accounts.
-        """
-        # The root ProxyService instance.
-        service = self.factory._proxy_service
-        sessions = service.session_manager.get_sessions()
-
-        accounts = []
-        for session in sessions:
-            accounts.append(session.account.username)
-
-        return {
-            'accounts': accounts
-        }
-    WhoConnectedCmd.responder(who_connected_command)
