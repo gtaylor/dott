@@ -18,7 +18,7 @@ class ThingObject(BaseObject):
     @property
     def base_type(self):
         """
-        Return's this object's type lineage.
+        Returns this object's type lineage.
 
         :rtype: str
         :returns: ``'thing'``
