@@ -1,4 +1,5 @@
 from src.server.protocols.proxyamp import EmitToObjectCmd
+from fuzzywuzzy import fuzz
 
 class BaseObject(object):
     """
@@ -261,6 +262,62 @@ class BaseObject(object):
         desc = self.get_description(from_inside=is_inside)
 
         return "%s\n%s" % (name, desc)
+
+    def contextual_object_search(self, desc):
+        """
+        Searches for objects using the current object as a frame of
+        reference
+
+        :param str desc: A string with which to perform a search
+
+        :rtype: :class:'BaseObject'
+        :returns: An object that best matches the string provided
+        """
+
+        desc = desc.strip()
+        mud_service = self._mud_service
+
+        if desc[0] == '#':
+            # Absolute dbref identifier: lookup the id
+            return mud_service.object_store.get_object(desc[1:])
+
+        if desc.lower() == 'me':
+            # Object is referring to itself
+            return self
+
+        if desc.lower() == 'here':
+            # Object is referring to it's location
+            return self.get_location()
+
+        # Not a keyword, begin fuzzy search
+
+        # First search the objects in the room
+        location = self.get_location()
+        if location:
+            ratio = 0
+            result = None
+            for obj in location.get_contents():
+                r = fuzz.partial_ratio(desc, obj.name)
+                if r > 50 and r > ratio:
+                    ratio = r
+                    result = obj
+            if result:
+                return result
+
+        # Next search the objects inside the invoker
+        ratio = 0
+        result = None
+        for obj in self.get_contents():
+            r = fuzz.partial_ratio(desc, obj.name)
+            if r > 50 and r > ratio:
+                ratio = r
+                result = obj
+        if result:
+            return result
+
+        # Unable to find anything
+        return None
+
 
     #
     ## Begin events
