@@ -53,13 +53,13 @@ That said, post an issue and I'll let you know if we have mutual desires.
 Pull requests will be considered with an open mind (as long as they
 don't disrupt the standard feature set and include unit tests).
 
-Requirements
-============
+Documentation
+=============
 
-* Python 2.6+
-* twisted 11.0+
-* python-couchdb
-* boto 2.0rc1+
+Read the documentation_ for more details on installation, development,
+and etc.
+
+.. _documentation: http://dott.rtfd.org/
 
 License
 =======
