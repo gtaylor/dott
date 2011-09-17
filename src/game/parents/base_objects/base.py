@@ -138,7 +138,7 @@ class BaseObject(object):
         if isinstance(obj_or_id, basestring):
             self._odata['location_id'] = obj_or_id
         else:
-            self._odata['location_id'] = obj_or_id._id
+            self._odata['location_id'] = obj_or_id._odata['_id']
     location = property(get_location, set_location)
 
     def get_controlled_by_id(self):

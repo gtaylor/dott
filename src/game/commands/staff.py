@@ -77,3 +77,51 @@ class CmdDig(BaseCommand):
             new_room.name,
             new_room.id,
         ))
+
+class CmdTeleport(BaseCommand):
+    """
+    Moves an object from one place to another
+    """
+
+    name = '@teleport'
+
+    def func(self, invoker, parsed_cmd):
+        mud_service = invoker._mud_service
+
+        object = parsed_cmd.arguments[0]
+        dest = parsed_cmd.arguments[1]
+
+        invoker.emit_to('@teleporting: "%s" to "%s"' % (object,dest))
+
+        if not object:
+            invoker.emit_to('@teleport error: You must specify an object to teleport')
+
+        if not dest:
+            invoker.emit_to('@teleport error: You must specify a destination')
+
+        if object.strip().lower() == 'me':
+            object = invoker
+        else:
+            try:
+                object = int(object)
+            except ValueError:
+                invoker.emit_to('@teleport error: Objects must be referenced by dbref')
+
+            object = mud_service.object_store.get_object(object)
+            if not object:
+                invoker.emit_to('@teleport error: Invalid object')
+
+        if dest.strip().lower() == 'me':
+            dest = invoker.get_location()
+        else:
+            try:
+                dest = int(dest)
+            except ValueError:
+                invoker.emit_to('@teleport error: Destinations must be referenced by dbref')
+
+            dest = mud_service.object_store.get_object(dest)
+            if not dest:
+                invoker.emit_to('@teleport error: Invalid destination')
+
+        object.set_location(dest)
+        object.save()
