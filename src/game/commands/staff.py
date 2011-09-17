@@ -86,7 +86,6 @@ class CmdTeleport(BaseCommand):
     name = '@teleport'
 
     def func(self, invoker, parsed_cmd):
-        mud_service = invoker._mud_service
 
         object = parsed_cmd.arguments[0]
         dest = parsed_cmd.arguments[1]
@@ -99,29 +98,14 @@ class CmdTeleport(BaseCommand):
         if not dest:
             invoker.emit_to('@teleport error: You must specify a destination')
 
-        if object.strip().lower() == 'me':
-            object = invoker
-        else:
-            try:
-                object = int(object)
-            except ValueError:
-                invoker.emit_to('@teleport error: Objects must be referenced by dbref')
+        object = invoker.contextual_object_search(object)
+        if not object:
+            invoker.emit_to('@teleport error: Invalid object')
 
-            object = mud_service.object_store.get_object(object)
-            if not object:
-                invoker.emit_to('@teleport error: Invalid object')
-
-        if dest.strip().lower() == 'me':
-            dest = invoker.get_location()
-        else:
-            try:
-                dest = int(dest)
-            except ValueError:
-                invoker.emit_to('@teleport error: Destinations must be referenced by dbref')
-
-            dest = mud_service.object_store.get_object(dest)
-            if not dest:
-                invoker.emit_to('@teleport error: Invalid destination')
+        dest = invoker.contextual_object_search(dest)
+        if not dest:
+            invoker.emit_to('@teleport error: Invalid destination')
+        if dest.base_type == 'player':
+            dest = dest.get_location()
 
         object.set_location(dest)
-        object.save()
