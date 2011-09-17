@@ -130,6 +130,18 @@ class WhoConnectedCmd(amp.Command):
 ## Proxy to MUD Server commands.
 #
 
+class NotifyFirstSessionConnectedOnObjectCmd(amp.Command):
+    """
+    Sent to an object upon a controlling PlayerAccount connecting via
+    a Session on the proxy. This is only sent with the first connection. Any
+    subsequent duplicate connections (IE: player connects with three different
+    clients at the same time) will not trigger the event repeatedly.
+    """
+    arguments = [
+        ('object_id', amp.Unicode()),
+    ]
+    response = []
+
 class CreatePlayerObjectCmd(amp.Command):
     """
     AMP command for creating a new PlayerObject for a new PlayerAccount.
@@ -165,6 +177,18 @@ class EmitToObjectCmd(amp.Command):
     response = []
 
 
+class TriggerAtSessionDisconnectForObjectCmd(amp.Command):
+    """
+    When a Session disconnects that was controlling an object, this AMP
+    command asks the MUD Server to run said object's
+    ``at_session_disconnect_event()`` method.
+    """
+    arguments = [
+        ('object_id', amp.Unicode()),
+    ]
+    response = []
+
+
 class ProxyAMP(amp.AMP):
     """
     This is the protocol that the MUD server and the proxy server
@@ -194,7 +218,9 @@ class ProxyAMP(amp.AMP):
         service.session_manager.emit_to_object(object_id, message)
 
         return {}
-    EmitToObjectCmd.responder(emit_to_object_command)
+    EmitToObjectCmd.responder(
+        emit_to_object_command
+    )
 
     def who_connected_command(self):
         """
@@ -211,7 +237,9 @@ class ProxyAMP(amp.AMP):
         return {
             'accounts': accounts,
         }
-    WhoConnectedCmd.responder(who_connected_command)
+    WhoConnectedCmd.responder(
+        who_connected_command
+    )
 
     def disconnect_sessions_on_object_command(self, object_id):
         """
@@ -233,7 +261,9 @@ class ProxyAMP(amp.AMP):
         return {
             'num_sessions_closed': disco_counter,
         }
-    DisconnectSessionsOnObjectCmd.responder(disconnect_sessions_on_object_command)
+    DisconnectSessionsOnObjectCmd.responder(
+        disconnect_sessions_on_object_command
+    )
 
     #
     ## Proxy to MUD Server commands.
@@ -256,7 +286,9 @@ class ProxyAMP(amp.AMP):
         obj.execute_command(input)
 
         return {}
-    SendThroughObjectCmd.responder(send_through_object_command)
+    SendThroughObjectCmd.responder(
+        send_through_object_command
+    )
 
     def create_player_object_command(self, username):
         """
@@ -281,4 +313,49 @@ class ProxyAMP(amp.AMP):
         return {
             'object_id': player_obj._id,
         }
-    CreatePlayerObjectCmd.responder(create_player_object_command)
+    CreatePlayerObjectCmd.responder(
+        create_player_object_command
+    )
+
+    def trigger_at_session_disconnect_event_object_command(self, object_id):
+        """
+        Triggers an object's ``at_session_disconnect_event()`` method when
+        all sessions disconnect from an object.
+
+        :param str object_id: The ID of the object who lost its last
+            controlling session to disconnection.
+        """
+        # The root MudService instance.
+        service = self.factory._mud_service
+        # Get a reference to the object that is disconnecting.
+        obj = service.object_store.get_object(object_id)
+        # Fire the event.
+        obj.at_session_disconnect_event()
+
+        return {}
+    TriggerAtSessionDisconnectForObjectCmd.responder(
+        trigger_at_session_disconnect_event_object_command
+    )
+
+    def notify_first_session_connected_on_object_command(self, object_id):
+        """
+        Sent to an object upon a controlling PlayerAccount connecting via
+        a Session on the proxy. This is only sent with the first connection.
+        Any subsequent duplicate connections (IE: player connects with three
+        different clients at the same time) will not trigger the event
+        repeatedly.
+
+        :param str object_id: The object ID to trigger the
+            ``at_session_connect_event`` for.
+        """
+        # The root MudService instance.
+        service = self.factory._mud_service
+        # Get a reference to the object that will send the command.
+        obj = service.object_store.get_object(object_id)
+        # Fire off the connection event.
+        obj.at_session_connect_event()
+
+        return {}
+    NotifyFirstSessionConnectedOnObjectCmd.responder(
+        notify_first_session_connected_on_object_command
+    )

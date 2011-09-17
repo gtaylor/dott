@@ -1,7 +1,7 @@
 import datetime
 
 from src.utils import logger
-from src.server.protocols.proxyamp import SendThroughObjectCmd
+from src.server.protocols.proxyamp import SendThroughObjectCmd, TriggerAtSessionDisconnectForObjectCmd, NotifyFirstSessionConnectedOnObjectCmd
 from src.proxy.sessions.login_shell import LoginShell
 
 class Session(object):
@@ -124,13 +124,22 @@ class Session(object):
         """
         Triggered after the protocol breaks connection.
         """
-        #controlled = self.get_controlled_object()
-        #if controlled:
-            # There won't be a controlled object during the account
-            # creation process.
-        #    controlled.at_player_disconnect_event()
+        # Get the object ID that this session was controlling. Do this before
+        # session removal to make sure we get a good ID.
+        controlled_id = self.account.currently_controlling_id
 
         self._session_manager.remove_session(self)
+
+        other_sessions = self._session_manager.get_sessions_for_object_id(
+            controlled_id)
+
+        if not other_sessions:
+            # No other session are controlling this object, this was the last
+            # to disconnect. Trigger the object's at_session_disconnect_event.
+            self._mud_service.proxyamp.callRemote(
+                TriggerAtSessionDisconnectForObjectCmd,
+                object_id=controlled_id,
+            )
     
     def login(self, account):
         """
@@ -144,8 +153,17 @@ class Session(object):
 
         logger.info("Logged in: %s" % self.account.username)
 
-        #controlled = self.get_controlled_object()
-        #controlled.at_player_connect_event()
+        controlled_id = self.account.currently_controlling_id
+        object_sessions = self._session_manager.get_sessions_for_object_id(
+            controlled_id)
+
+        if len(object_sessions) == 1:
+            # This is the only Session controlling the object it is associated
+            # with. Trigger the 'at connect' event on the object.
+            self._mud_service.proxyamp.callRemote(
+                NotifyFirstSessionConnectedOnObjectCmd,
+                object_id=controlled_id,
+            )
 
         self.execute_command('look')
 
