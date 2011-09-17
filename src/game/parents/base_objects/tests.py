@@ -7,6 +7,7 @@ class BaseObjectTests(DottTestCase):
     # Here for convenient reference.
     ROOM_PARENT = 'src.game.parents.base_objects.room.RoomObject'
     THING_PARENT = 'src.game.parents.base_objects.thing.ThingObject'
+    BASE_PARENT = 'src.game.parents.base_objects.base.BaseObject'
 
     def test_contents(self):
         """
@@ -22,6 +23,20 @@ class BaseObjectTests(DottTestCase):
         contents = room.get_contents()
         # Contents should just be ``thing``, which was created inside the room.
         self.assertListEqual(contents, [thing])
+
+    def test_get_location(self):
+        """
+        Tests the objects' get_location function
+        """
+        obj1 = self.object_store.create_object(self.ROOM_PARENT, name='obj1')
+        self.assertEqual(obj1.get_location(), None)
+
+        obj2 = self.object_store.create_object(
+            self.BASE_PARENT,
+            location_id=obj1.id,
+            name='obj2')
+        self.assertEqual(obj2.get_location(), obj1)
+
 
     def test_set_location(self):
         """

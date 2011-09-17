@@ -128,6 +128,7 @@ class BaseObject(object):
             return self._object_store.get_object(loc_id)
         else:
             return None
+
     def set_location(self, obj_or_id):
         """
         Sets this object's location.
@@ -139,7 +140,7 @@ class BaseObject(object):
         if isinstance(obj_or_id, basestring):
             self._odata['location_id'] = obj_or_id
         else:
-            self._odata['location_id'] = obj_or_id._odata['_id']
+            self._odata['location_id'] = obj_or_id.id
     location = property(get_location, set_location)
 
     def get_controlled_by_id(self):
@@ -153,6 +154,7 @@ class BaseObject(object):
         :returns: The CouchDB ID of the PlayerAccount that controls this object.
         """
         return self._odata.get('controlled_by_account_id')
+    
     def set_controlled_by_id(self, account_id):
         """
         Sets the PlayerAccount ID that controls this object.
@@ -287,12 +289,12 @@ class BaseObject(object):
 
         if desc.lower() == 'here':
             # Object is referring to it's location
-            return self.get_location()
+            return self.location
 
         # Not a keyword, begin fuzzy search
 
         # First search the objects in the room
-        location = self.get_location()
+        location = self.location
         if location:
             ratio = 0
             result = None

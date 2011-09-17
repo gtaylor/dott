@@ -87,18 +87,18 @@ class CmdTeleport(BaseCommand):
 
     def func(self, invoker, parsed_cmd):
 
-        object = parsed_cmd.arguments[0]
+        obj = parsed_cmd.arguments[0]
         dest = parsed_cmd.arguments[1]
 
-        invoker.emit_to('@teleporting: "%s" to "%s"' % (object,dest))
+        invoker.emit_to('@teleporting: "%s" to "%s"' % (obj,dest))
 
-        if not object:
+        if not obj:
             invoker.emit_to('@teleport error: You must specify an object to teleport')
 
         if not dest:
             invoker.emit_to('@teleport error: You must specify a destination')
 
-        object = invoker.contextual_object_search(object)
+        object = invoker.contextual_object_search(obj)
         if not object:
             invoker.emit_to('@teleport error: Invalid object')
 
