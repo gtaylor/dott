@@ -73,7 +73,7 @@ class CmdDig(BaseCommand):
             room_parent,
             name=name_str,
         )
-        invoker.emit_to('You have dug a new room: %s(%s)' % (
+        invoker.emit_to('You have dug a new room: %s(#%s)' % (
             new_room.name,
             new_room.id,
         ))
