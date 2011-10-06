@@ -27,4 +27,18 @@ Developer Documentation
    installation
    unit_testing
 
+Administrator Documentation
+---------------------------
 
+.. toctree::
+   :maxdepth: 2
+
+   building
+
+Scratch Pad
+-----------
+
+.. toctree::
+   :maxdepth: 2
+
+   scribbles
