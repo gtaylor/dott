@@ -45,3 +45,18 @@ class PlayerObject(ThingObject):
         for neighbor in neighbors:
             if neighbor is not self:
                 neighbor.emit_to("%s has disconnected." % self.name)
+
+
+class AdminPlayerObject(PlayerObject):
+    """
+    Parent for admin players. Changes or overrides some behaviors.
+    """
+
+    def is_admin(self):
+        """
+        This always returns ``True``, since this is a AdminPlayerObject.
+
+        :rtype: bool
+        :returns: ``True``
+        """
+        return True

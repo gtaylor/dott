@@ -11,6 +11,7 @@ class GlobalCommandTable(CommandTable):
         super(GlobalCommandTable, self).__init__(*args, **kwargs)
 
         self.add_command(general_cmds.CmdLook())
+        self.add_command(general_cmds.CmdExamine())
         self.add_command(general_cmds.CmdWho())
         self.add_command(general_cmds.CmdSay())
         self.add_command(general_cmds.CmdQuit())

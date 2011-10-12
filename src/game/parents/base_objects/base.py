@@ -218,6 +218,16 @@ class BaseObject(object):
             message=message
         )
 
+    def is_admin(self):
+        """
+        This always returns ``False``, since objects don't have administrative
+        powers by default.
+
+        :rtype: bool
+        :returns: ``False``
+        """
+        return False
+
     def get_contents(self):
         """
         Returns the list of objects 'inside' this object.
@@ -248,22 +258,54 @@ class BaseObject(object):
         )
         return description
 
+    def get_appearance_name(self, invoker):
+        """
+        Returns the 'pretty' form of the name for the object's appearance.
+
+        :param BaseObject invoker: The object asking for the appearance.
+        :rtype: str
+        :returns: The object's 'pretty' name.
+        """
+        ansi_hilight = "\033[1m"
+        ansi_normal = "\033[0m"
+
+        if invoker.is_admin():
+            extra_info = '(#%s)' % self.id
+        else:
+            extra_info = ''
+
+        return "%s%s%s%s" % (ansi_hilight, self.name, ansi_normal, extra_info)
+
     def get_appearance(self, invoker):
         """
         Shows the full appearance for an object. Includes description, contents,
         exits, and everything else.
 
         :param BaseObject invoker: The object asking for the appearance.
+        :rtype: str
+        :returns: The object's appearance, from the outside or inside.
         """
         is_inside = invoker.location.id == self.id
 
-        ansi_hilight = "\033[1m"
-        ansi_normal = "\033[0m"
-        name = "%s%s%s" % (ansi_hilight, self.name, ansi_normal)
-
         desc = self.get_description(from_inside=is_inside)
+        name = self.get_appearance_name(invoker)
 
         return "%s\n%s" % (name, desc)
+
+    def get_examine_appearance(self, invoker):
+        """
+        Shows the object as it were examined.
+        """
+        name = self.get_appearance_name(invoker=invoker)
+
+        attributes_str = ''
+        if self.attributes:
+            attributes_str += '### ATTRIBUTES ###\n'
+            
+            for key, value in self.attributes.items():
+                attributes_str += ' %s: %s\n' % (key, value)
+
+        return "%s\n%s" % (name, attributes_str)
 
     def contextual_object_search(self, desc):
         """
@@ -281,7 +323,16 @@ class BaseObject(object):
 
         if desc[0] == '#':
             # Absolute dbref identifier: lookup the id
-            return mud_service.object_store.get_object(desc[1:])
+            obj = mud_service.object_store.get_object(desc[1:])
+
+            if not self.is_admin():
+                location_match = self.location.id == obj.location.id or \
+                                 self.location.id == obj.id
+            else:
+                location_match = True
+
+            if location_match:
+                return obj
 
         if desc.lower() == 'me':
             # Object is referring to itself

@@ -3,6 +3,7 @@ import couchdb
 from couchdb.http import ResourceNotFound
 
 from settings import DATABASES
+from src.server.objects.exceptions import InvalidObjectId
 from src.utils import logger
 from src.server.parent_loader.loader import ParentLoader
 
@@ -185,8 +186,15 @@ class InMemoryObjectStore(object):
         :param str obj_id: The ID of the object to return.
         :returns: The requested object, which will be a :class:`BaseObject`
             sub-class of some sort.
+        :raises: :py:exc:`src.server.objects.exceptions.InvalidObjectId` if
+            no object with the requested ID exists.
         """
-        return self._objects[str(obj_id)]
+        try:
+            return self._objects[str(obj_id)]
+        except KeyError:
+            raise InvalidObjectId(
+                'Invalid object ID requested: %s' % str(obj_id)
+            )
 
     def get_object_contents(self, obj):
         """

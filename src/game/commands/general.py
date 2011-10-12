@@ -1,18 +1,78 @@
 from src.server.commands.command import BaseCommand
+from src.server.objects.exceptions import InvalidObjectId
 from src.server.protocols.proxyamp import WhoConnectedCmd, DisconnectSessionsOnObjectCmd
 
-class CmdLook(BaseCommand):
+class CmdExamine(BaseCommand):
     """
-    Preliminary way to get room descriptions.
+    Examines an object.
+    """
+
+    name = 'examine'
+    aliases = ['ex', 'exa']
+
+    def func(self, invoker, parsed_cmd):
+
+        if not parsed_cmd.arguments:
+            # No arguments means defaulting to 'here'.
+            if not invoker.location:
+                # This shouldn't ever happen, but...
+                invoker.emit_to('You appear to be nowhere. Bummer.')
+                return
+
+            user_query = 'here'
+        else:
+            user_query = ' '.join(parsed_cmd.arguments)
+
+        if not user_query:
+            invoker.emit_to('You must specify an object to examine')
+            return
+
+        try:
+            obj_match = invoker.contextual_object_search(user_query)
+        except InvalidObjectId:
+            obj_match = None
+
+        if not obj_match:
+            invoker.emit_to('No matching object found')
+            return
+
+        appearance = self.get_appearance(obj_match, invoker)
+
+        invoker.emit_to(appearance)
+
+    def get_appearance(self, obj_match, invoker):
+        """
+        Checks to see whether the invoker is an admin. If so, admins get
+        a very nerdy examine display that shows an object's un-parsed
+        name/description, and attributes. If the invoker is a normal player,
+        this will simply return the normal description.
+
+        :rtype: str
+        :returns: The object's appearance, from the invoker's perspective.
+        """
+        if invoker.is_admin():
+            return obj_match.get_examine_appearance(invoker)
+        else:
+            return obj_match.get_appearance(invoker)
+
+
+class CmdLook(CmdExamine):
+    """
+    Synonymous with examine, aside from always getting the object's normal
+    appearance, regardless of whether the player is an admin or not.
     """
     name = 'look'
     aliases = ['l']
 
-    def func(self, invoker, parsed_cmd):
-        if not invoker.location:
-            invoker.emit_to('You appear to be nowhere. Bummer.')
+    def get_appearance(self, obj_match, invoker):
+        """
+        The 'look' command always shows an object's normal appearance, despite
+        whether the invoker is a player or admin.
 
-        invoker.emit_to(invoker.location.get_appearance(invoker=invoker))
+        :rtype: str
+        :returns: The object's appearance.
+        """
+        return obj_match.get_appearance(invoker)
 
 
 class CmdWho(BaseCommand):

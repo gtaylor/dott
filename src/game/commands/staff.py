@@ -94,18 +94,24 @@ class CmdTeleport(BaseCommand):
 
         if not obj:
             invoker.emit_to('@teleport error: You must specify an object to teleport')
+            return
 
         if not dest:
             invoker.emit_to('@teleport error: You must specify a destination')
+            return
 
         object = invoker.contextual_object_search(obj)
         if not object:
             invoker.emit_to('@teleport error: Invalid object')
+            return
 
         dest = invoker.contextual_object_search(dest)
         if not dest:
             invoker.emit_to('@teleport error: Invalid destination')
+            return
+
         if dest.base_type == 'player':
             dest = dest.get_location()
 
         object.set_location(dest)
+
