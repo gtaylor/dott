@@ -97,6 +97,23 @@ class BaseObject(object):
         self._odata['name'] = name
     name = property(get_name, set_name)
 
+    def get_description(self):
+        """
+        Returns the object's description.
+
+        :rtype: str
+        :returns: The object's description.
+        """
+        return self._odata.get('description', 'You see nothing special')
+    def set_description(self, description):
+        """
+        Sets the object's description.
+
+        :param str description: The new description for the object.
+        """
+        self._odata['description'] = description
+    description = property(get_description, set_description)
+
     def get_parent(self):
         """
         Returns the object's parent class.
@@ -179,6 +196,9 @@ class BaseObject(object):
             * exit
             * thing
 
+        This should only be used for display, never for inheritance checking!
+        isinstance and friends are there for that.
+
         :rtype: str
         """
         raise NotImplementedError('Over-ride in sub-class.')
@@ -240,8 +260,7 @@ class BaseObject(object):
 
     def get_description(self, from_inside=False):
         """
-        Returns the description of this object. Typically just hits the
-        'description' odata attribute.
+        Returns the description of this object.
 
         :keyword bool from_inside: If True, use an internal description instead
             of the normal description, if available. For example, the inside
@@ -252,11 +271,7 @@ class BaseObject(object):
             if idesc:
                 return idesc
 
-        description = self.attributes.get(
-            'description',
-            'You see nothing special.'
-        )
-        return description
+        return self.description
 
     def get_appearance_name(self, invoker):
         """
@@ -299,8 +314,14 @@ class BaseObject(object):
         name = self.get_appearance_name(invoker=invoker)
 
         attributes_str = ''
+
+        core_attribs = self._odata.keys()
+        core_attribs.sort()
+        for key in core_attribs:
+            attributes_str += ' %s: %s\n' % (key, self._odata[key])
+
         if self.attributes:
-            attributes_str += '### ATTRIBUTES ###\n'
+            attributes_str += '\n### EXTRA ATTRIBUTES ###\n'
             
             for key, value in self.attributes.items():
                 attributes_str += ' %s: %s\n' % (key, value)
@@ -317,8 +338,11 @@ class BaseObject(object):
         :rtype: :class:'BaseObject'
         :returns: An object that best matches the string provided
         """
-
         desc = desc.strip()
+        if not desc:
+            # Probably an empty string, which we can't do much with.
+            return None
+
         mud_service = self._mud_service
 
         if desc[0] == '#':

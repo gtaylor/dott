@@ -12,7 +12,7 @@ Building
 Digging Rooms
 -------------
 
-@dig <room-name>
+* @dig <room-name>
 
 Exits
 -----
@@ -34,8 +34,9 @@ Zones
 General object commands
 -----------------------
 
+* @name <obj-dbref> = <new-name>
 @nuke <dbref>
-@desc <dbref>=<description>
+* @desc <dbref>=<description>
 
 @alias <dbref>=<primary alias> [<alias2>]
 @alias/del <dbref>=<alias-to-delete>

@@ -1,3 +1,4 @@
+from src.game.parents.base_objects.thing import ThingObject
 from src.utils.test_utils import DottTestCase
 
 class BaseObjectTests(DottTestCase):
@@ -123,4 +124,4 @@ class ThingObjectTests(DottTestCase):
             location_id=room.id,
             name='Thing')
 
-        self.assertEqual(thing.base_type, 'thing')
+        self.assertIsInstance(thing, ThingObject)
