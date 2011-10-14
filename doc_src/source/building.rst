@@ -35,7 +35,7 @@ General object commands
 -----------------------
 
 * @name <obj-dbref> = <new-name>
-@nuke <dbref>
+* @nuke <dbref>
 * @desc <dbref>=<description>
 
 @alias <dbref>=<primary alias> [<alias2>]

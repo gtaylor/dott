@@ -97,6 +97,25 @@ class BaseObject(object):
         self._odata['name'] = name
     name = property(get_name, set_name)
 
+    def get_aliases(self):
+        """
+        Returns the object's list of aliases.
+
+        :rtype: str
+        :returns: The object's list of aliases.
+        """
+        return self._odata.get('aliases', [])
+    def set_aliases(self, aliases):
+        """
+        Sets the object's aliases.
+
+        :param str aliases: The new list of aliases for the object.
+        """
+        if not isinstance(aliases, list):
+            aliases = [aliases]
+        self._odata['aliases'] = aliases
+    aliases = property(get_aliases, set_aliases)
+
     def get_description(self):
         """
         Returns the object's description.
@@ -182,6 +201,7 @@ class BaseObject(object):
         self._odata['controlled_by_account_id'] = account_id
     controlled_by_id = property(get_controlled_by_id, set_controlled_by_id)
 
+    #noinspection PyPropertyDefinition
     @property
     def base_type(self):
         """
@@ -212,6 +232,12 @@ class BaseObject(object):
         Shortcut for saving an object to the object store it's a member of.
         """
         self._object_store.save_object(self)
+
+    def destroy(self):
+        """
+        Destroys the object.
+        """
+        self._object_store.destroy_object(self)
 
     def execute_command(self, command_string):
         """

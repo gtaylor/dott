@@ -49,6 +49,7 @@ class InMemoryObjectStore(object):
         :rtype: SessionManager
         :returns: Reference to the global session manager instance.
         """
+        #noinspection PyUnresolvedReferences
         return self._mud_service.session_manager
 
     @property
@@ -59,6 +60,7 @@ class InMemoryObjectStore(object):
         :rtype: InMemoryAccountStore
         :returns: Reference to the global account store instance.
         """
+        #noinspection PyUnresolvedReferences
         return self._mud_service.account_store
 
     @property
@@ -139,7 +141,7 @@ class InMemoryObjectStore(object):
         it and save it. Loading will be done later.
         """
         parent_path = 'src.game.parents.base_objects.room.RoomObject'
-        room = self.create_object(parent_path, name='And so it begins...')
+        self.create_object(parent_path, name='And so it begins...')
 
     def create_object(self, parent_path, **kwargs):
         """
@@ -178,6 +180,14 @@ class InMemoryObjectStore(object):
         obj._id = id
         # Update our in-memory cache with the saved object.
         self._objects[odata['_id']] = obj
+
+    def destroy_object(self, obj):
+        """
+        Destroys an object by yanking it from :py:attr:`_objects` and CouchDB.
+        """
+        del self._db[obj.id]
+        del self._objects[obj.id]
+        del obj
 
     def get_object(self, obj_id):
         """

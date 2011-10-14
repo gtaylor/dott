@@ -1,7 +1,6 @@
 """
 Staff commands.
 """
-from src.game.parents.base_objects.player import PlayerObject
 from src.game.parents.base_objects.room import RoomObject
 from src.server.commands.command import BaseCommand
 from src.server.commands.exceptions import CommandError
@@ -15,6 +14,7 @@ class CmdRestart(BaseCommand):
     """
     name = '@restart'
 
+    #noinspection PyUnusedLocal
     def func(self, invoker, parsed_cmd):
         invoker.emit_to("Restarting...")
         mud_service = invoker._mud_service
@@ -36,7 +36,7 @@ class CmdFind(BaseCommand):
         if search_str.strip() == '':
             raise CommandError('@find requires a name to search for.')
 
-        invoker.emit_to("\nSearching for: %s" % search_str)
+        invoker.emit_to('\nSearching for "%s"' % search_str)
 
         # Performs a global fuzzy name match. Returns a generator.
         matches = mud_service.object_store.global_name_search(search_str)
@@ -75,9 +75,8 @@ class CmdDig(BaseCommand):
             room_parent,
             name=name_str,
         )
-        invoker.emit_to('You have dug a new room: %s(#%s)' % (
-            new_room.name,
-            new_room.id,
+        invoker.emit_to('You have dug a new room named "%s"' % (
+            new_room.get_appearance_name(invoker),
         ))
 
 
@@ -216,28 +215,84 @@ class CmdDestroy(BaseCommand):
 
     def func(self, invoker, parsed_cmd):
         if not parsed_cmd.arguments:
-            raise CommandError('Name what?')
+            raise CommandError('Destroy what?')
 
         # Join all arguments together into one single string so we can
-        # split be equal sign.
+        # do a contextual search for the whole thing.
         full_arg_str = ' '.join(parsed_cmd.arguments)
-        # End up with a list of one or two members. Splits around the
-        # first equal sign found.
-        equal_sign_split = full_arg_str.split('=', 1)
 
-        if len(equal_sign_split) == 1:
-            raise CommandError('No name provided.')
-
-        obj_to_desc_str = equal_sign_split[0]
-        name = equal_sign_split[1]
 
         try:
-            obj_to_desc = invoker.contextual_object_search(obj_to_desc_str)
+            obj_to_destroy = invoker.contextual_object_search(full_arg_str)
         except InvalidObjectId:
-            obj_to_desc = None
-        if not obj_to_desc:
-            raise CommandError('Unable to find your target object to name.')
+            obj_to_destroy = None
+        if not obj_to_destroy:
+            raise CommandError('Unable to find your target object to destroy.')
 
-        invoker.emit_to('You re-name %s' % obj_to_desc.get_appearance_name(invoker))
-        obj_to_desc.name = name
-        obj_to_desc.save()
+        invoker.emit_to('You destroy %s' % obj_to_destroy.get_appearance_name(invoker))
+        obj_to_destroy.destroy()
+
+
+class CmdOpen(BaseCommand):
+    """
+    Opens an exit.
+
+    @open <alias/dir> <exit-name>
+    @open <alias/dir> <exit-name>=<dest-dbref>
+    """
+    name = '@open'
+
+    def func(self, invoker, parsed_cmd):
+        if not parsed_cmd.arguments:
+            raise CommandError('Open an exit named what, and to where?')
+
+        if len(parsed_cmd.arguments) < 2:
+            raise CommandError(
+                'You must at least provide an alias and an exit name.'
+            )
+
+        alias_str = parsed_cmd.arguments[0]
+
+        name_and_dest_str = ' '.join(parsed_cmd.arguments[1:])
+        name_dest_split = name_and_dest_str.split('=', 1)
+
+        exit_name = name_dest_split[0]
+
+        if len(name_dest_split) > 1:
+            dest_str = name_dest_split[1]
+        else:
+            dest_str = None
+
+        if dest_str:
+            try:
+                destination = invoker.contextual_object_search(dest_str)
+                destination_id = destination.id
+            except InvalidObjectId:
+                raise CommandError('Unable to find specified destination.')
+        else:
+            destination = None
+            destination_id = None
+
+        mud_service = invoker._mud_service
+        exit_parent = 'src.game.parents.base_objects.exit.ExitObject'
+        new_exit = mud_service.object_store.create_object(
+            exit_parent,
+            name=exit_name,
+            location_id=invoker.location.id,
+            destination_id=destination_id,
+            aliases=[alias_str],
+        )
+
+        if destination:
+            invoker.emit_to(
+                'You have opened a new exit to %s named "%s"' % (
+                    destination.get_appearance_name(invoker),
+                    new_exit.get_appearance_name(invoker),
+                )
+            )
+        else:
+            invoker.emit_to(
+                'You have opened a new exit (with no destination) named "%s"' % (
+                    new_exit.get_appearance_name(invoker)
+                )
+            )
