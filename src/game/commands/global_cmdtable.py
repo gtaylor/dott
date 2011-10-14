@@ -12,6 +12,7 @@ class GlobalCommandTable(CommandTable):
 
         self.add_command(general_cmds.CmdLook())
         self.add_command(general_cmds.CmdExamine())
+        self.add_command(general_cmds.CmdGo())
         self.add_command(general_cmds.CmdWho())
         self.add_command(general_cmds.CmdSay())
         self.add_command(general_cmds.CmdQuit())

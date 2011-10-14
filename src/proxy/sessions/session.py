@@ -113,14 +113,14 @@ class Session(object):
         """
         return self.account is not None
         
-    def at_session_connect_event(self):
+    def after_session_connect_event(self):
         """
         Triggered right after a connection is established.
         """
         # Shows the login prompt.
         self.interactive_shell.prompt_get_username()
 
-    def at_session_disconnect_event(self):
+    def after_session_disconnect_event(self):
         """
         Triggered after the protocol breaks connection.
         """
@@ -135,7 +135,7 @@ class Session(object):
 
         if not other_sessions:
             # No other session are controlling this object, this was the last
-            # to disconnect. Trigger the object's at_session_disconnect_event.
+            # to disconnect. Trigger the object's after_session_disconnect_event.
             self._mud_service.proxyamp.callRemote(
                 TriggerAtSessionDisconnectForObjectCmd,
                 object_id=controlled_id,

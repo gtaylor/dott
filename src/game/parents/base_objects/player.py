@@ -20,7 +20,7 @@ class PlayerObject(ThingObject):
     ## Begin events
     #
 
-    def at_session_connect_event(self):
+    def after_session_connect_event(self):
         """
         This is called when the proxy authenticates and logs in a Session that
         controls this object. This event is only triggered when the first
@@ -33,7 +33,7 @@ class PlayerObject(ThingObject):
             if neighbor is not self:
                 neighbor.emit_to("%s has connected." % self.name)
 
-    def at_session_disconnect_event(self):
+    def after_session_disconnect_event(self):
         """
         This is called when the last Sesssion that controls this object is
         disconnected. If you have two clients open that are authenticated and

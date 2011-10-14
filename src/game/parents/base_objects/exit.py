@@ -56,3 +56,22 @@ class ExitObject(BaseObject):
         """
         return 'exit'
 
+    #
+    ## Begin methods
+    #
+
+    def pass_object_through(self, obj):
+        """
+        Attempts to pass an object through this exit. Takes into consideration
+        any additional locks/permissions.
+
+        :param BaseObject obj: The object to attempt to pass through this
+            exit.
+        """
+        if not self.destination:
+            obj.emit_to('That exit leads to nowhere.')
+            return
+
+        # Move the object on through to destination.
+        obj.move_to(self.destination)
+

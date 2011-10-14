@@ -131,8 +131,8 @@ class CmdTeleport(BaseCommand):
         if obj_to_tel.id == destination.id:
             raise CommandError('Objects can not teleport inside themselves.')
 
-        obj_to_tel.set_location(destination)
-        invoker.execute_command('look')
+        # Move the object, forces a 'look' afterwards.
+        obj_to_tel.move_to(destination)
 
 
 class CmdDescribe(BaseCommand):

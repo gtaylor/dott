@@ -30,6 +30,57 @@ class CommandHandler(object):
         """
         return self._mud_service.global_cmd_table
 
+    def _match_user_input_to_exit(self, invoker, parsed_command):
+        """
+        Attempts to match the user's input to an exit.
+
+        :rtype: ``ExitObject`` or ``None``
+        :returns: The first exit match, or ``None`` if there were no matches.
+        """
+        if not invoker.location:
+            return None
+
+        # This is what we'll match aliases against.
+        exit_str = parsed_command.command_str.lower()
+
+        # Contents of current location = neighbors.
+        exit_neighbors = [obj for obj in invoker.location.get_contents() \
+                             if obj.base_type == 'exit']
+
+        # This is pretty inefficient.
+        for exit in exit_neighbors:
+            for alias in exit.aliases:
+                alias = alias.lower()
+                if alias == exit_str:
+                    # Match found.
+                    return exit
+
+        # No exit match.
+        return None
+
+    def _match_user_input_to_command(self, invoker, parsed_command):
+        """
+        Attempts to match the user's input to a command.
+
+        :rtype: ``BaseCommand`` or ``None``
+        :returns: The BaseCommand sub-class that matched the user's input,
+            or ``None`` if no match was found.
+        """
+        result = self.command_table.lookup_command(parsed_command)
+        if result:
+            try:
+                result.func(invoker, parsed_command)
+            except CommandError, exc:
+                invoker.emit_to(exc.message)
+            except:
+                invoker.emit_to('ERROR: A critical error has occured.')
+                raise
+
+            return result
+
+        # No command match.
+        return None
+
     def handle_input(self, invoker, command_string):
         """
         Given string-based input, parse for command details, then send the
@@ -44,16 +95,17 @@ class CommandHandler(object):
         """
         parsed_command = self.parser.parse(command_string)
 
-        result = self.command_table.lookup_command(parsed_command)
-        if result:
-            try:
-                result.func(invoker, parsed_command)
-            except CommandError, exc:
-                invoker.emit_to(exc.message)
-            except:
-                invoker.emit_to('ERROR: A critical error has occured.')
-                raise
+        exit_match = self._match_user_input_to_exit(invoker, parsed_command)
+        if exit_match:
+            # Exit match was found, make this a 'go' command with the
+            # argument being the exit's object id.
+            parsed_command.command_str = 'go'
+            # Prepend a pound sign to force an object ID lookup.
+            parsed_command.arguments = ['#%s' % exit_match.id]
 
-            return result
+        cmd_match = self._match_user_input_to_command(invoker, parsed_command)
+        if cmd_match:
+            return cmd_match
 
+        # No matches, show the "Huh?".
         return None

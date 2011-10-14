@@ -173,6 +173,10 @@ class BaseObject(object):
             object's location.
         :type obj_or_id: A ``BaseObject`` sub-class or a ``str``.
         """
+        if self.base_type == 'room':
+            # Rooms can't have locations.
+            return
+
         if isinstance(obj_or_id, basestring):
             self._odata['location_id'] = obj_or_id
         else:
@@ -263,6 +267,29 @@ class BaseObject(object):
             object_id=self.id,
             message=message
         )
+
+    def move_to(self, destination_obj, force_look=True):
+        """
+        Moves this object to the given destination.
+
+        :param BaseObject destination_obj: Where to move this object to.
+        """
+        if self.location:
+            #noinspection PyUnresolvedReferences
+            self.location.before_object_leaves_event(self)
+
+        destination_obj.before_object_enters_event(self)
+
+        self.set_location(destination_obj)
+
+        if self.location:
+            #noinspection PyUnresolvedReferences
+            self.location.after_object_leaves_event(self)
+
+        destination_obj.after_object_enters_event(self)
+
+        if force_look:
+            self.execute_command('look')
 
     def is_admin(self):
         """
@@ -490,7 +517,7 @@ class BaseObject(object):
     ## Begin events
     #
 
-    def at_session_connect_event(self):
+    def after_session_connect_event(self):
         """
         This is called when the proxy authenticates and logs in a Session that
         controls this object. This event is only triggered when the first
@@ -501,7 +528,7 @@ class BaseObject(object):
         """
         pass
 
-    def at_session_disconnect_event(self):
+    def after_session_disconnect_event(self):
         """
         This is called when the last Sesssion that controls this object is
         disconnected. If you have two clients open that are authenticated and
@@ -509,5 +536,41 @@ class BaseObject(object):
         Session is closed.
 
         This is currently only meaningful for PlayerObject instances.
+        """
+        pass
+
+    #noinspection PyUnusedLocal
+    def before_object_leaves_event(self, actor):
+        """
+        Triggered before an object leaves this object's inventory.
+
+        :param BaseObject actor: The object doing the leaving.
+        """
+        pass
+
+    #noinspection PyUnusedLocal
+    def after_object_leaves_event(self, actor):
+        """
+        Triggered after an object physically leaves this object's inventory.
+
+        :param BaseObject actor: The object doing the leaving.
+        """
+        pass
+
+    #noinspection PyUnusedLocal
+    def before_object_enters_event(self, actor):
+        """
+        Triggered before an object arrives in this object's inventory.
+
+        :param BaseObject actor: The object doing the entering.
+        """
+        pass
+
+    #noinspection PyUnusedLocal
+    def after_object_enters_event(self, actor):
+        """
+        Triggered after an object physically enters this object's inventory.
+
+        :param BaseObject actor: The object doing the entering.
         """
         pass

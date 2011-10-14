@@ -181,7 +181,7 @@ class TriggerAtSessionDisconnectForObjectCmd(amp.Command):
     """
     When a Session disconnects that was controlling an object, this AMP
     command asks the MUD Server to run said object's
-    ``at_session_disconnect_event()`` method.
+    ``after_session_disconnect_event()`` method.
     """
     arguments = [
         ('object_id', amp.Unicode()),
@@ -317,9 +317,9 @@ class ProxyAMP(amp.AMP):
         create_player_object_command
     )
 
-    def trigger_at_session_disconnect_event_object_command(self, object_id):
+    def trigger_after_session_disconnect_event_object_command(self, object_id):
         """
-        Triggers an object's ``at_session_disconnect_event()`` method when
+        Triggers an object's ``after_session_disconnect_event()`` method when
         all sessions disconnect from an object.
 
         :param str object_id: The ID of the object who lost its last
@@ -330,11 +330,11 @@ class ProxyAMP(amp.AMP):
         # Get a reference to the object that is disconnecting.
         obj = service.object_store.get_object(object_id)
         # Fire the event.
-        obj.at_session_disconnect_event()
+        obj.after_session_disconnect_event()
 
         return {}
     TriggerAtSessionDisconnectForObjectCmd.responder(
-        trigger_at_session_disconnect_event_object_command
+        trigger_after_session_disconnect_event_object_command
     )
 
     def notify_first_session_connected_on_object_command(self, object_id):
@@ -346,14 +346,14 @@ class ProxyAMP(amp.AMP):
         repeatedly.
 
         :param str object_id: The object ID to trigger the
-            ``at_session_connect_event`` for.
+            ``after_session_connect_event`` for.
         """
         # The root MudService instance.
         service = self.factory._mud_service
         # Get a reference to the object that will send the command.
         obj = service.object_store.get_object(object_id)
         # Fire off the connection event.
-        obj.at_session_connect_event()
+        obj.after_session_connect_event()
 
         return {}
     NotifyFirstSessionConnectedOnObjectCmd.responder(

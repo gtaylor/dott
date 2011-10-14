@@ -45,7 +45,7 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
         self.session = Session(self)
         logger.info('New connection: %s' % self)
         self._session_manager.add_session(self.session)
-        self.session.at_session_connect_event()
+        self.session.after_session_connect_event()
 
     def getClientAddress(self):
         """
@@ -64,7 +64,7 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
         """
         Execute this when a client abruplty loses their connection.
         """
-        self.session.at_session_disconnect_event()
+        self.session.after_session_disconnect_event()
         logger.info('Disconnected: %s, %s' % (self, reason))
         self.disconnectClient()
         
