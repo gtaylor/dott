@@ -293,18 +293,16 @@ class BaseObject(object):
 
         :param BaseObject destination_obj: Where to move this object to.
         """
-        if self.location:
-            #noinspection PyUnresolvedReferences
-            self.location.before_object_leaves_event(self)
+        old_location_obj = self.location
 
+        #noinspection PyUnresolvedReferences
+        old_location_obj.before_object_leaves_event(self)
         destination_obj.before_object_enters_event(self)
 
         self.set_location(destination_obj)
 
-        if self.location:
-            #noinspection PyUnresolvedReferences
-            self.location.after_object_leaves_event(self)
-
+        #noinspection PyUnresolvedReferences
+        old_location_obj.after_object_leaves_event(self)
         destination_obj.after_object_enters_event(self)
 
         if force_look:
@@ -543,7 +541,9 @@ class BaseObject(object):
         Session controlling this object is logged in. For example, logging in
         a second time with another client would not trigger this again.
 
-        This is currently only meaningful for PlayerObject instances.
+        This is currently only meaningful for PlayerObject instances. We don't
+        want players to see connects/disconnects when admins are controlling
+        NPCs.
         """
         pass
 
@@ -554,7 +554,9 @@ class BaseObject(object):
         controlling the same object, this will not trigger until the last
         Session is closed.
 
-        This is currently only meaningful for PlayerObject instances.
+        This is currently only meaningful for PlayerObject instances. We don't
+        want players to see connects/disconnects when admins are controlling
+        NPCs.
         """
         pass
 
@@ -574,7 +576,10 @@ class BaseObject(object):
 
         :param BaseObject actor: The object doing the leaving.
         """
-        pass
+        for obj in self.get_contents():
+            # Can't use self.emit_to_contents because we need to determine
+            # appearance on a per-object basis.
+            obj.emit_to('%s has left' % actor.get_appearance(actor))
 
     #noinspection PyUnusedLocal
     def before_object_enters_event(self, actor):
@@ -583,7 +588,10 @@ class BaseObject(object):
 
         :param BaseObject actor: The object doing the entering.
         """
-        pass
+        for obj in self.get_contents():
+            # Can't use self.emit_to_contents because we need to determine
+            # appearance on a per-object basis.
+            obj.emit_to('%s has arrived' % actor.get_appearance(actor))
 
     #noinspection PyUnusedLocal
     def after_object_enters_event(self, actor):
