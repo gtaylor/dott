@@ -284,10 +284,11 @@ class BaseObject(object):
         """
         return self._object_store.get_object_contents(self)
 
-    def get_description(self, from_inside=False):
+    def get_description(self, invoker, from_inside=False):
         """
         Returns the description of this object.
 
+        :param BaseObject invoker: The object asking for the description.
         :keyword bool from_inside: If True, use an internal description instead
             of the normal description, if available. For example, the inside
             of a vehicle should have a different description than the outside.
@@ -311,11 +312,70 @@ class BaseObject(object):
         ansi_normal = "\033[0m"
 
         if invoker.is_admin():
-            extra_info = '(#%s)' % self.id
+            # Used to show a single-character type identifier next to object id.
+            if self.base_type == 'room':
+                type_str = 'R'
+            elif self.base_type == 'thing':
+                type_str = 'T'
+            elif self.base_type == 'exit':
+                type_str = 'E'
+            elif self.base_type == 'player':
+                type_str = 'P'
+            else:
+                # Wtf dis?
+                type_str = 'U'
+
+            extra_info = '(#%s%s)' % (
+                self.id,
+                type_str,
+            )
         else:
             extra_info = ''
 
         return "%s%s%s%s" % (ansi_hilight, self.name, ansi_normal, extra_info)
+
+    #noinspection PyUnusedLocal
+    def get_appearance_contents_and_exits(self, invoker, from_inside=False):
+        """
+        Returns the contents and exits display for the object.
+
+        :param BaseObject invoker: The object asking for the appearance.
+        :keyword bool from_inside: Show the contents/exits as if the invoker
+            was inside this object.
+        :rtype: str
+        :returns: The contents/exits display.
+        """
+        exits_str = ''
+        things_str = ''
+
+        contents = self.get_contents()
+        for obj in contents:
+            if obj.id == invoker.id:
+                # This is the invoker, don't show yourself.
+                continue
+
+            if obj.base_type == 'exit':
+                # Exits show the exit's primary alias.
+                obj_alias = obj.aliases[0] if obj.aliases else '_'
+                exits_str += '<%s> %s\n' % (
+                    obj_alias,
+                    obj.get_appearance_name(invoker),
+                )
+            else:
+                # Everything else just shows the name.
+                things_str += '%s\n' % obj.get_appearance_name(invoker)
+
+        retval = ''
+
+        if things_str:
+            retval += '\nContents:\n'
+            retval += things_str
+
+        if exits_str:
+            retval += '\nExits:\n'
+            retval += exits_str
+
+        return retval
 
     def get_appearance(self, invoker):
         """
@@ -328,10 +388,14 @@ class BaseObject(object):
         """
         is_inside = invoker.location.id == self.id
 
-        desc = self.get_description(from_inside=is_inside)
+        desc = self.get_description(invoker, from_inside=is_inside)
         name = self.get_appearance_name(invoker)
+        contents = self.get_appearance_contents_and_exits(
+            invoker,
+            from_inside=is_inside
+        )
 
-        return "%s\n%s" % (name, desc)
+        return "%s\n%s\n%s" % (name, desc, contents)
 
     def get_examine_appearance(self, invoker):
         """

@@ -52,7 +52,7 @@ class ExitObject(BaseObject):
         Returns this object's type lineage.
 
         :rtype: str
-        :returns: ``'thing'``
+        :returns: ``'exit'``
         """
         return 'exit'
 
