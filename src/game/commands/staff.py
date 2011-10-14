@@ -4,6 +4,7 @@ Staff commands.
 from src.game.parents.base_objects.player import PlayerObject
 from src.game.parents.base_objects.room import RoomObject
 from src.server.commands.command import BaseCommand
+from src.server.commands.exceptions import CommandError
 from src.server.objects.exceptions import InvalidObjectId
 
 class CmdRestart(BaseCommand):
@@ -33,8 +34,7 @@ class CmdFind(BaseCommand):
         search_str = ' '.join(parsed_cmd.arguments)
 
         if search_str.strip() == '':
-            invoker.emit_to('@find requires a name to search for.')
-            return
+            raise CommandError('@find requires a name to search for.')
 
         invoker.emit_to("\nSearching for: %s" % search_str)
 
@@ -68,8 +68,7 @@ class CmdDig(BaseCommand):
         name_str = ' '.join(parsed_cmd.arguments)
 
         if name_str.strip() == '':
-            invoker.emit_to('@dig requires a name for the new room.')
-            return
+            raise CommandError('@dig requires a name for the new room.')
 
         room_parent = 'src.game.parents.base_objects.room.RoomObject'
         new_room = mud_service.object_store.create_object(
@@ -91,8 +90,7 @@ class CmdTeleport(BaseCommand):
 
     def func(self, invoker, parsed_cmd):
         if not parsed_cmd.arguments:
-            invoker.emit_to('Teleport what to where?')
-            return
+            raise CommandError('Teleport what to where?')
 
         # Join all arguments together into one single string so we can
         # split be equal sign.
@@ -119,24 +117,20 @@ class CmdTeleport(BaseCommand):
         except InvalidObjectId:
             obj_to_tel = None
         if not obj_to_tel:
-            invoker.emit_to('Unable to find your target object to teleport.')
-            return
+            raise CommandError('Unable to find your target object to teleport.')
 
         try:
             destination = invoker.contextual_object_search(destination_str)
         except InvalidObjectId:
             destination = None
         if not destination:
-            invoker.emit_to('Unable to find your destination.')
-            return
+            raise CommandError('Unable to find your destination.')
 
         if isinstance(obj_to_tel, RoomObject):
-            invoker.emit_to('Rooms cannot be teleported')
-            return
+            raise CommandError('Rooms cannot be teleported')
 
         if obj_to_tel.id == destination.id:
-            invoker.emit_to('Objects can not teleport inside themselves.')
-            return
+            raise CommandError('Objects can not teleport inside themselves.')
 
         obj_to_tel.set_location(destination)
         invoker.execute_command('look')
@@ -151,8 +145,7 @@ class CmdDescribe(BaseCommand):
 
     def func(self, invoker, parsed_cmd):
         if not parsed_cmd.arguments:
-            invoker.emit_to('Describe what?')
-            return
+            raise CommandError('Describe what?')
 
         # Join all arguments together into one single string so we can
         # split be equal sign.
@@ -162,8 +155,7 @@ class CmdDescribe(BaseCommand):
         equal_sign_split = full_arg_str.split('=', 1)
 
         if len(equal_sign_split) == 1:
-            invoker.emit_to('No description provided.')
-            return
+            raise CommandError('No description provided.')
 
         obj_to_desc_str = equal_sign_split[0]
         description = equal_sign_split[1]
@@ -173,8 +165,7 @@ class CmdDescribe(BaseCommand):
         except InvalidObjectId:
             obj_to_desc = None
         if not obj_to_desc:
-            invoker.emit_to('Unable to find your target object to describe.')
-            return
+            raise CommandError('Unable to find your target object to describe.')
 
         invoker.emit_to('You describe %s' % obj_to_desc.get_appearance_name(invoker))
         obj_to_desc.description = description
@@ -189,8 +180,7 @@ class CmdName(BaseCommand):
 
     def func(self, invoker, parsed_cmd):
         if not parsed_cmd.arguments:
-            invoker.emit_to('Name what?')
-            return
+            raise CommandError('Name what?')
 
         # Join all arguments together into one single string so we can
         # split be equal sign.
@@ -200,8 +190,7 @@ class CmdName(BaseCommand):
         equal_sign_split = full_arg_str.split('=', 1)
 
         if len(equal_sign_split) == 1:
-            invoker.emit_to('No name provided.')
-            return
+            raise CommandError('No name provided.')
 
         obj_to_desc_str = equal_sign_split[0]
         name = equal_sign_split[1]
@@ -211,8 +200,43 @@ class CmdName(BaseCommand):
         except InvalidObjectId:
             obj_to_desc = None
         if not obj_to_desc:
-            invoker.emit_to('Unable to find your target object to name.')
-            return
+            raise CommandError('Unable to find your target object to name.')
+
+        invoker.emit_to('You re-name %s' % obj_to_desc.get_appearance_name(invoker))
+        obj_to_desc.name = name
+        obj_to_desc.save()
+
+
+class CmdDestroy(BaseCommand):
+    """
+    Destroys an object.
+    """
+    name = '@destroy'
+    aliases = ['@dest', '@nuke']
+
+    def func(self, invoker, parsed_cmd):
+        if not parsed_cmd.arguments:
+            raise CommandError('Name what?')
+
+        # Join all arguments together into one single string so we can
+        # split be equal sign.
+        full_arg_str = ' '.join(parsed_cmd.arguments)
+        # End up with a list of one or two members. Splits around the
+        # first equal sign found.
+        equal_sign_split = full_arg_str.split('=', 1)
+
+        if len(equal_sign_split) == 1:
+            raise CommandError('No name provided.')
+
+        obj_to_desc_str = equal_sign_split[0]
+        name = equal_sign_split[1]
+
+        try:
+            obj_to_desc = invoker.contextual_object_search(obj_to_desc_str)
+        except InvalidObjectId:
+            obj_to_desc = None
+        if not obj_to_desc:
+            raise CommandError('Unable to find your target object to name.')
 
         invoker.emit_to('You re-name %s' % obj_to_desc.get_appearance_name(invoker))
         obj_to_desc.name = name

@@ -1,4 +1,5 @@
 from src.server.commands.parser import CommandParser
+from src.server.commands.exceptions import CommandError
 
 class CommandHandler(object):
     """
@@ -45,7 +46,14 @@ class CommandHandler(object):
 
         result = self.command_table.lookup_command(parsed_command)
         if result:
-            result.func(invoker, parsed_command)
+            try:
+                result.func(invoker, parsed_command)
+            except CommandError, exc:
+                invoker.emit_to(exc.message)
+            except:
+                invoker.emit_to('ERROR: A critical error has occured.')
+                raise
+
             return result
 
         return None

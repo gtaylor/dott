@@ -346,7 +346,7 @@ class BaseObject(object):
         mud_service = self._mud_service
 
         if desc[0] == '#':
-            # Absolute dbref identifier: lookup the id
+            # Absolute object identifier: lookup the id
             obj = mud_service.object_store.get_object(desc[1:])
 
             if not self.is_admin():

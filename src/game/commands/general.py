@@ -1,4 +1,5 @@
 from src.server.commands.command import BaseCommand
+from src.server.commands.exceptions import CommandError
 from src.server.objects.exceptions import InvalidObjectId
 from src.server.protocols.proxyamp import WhoConnectedCmd, DisconnectSessionsOnObjectCmd
 
@@ -16,16 +17,14 @@ class CmdExamine(BaseCommand):
             # No arguments means defaulting to 'here'.
             if not invoker.location:
                 # This shouldn't ever happen, but...
-                invoker.emit_to('You appear to be nowhere. Bummer.')
-                return
+                raise CommandError('You appear to be nowhere. Bummer.')
 
             user_query = 'here'
         else:
             user_query = ' '.join(parsed_cmd.arguments)
 
         if not user_query:
-            invoker.emit_to('You must specify an object to examine')
-            return
+            raise CommandError('You must specify an object to examine')
 
         try:
             obj_match = invoker.contextual_object_search(user_query)
@@ -33,8 +32,7 @@ class CmdExamine(BaseCommand):
             obj_match = None
 
         if not obj_match:
-            invoker.emit_to('No matching object found')
-            return
+            raise CommandError('No matching object found')
 
         appearance = self.get_appearance(obj_match, invoker)
 
