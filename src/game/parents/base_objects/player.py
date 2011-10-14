@@ -27,11 +27,11 @@ class PlayerObject(ThingObject):
         Session controlling this object is logged in. For example, logging in
         a second time with another client would not trigger this again.
         """
-        neighbors = self.location.get_contents()
-
-        for neighbor in neighbors:
-            if neighbor is not self:
-                neighbor.emit_to("%s has connected." % self.name)
+        if self.location:
+            self.location.emit_to_contents(
+                "%s has connected." % self.name,
+                exclude=[self],
+            )
 
     def after_session_disconnect_event(self):
         """
@@ -40,11 +40,11 @@ class PlayerObject(ThingObject):
         controlling the same object, this will not trigger until the last
         Session is closed.
         """
-        neighbors = self.location.get_contents()
-
-        for neighbor in neighbors:
-            if neighbor is not self:
-                neighbor.emit_to("%s has disconnected." % self.name)
+        if self.location:
+            self.location.emit_to_contents(
+                "%s has disconnected." % self.name,
+                exclude=[self],
+            )
 
 
 class AdminPlayerObject(PlayerObject):

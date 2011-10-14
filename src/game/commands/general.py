@@ -157,11 +157,8 @@ class CmdSay(BaseCommand):
         # What the invoker sees.
         self_str = u"You say '%s'" %  speech
 
-        for neighbor in neighbors:
-            if neighbor is not invoker:
-                neighbor.emit_to(speech_str)
-            else:
-                invoker.emit_to(self_str)
+        invoker.location.emit_to_contents(speech_str, exclude=[invoker])
+        invoker.emit_to(self_str)
 
 
 class CmdQuit(BaseCommand):

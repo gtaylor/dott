@@ -268,6 +268,25 @@ class BaseObject(object):
             message=message
         )
 
+    def emit_to_contents(self, message, exclude=None):
+        """
+        Emits the given message to everything in this object's inventory.
+
+        :param str message: The message to emit to any object within
+            this one.
+        :keyword BaseObject exclude: A list of objects who are to be
+            excluded from the emit list. These objects will not see the emit.
+        """
+        if not exclude:
+            exclude = []
+        else:
+            exclude = [obj.id for obj in exclude]
+
+        contents = self.get_contents()
+        for obj in contents:
+            if obj.id not in exclude:
+                obj.emit_to(message)
+
     def move_to(self, destination_obj, force_look=True):
         """
         Moves this object to the given destination.
