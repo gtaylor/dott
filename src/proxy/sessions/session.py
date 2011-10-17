@@ -124,18 +124,26 @@ class Session(object):
         """
         Triggered after the protocol breaks connection.
         """
+        self._session_manager.remove_session(self)
+
+        if not self.account:
+            # This was an unauthenticated user, go no further.
+            return
+
         # Get the object ID that this session was controlling. Do this before
         # session removal to make sure we get a good ID.
         controlled_id = self.account.currently_controlling_id
 
-        self._session_manager.remove_session(self)
-
+        # If this session was controlling an object, figure out if this
+        # was the last connection active on said object.
         other_sessions = self._session_manager.get_sessions_for_object_id(
-            controlled_id)
+            controlled_id
+        )
 
         if not other_sessions:
-            # No other session are controlling this object, this was the last
-            # to disconnect. Trigger the object's after_session_disconnect_event.
+            # No other session are controlling this object, this was the
+            # last to disconnect. Trigger the object's
+            # after_session_disconnect_event.
             self._mud_service.proxyamp.callRemote(
                 TriggerAtSessionDisconnectForObjectCmd,
                 object_id=controlled_id,
