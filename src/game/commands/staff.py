@@ -329,3 +329,55 @@ class CmdUnlink(BaseCommand):
 
         obj_to_unlink.destination = None
         obj_to_unlink.save()
+
+
+class CmdLink(BaseCommand):
+    """
+    Links an exit to a destination, typically a room or thing.
+    """
+    name = '@link'
+
+    def func(self, invoker, parsed_cmd):
+        if not parsed_cmd.arguments:
+            raise CommandError('Link which exit?')
+
+        # Join all arguments together into one single string so we can
+        # split be equal sign.
+        full_arg_str = ' '.join(parsed_cmd.arguments)
+        # End up with a list of one or two members. Splits around the
+        # first equal sign found.
+        equal_sign_split = full_arg_str.split('=', 1)
+
+        if len(equal_sign_split) == 1:
+            raise CommandError('No destination provided.')
+
+        obj_to_link_str = equal_sign_split[0]
+        try:
+            obj_to_link = invoker.contextual_object_search(obj_to_link_str)
+        except InvalidObjectId:
+            obj_to_link = None
+        if not obj_to_link:
+            raise CommandError('Unable to find your target exit to link.')
+
+        if not isinstance(obj_to_link, ExitObject):
+            raise CommandError('You may only link exits.')
+
+        destination_obj_str = equal_sign_split[1]
+        try:
+            destination_obj = invoker.contextual_object_search(destination_obj_str)
+        except InvalidObjectId:
+            destination_obj = None
+        if not destination_obj:
+            raise CommandError('Unable to find the specified destination.')
+
+        if isinstance(destination_obj, ExitObject):
+            raise CommandError("You can't link to other exits.")
+
+        invoker.emit_to(
+            'You link %s to %s.' % (
+                obj_to_link.get_appearance_name(invoker),
+                destination_obj.get_appearance_name(invoker),
+            )
+        )
+        obj_to_link.destination = destination_obj
+        obj_to_link.save()

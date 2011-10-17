@@ -18,7 +18,7 @@ Exits
 -----
 
 * @open <alias/dir> <exit-name>[=<dest-dbref>]
-@link <exit-dbref>=<dest-dbref>
+* @link <exit-dbref>=<dest-dbref>
 * @unlink <exit-dbref>
 
 Things
