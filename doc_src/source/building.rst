@@ -38,7 +38,7 @@ General object commands
 * @nuke <dbref>
 * @desc <dbref>=<description>
 
-@alias <dbref>=<primary alias> [<alias2>]
+* @alias <dbref>=<primary alias> [<alias2>]
 @alias/del <dbref>=<alias-to-delete>
 @alias/add <dbref>=<alias-to-add>
 

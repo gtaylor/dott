@@ -462,6 +462,32 @@ class BaseObject(object):
 
         return "%s\n%s" % (name, attributes_str)
 
+    def _find_name_or_alias_match(self, objects, desc):
+        """
+        Performs name and alias matches on a list of objects. Returns the
+        best match, or ``None`` if nothing was found.
+
+        :param iterable objects: A list of ``BaseObject`` sub-class instances
+            to attempt to match to.
+        :param str desc: The string to match against.
+        """
+        ratio = 0
+        result = None
+        for obj in objects:
+            # Start by checking all objects for an alias match.
+            aliases = [alias.lower() for alias in obj.aliases]
+            if desc.lower() in aliases:
+                # If a match is found, return immediately on said match.
+                return obj
+
+            # No alias match found, so now we fuzzy match
+            r = fuzz.partial_ratio(desc, obj.name)
+            if r > 50 and r > ratio:
+                ratio = r
+                result = obj
+
+        return result
+
     def contextual_object_search(self, desc):
         """
         Searches for objects using the current object as a frame of
@@ -503,32 +529,24 @@ class BaseObject(object):
         # Not a keyword, begin fuzzy search
 
         # First search the objects in the room
-        location = self.location
-        if location:
-            ratio = 0
-            result = None
-            for obj in location.get_contents():
-                r = fuzz.partial_ratio(desc, obj.name)
-                if r > 50 and r > ratio:
-                    ratio = r
-                    result = obj
-            if result:
-                return result
+        if self.location:
+            neighboring_match = self._find_name_or_alias_match(
+                self.location.get_contents(),
+                desc
+            )
+            if neighboring_match:
+                return neighboring_match
 
         # Next search the objects inside the invoker
-        ratio = 0
-        result = None
-        for obj in self.get_contents():
-            r = fuzz.partial_ratio(desc, obj.name)
-            if r > 50 and r > ratio:
-                ratio = r
-                result = obj
-        if result:
-            return result
+        inventory_match = self._find_name_or_alias_match(
+            self.get_contents(),
+            desc
+        )
+        if inventory_match:
+            return inventory_match
 
         # Unable to find anything
         return None
-
 
     #
     ## Begin events

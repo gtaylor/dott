@@ -207,6 +207,53 @@ class CmdName(BaseCommand):
         obj_to_desc.save()
 
 
+class CmdAlias(BaseCommand):
+    """
+    Sets an object's full list of aliases in one shot.
+    """
+    name = '@alias'
+
+    def func(self, invoker, parsed_cmd):
+        if not parsed_cmd.arguments:
+            raise CommandError('Alias what?')
+
+        # Join all arguments together into one single string so we can
+        # split be equal sign.
+        full_arg_str = ' '.join(parsed_cmd.arguments)
+        # End up with a list of one or two members. Splits around the
+        # first equal sign found.
+        equal_sign_split = full_arg_str.split('=', 1)
+
+        if len(equal_sign_split) == 1:
+            raise CommandError('No alias(es) provided.')
+
+        obj_to_alias_str = equal_sign_split[0]
+        aliases = equal_sign_split[1].split()
+
+        try:
+            obj_to_alias = invoker.contextual_object_search(obj_to_alias_str)
+        except InvalidObjectId:
+            obj_to_alias = None
+        if not obj_to_alias:
+            raise CommandError('Unable to find your target object to alias.')
+
+        if not aliases:
+            invoker.emit_to(
+                'You clear all aliases on %s.' % (
+                    obj_to_alias.get_appearance_name(invoker),
+                )
+            )
+        else:
+            invoker.emit_to(
+                'You alias %s to: %s' % (
+                    obj_to_alias.get_appearance_name(invoker),
+                    ', '.join(aliases),
+                )
+            )
+        obj_to_alias.aliases = aliases
+        obj_to_alias.save()
+
+
 class CmdDestroy(BaseCommand):
     """
     Destroys an object.
