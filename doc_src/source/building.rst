@@ -17,7 +17,7 @@ Digging Rooms
 Exits
 -----
 
-*@open <alias/dir> <exit-name>[=<dest-dbref>]*
+* @open <alias/dir> <exit-name>[=<dest-dbref>]
 @link <exit-dbref>=<dest-dbref>
 @unlink <exit-dbref>
 
