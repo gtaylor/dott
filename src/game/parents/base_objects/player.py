@@ -51,7 +51,6 @@ class AdminPlayerObject(PlayerObject):
     """
     Parent for admin players. Changes or overrides some behaviors.
     """
-
     def is_admin(self):
         """
         This always returns ``True``, since this is a AdminPlayerObject.

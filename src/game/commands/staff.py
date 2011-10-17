@@ -1,6 +1,7 @@
 """
 Staff commands.
 """
+from src.game.parents.base_objects.exit import ExitObject
 from src.game.parents.base_objects.room import RoomObject
 from src.server.commands.command import BaseCommand
 from src.server.commands.exceptions import CommandError
@@ -296,3 +297,35 @@ class CmdOpen(BaseCommand):
                     new_exit.get_appearance_name(invoker)
                 )
             )
+
+
+class CmdUnlink(BaseCommand):
+    """
+    Removes an exit's destination.
+    """
+    name = '@unlink'
+
+    def func(self, invoker, parsed_cmd):
+        if not parsed_cmd.arguments:
+            raise CommandError('Unlink which exit?')
+
+        # Join all arguments together into one single string so we can
+        # do a contextual search for the whole thing.
+        full_arg_str = ' '.join(parsed_cmd.arguments)
+
+        try:
+            obj_to_unlink = invoker.contextual_object_search(full_arg_str)
+        except InvalidObjectId:
+            obj_to_unlink = None
+        if not obj_to_unlink:
+            raise CommandError('Unable to find your target exit to unlink.')
+
+        if not isinstance(obj_to_unlink, ExitObject):
+            raise CommandError('You may only unlink exits.')
+
+        invoker.emit_to(
+            'You unlink %s' % obj_to_unlink.get_appearance_name(invoker)
+        )
+
+        obj_to_unlink.destination = None
+        obj_to_unlink.save()
