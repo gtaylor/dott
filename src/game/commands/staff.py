@@ -6,6 +6,7 @@ from src.game.parents.base_objects.room import RoomObject
 from src.server.commands.command import BaseCommand
 from src.server.commands.exceptions import CommandError
 from src.server.objects.exceptions import InvalidObjectId
+from src.server.parent_loader.exceptions import InvalidParent
 
 class CmdRestart(BaseCommand):
     """
@@ -230,6 +231,57 @@ class CmdName(BaseCommand):
         invoker.emit_to('You re-name %s' % obj_to_desc.get_appearance_name(invoker))
         obj_to_desc.name = name
         obj_to_desc.save()
+
+
+class CmdParent(BaseCommand):
+    """
+    Changes an object's parent.
+    """
+    name = '@parent'
+
+    def func(self, invoker, parsed_cmd):
+        if not parsed_cmd.arguments:
+            raise CommandError('Re-parent what?')
+
+        # Join all arguments together into one single string so we can
+        # split be equal sign.
+        full_arg_str = ' '.join(parsed_cmd.arguments)
+        # End up with a list of one or two members. Splits around the
+        # first equal sign found.
+        equal_sign_split = full_arg_str.split('=', 1)
+
+        if len(equal_sign_split) == 1:
+            raise CommandError('No parent provided.')
+
+        obj_to_parent_str = equal_sign_split[0]
+        parent_str = equal_sign_split[1]
+
+        if not parent_str:
+            raise CommandError('No parent provided.')
+
+        try:
+            obj_to_parent = invoker.contextual_object_search(obj_to_parent_str)
+        except InvalidObjectId:
+            obj_to_parent = None
+        if not obj_to_parent:
+            raise CommandError('Unable to find your target object to re-parent.')
+
+        mud_service = invoker._mud_service
+
+        try:
+            mud_service.parent_loader.load_parent(parent_str)
+        except InvalidParent:
+            raise CommandError('Invalid parent.')
+
+        obj_to_parent.parent = parent_str
+        obj_to_parent.save()
+
+        obj_to_parent= mud_service.object_store.reload_object(obj_to_parent)
+
+        invoker.emit_to('You re-parent %s' % (
+                obj_to_parent.get_appearance_name(invoker),
+            )
+        )
 
 
 class CmdAlias(BaseCommand):

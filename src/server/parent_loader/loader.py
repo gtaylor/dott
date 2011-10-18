@@ -1,3 +1,4 @@
+from src.server.parent_loader.exceptions import InvalidParent
 
 class ParentLoader(object):
     """
@@ -18,12 +19,19 @@ class ParentLoader(object):
             parent to load.
         :rtype: A sub-class of src.game.parents.base_objects.BaseObject
         :returns: The requested parent class.
+        :raises: :py:exc:`src.server.parent_loader.exceptions.InvalidParent`
+            when an invalid parent is specified.
         """
         if not self._parent_cache.has_key(parent_str):
             # __import__ doesn't play nicely with class names within the
             # module you're importing. Split the parent class off from the
             # module path.
-            module_str, parent_class = parent_str.rsplit('.', 1)
+            try:
+                module_str, parent_class = parent_str.rsplit('.', 1)
+            except ValueError:
+                raise InvalidParent(
+                    'Attempted to load invalid parent: %s' % parent_str
+                )
 
             # This imports the top-level src module, from which we have to
             # iterate through sub-modules to eventually get to what we want.
@@ -36,5 +44,10 @@ class ParentLoader(object):
 
             # Finally, we're at the lowest module in the python module
             # path. Get the parent class from this.
-            self._parent_cache[parent_str] = getattr(mod, parent_class)
+            try:
+                self._parent_cache[parent_str] = getattr(mod, parent_class)
+            except AttributeError:
+                raise InvalidParent(
+                    'Attempted to load invalid parent: %s' % parent_str
+                )
         return self._parent_cache[parent_str]

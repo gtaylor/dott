@@ -37,9 +37,10 @@ General object commands
 * @name <obj-dbref> = <new-name>
 * @nuke <dbref>
 * @desc <dbref>=<description>
+* @teleport <target-dbref>=<dest-dbref>
 
 * @alias <dbref>=<primary alias> [<alias2>]
 @alias/del <dbref>=<alias-to-delete>
 @alias/add <dbref>=<alias-to-add>
 
-@parent <dbref>=<parent-class>
+* @parent <dbref>=<parent-class>

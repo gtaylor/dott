@@ -4,6 +4,7 @@ from couchdb.http import ResourceNotFound
 
 from settings import DATABASES
 from src.server.objects.exceptions import InvalidObjectId
+from src.server.parent_loader.exceptions import InvalidParent
 from src.utils import logger
 from src.server.parent_loader.loader import ParentLoader
 
@@ -22,8 +23,8 @@ class InMemoryObjectStore(object):
         :keyword str db_name: Overrides the DB name for the object DB.
         """
         self._mud_service = mud_service
-        # Instantiates a ParentLoader.
-        self._parent_loader = ParentLoader()
+        # Reference to the server's parent loader instance.
+        self._parent_loader = mud_service.parent_loader
 
         # Keys are CouchDB ids, values are the parent instances (children of
         # src.game.parents.base_objects.base.BaseObject
@@ -127,13 +128,26 @@ class InMemoryObjectStore(object):
         parent class (passing the values from the DB as constructor kwargs).
 
         :param str doc_id: The CouchDB ID for the object to load.
+        :rtype: BaseObject
+        :returns: The newly loaded object.
         """
         # Retrieves the JSON doc from CouchDB.
         doc = self._db[doc_id]
         # Loads the parent class so we can instantiate the object.
-        parent = self._parent_loader.load_parent(doc['parent'])
+        try:
+            parent = self._parent_loader.load_parent(doc['parent'])
+        except InvalidParent:
+            # Get more specific with the exception output in this case. This
+            # will give us an object ID to look at in the logs.
+            raise InvalidParent(
+                'Attempting to load invalid parent on object #%s: %s' % (
+                    doc_id,
+                    doc['parent'],
+                )
+            )
         # Instantiate the object, using the values from the DB as kwargs.
         self._objects[doc_id] = parent(self._mud_service, **doc)
+        return self._objects[doc_id]
 
     def _create_initial_room(self):
         """
@@ -188,6 +202,18 @@ class InMemoryObjectStore(object):
         del self._db[obj.id]
         del self._objects[obj.id]
         del obj
+
+    def reload_object(self, obj):
+        """
+        Re-loads the object from CouchDB.
+
+        :param BaseObject obj: The object to re-load from the DB.
+        :rtype: BaseObject
+        :returns: The newly re-loaded object.
+        """
+        obj_id = obj.id
+        del self._objects[obj_id]
+        return self._load_object(obj_id)
 
     def get_object(self, obj_id):
         """

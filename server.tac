@@ -17,6 +17,7 @@ from src.server.protocols.proxyamp import AmpServerFactory
 from src.game.commands.global_cmdtable import GlobalCommandTable
 from src.server.commands.handler import CommandHandler
 from src.server.objects.in_memory_store import InMemoryObjectStore
+from src.server.parent_loader.loader import ParentLoader
 
 class MudService(service.Service):
     """
@@ -37,6 +38,8 @@ class MudService(service.Service):
         # with it. This typically results in a command from a command table
         # being ran.
         self.command_handler = CommandHandler(self)
+
+        self.parent_loader = ParentLoader()
 
         # The object store holds instances of all of the game's objects. It
         # directs loading all objects from the DB at start time, and has some

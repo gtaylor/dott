@@ -2,6 +2,7 @@ import unittest2
 from src.game.commands.global_cmdtable import GlobalCommandTable
 from src.server.commands.handler import CommandHandler
 from src.server.objects.in_memory_store import InMemoryObjectStore
+from src.server.parent_loader.loader import ParentLoader
 from src.proxy.accounts.in_memory_store import InMemoryAccountStore
 from src.proxy.sessions.session_manager import SessionManager
 
@@ -20,6 +21,7 @@ class MockMudService(object):
         self.global_cmd_table = GlobalCommandTable(self)
         self.command_handler = CommandHandler(self)
         self.session_manager = SessionManager(self)
+        self.parent_loader = ParentLoader()
         self.object_store = InMemoryObjectStore(self, db_name='dott_objects_test')
         self.account_store = InMemoryAccountStore(self, db_name='dott_accounts_test')
         self.proxyamp = FakeProxyAMP()

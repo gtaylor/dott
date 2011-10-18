@@ -28,5 +28,6 @@ class GlobalCommandTable(CommandTable):
         self.add_command(staff_cmds.CmdDestroy())
         self.add_command(staff_cmds.CmdName())
         self.add_command(staff_cmds.CmdOpen())
+        self.add_command(staff_cmds.CmdParent())
         self.add_command(staff_cmds.CmdUnlink())
         self.add_command(staff_cmds.CmdLink())
