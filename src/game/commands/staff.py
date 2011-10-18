@@ -255,6 +255,7 @@ class CmdParent(BaseCommand):
 
         obj_to_parent_str = equal_sign_split[0]
         parent_str = equal_sign_split[1]
+        parent_str = self._substitute_aliased_parent(parent_str)
 
         if not parent_str:
             raise CommandError('No parent provided.')
@@ -282,6 +283,27 @@ class CmdParent(BaseCommand):
                 obj_to_parent.get_appearance_name(invoker),
             )
         )
+
+    def _substitute_aliased_parent(self, parent_str):
+        """
+        Given a parent string, see if it matches one of the base parent
+        types. If so, replace the aliased parent string with the full path
+        to the parent.
+
+        :param str parent_str: The parent string passed to @parent.
+        :rtype: str
+        :returns: The full path to the parent string, if an alias match was
+            found. Otherwise, assume that ``parent_str`` is a full parent
+            string, and doesn't need modification.
+        """
+        aliases = {
+            'thing': 'src.game.parents.base_objects.thing.ThingObject',
+            'room': 'src.game.parents.base_objects.room.RoomObject',
+            'exit': 'src.game.parents.base_objects.exit.ExitObject',
+            'player': 'src.game.parents.base_objects.player.PlayerObject',
+            'admin': 'src.game.parents.base_objects.player.AdminPlayerObject',
+        }
+        return aliases.get(parent_str.lower(), parent_str)
 
 
 class CmdAlias(BaseCommand):
