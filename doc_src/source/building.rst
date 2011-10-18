@@ -24,7 +24,7 @@ Exits
 Things
 ------
 
-@create <thing-name>
+* @create <thing-name>
 
 Zones
 -----

@@ -175,11 +175,12 @@ class BaseObject(object):
         """
         if self.base_type == 'room':
             # Rooms can't have locations.
-            return
-
-        if isinstance(obj_or_id, basestring):
+            pass
+        elif isinstance(obj_or_id, basestring):
+            # Already a string, assume this is an object ID.
             self._odata['location_id'] = obj_or_id
         else:
+            # Looks like a BaseObject sub-class. Grab the object ID.
             self._odata['location_id'] = obj_or_id.id
     location = property(get_location, set_location)
 

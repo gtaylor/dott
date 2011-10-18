@@ -81,6 +81,31 @@ class CmdDig(BaseCommand):
         ))
 
 
+class CmdCreate(BaseCommand):
+    """
+    Creates a new ThingObject, which can be @parent'd to something else.
+    """
+    name = '@create'
+
+    def func(self, invoker, parsed_cmd):
+        mud_service = invoker._mud_service
+
+        name_str = ' '.join(parsed_cmd.arguments)
+
+        if name_str.strip() == '':
+            raise CommandError('You must provide a name for the new Thing.')
+
+        thing_parent = 'src.game.parents.base_objects.thing.ThingObject'
+        new_thing = mud_service.object_store.create_object(
+            thing_parent,
+            location_id=invoker.location.id,
+            name=name_str,
+        )
+        invoker.emit_to('You have created a new thing named "%s"' % (
+            new_thing.get_appearance_name(invoker),
+        ))
+
+
 class CmdTeleport(BaseCommand):
     """
     Moves an object from one place to another

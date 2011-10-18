@@ -21,6 +21,7 @@ class GlobalCommandTable(CommandTable):
         self.add_command(staff_cmds.CmdAlias())
         self.add_command(staff_cmds.CmdRestart())
         self.add_command(staff_cmds.CmdFind())
+        self.add_command(staff_cmds.CmdCreate())
         self.add_command(staff_cmds.CmdDig())
         self.add_command(staff_cmds.CmdTeleport())
         self.add_command(staff_cmds.CmdDescribe())
