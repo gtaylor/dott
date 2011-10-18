@@ -164,7 +164,6 @@ class BaseObject(object):
             return self._object_store.get_object(loc_id)
         else:
             return None
-
     def set_location(self, obj_or_id):
         """
         Sets this object's location.
@@ -183,6 +182,37 @@ class BaseObject(object):
             # Looks like a BaseObject sub-class. Grab the object ID.
             self._odata['location_id'] = obj_or_id.id
     location = property(get_location, set_location)
+
+    def get_zone(self):
+        """
+        Determines the object's zone and returns the instance representing
+        this object's zone.
+
+        :returns: The ``BaseObject`` instance (sub-class) that is this object's
+            zone master object.
+        """
+        zone_id = self._odata.get('zone_id')
+        if zone_id:
+            return self._object_store.get_object(zone_id)
+        else:
+            return None
+    def set_zone(self, obj_or_id):
+        """
+        Sets this object's zone.
+
+        :param obj_or_id: The object or object ID to set as the
+            object's zone master.
+        :type obj_or_id: A ``BaseObject`` sub-class or a ``str``.
+        """
+        if isinstance(obj_or_id, basestring):
+            # Already a string, assume this is an object ID.
+            self._odata['zone_id'] = obj_or_id
+        elif obj_or_id is None:
+            self._odata['zone_id'] = None
+        else:
+            # Looks like a BaseObject sub-class. Grab the object ID.
+            self._odata['zone_id'] = obj_or_id.id
+    zone = property(get_zone, set_zone)
 
     def get_controlled_by_id(self):
         """

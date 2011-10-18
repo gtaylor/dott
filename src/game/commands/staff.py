@@ -233,6 +233,60 @@ class CmdName(BaseCommand):
         obj_to_desc.save()
 
 
+class CmdZone(BaseCommand):
+    """
+    Sets an object's zone.
+    """
+    name = '@zone'
+
+    def func(self, invoker, parsed_cmd):
+        if not parsed_cmd.arguments:
+            raise CommandError('Set the zone on what?')
+
+        # Join all arguments together into one single string so we can
+        # split be equal sign.
+        full_arg_str = ' '.join(parsed_cmd.arguments)
+        # End up with a list of one or two members. Splits around the
+        # first equal sign found.
+        equal_sign_split = full_arg_str.split('=', 1)
+
+        if len(equal_sign_split) == 1:
+            raise CommandError('No zone provided.')
+
+        obj_to_zone_str = equal_sign_split[0]
+        try:
+            obj_to_zone = invoker.contextual_object_search(obj_to_zone_str)
+        except InvalidObjectId:
+            obj_to_zone = None
+        if not obj_to_zone:
+            raise CommandError('Unable to find your target object to zone.')
+
+        zone_obj_str = equal_sign_split[1]
+        if not zone_obj_str:
+            zone_obj = None
+        else:
+            try:
+                zone_obj = invoker.contextual_object_search(zone_obj_str)
+            except InvalidObjectId:
+                zone_obj = None
+            if not zone_obj:
+                raise CommandError('Unable to find your zone master object.')
+
+        obj_to_zone.zone = zone_obj
+        obj_to_zone.save()
+
+        if zone_obj:
+            invoker.emit_to('You zone %s to %s' % (
+                    obj_to_zone.get_appearance_name(invoker),
+                    zone_obj.get_appearance_name(invoker),
+                )
+            )
+        else:
+            invoker.emit_to('You clear the zone (if any) on %s' % (
+                    obj_to_zone.get_appearance_name(invoker),
+                )
+            )
+
 class CmdParent(BaseCommand):
     """
     Changes an object's parent.

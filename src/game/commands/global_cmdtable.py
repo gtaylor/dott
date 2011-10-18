@@ -38,3 +38,4 @@ class GlobalAdminCommandTable(CommandTable):
         self.add_command(staff_cmds.CmdParent())
         self.add_command(staff_cmds.CmdUnlink())
         self.add_command(staff_cmds.CmdLink())
+        self.add_command(staff_cmds.CmdZone())
