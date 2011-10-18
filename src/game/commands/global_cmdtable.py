@@ -17,7 +17,14 @@ class GlobalCommandTable(CommandTable):
         self.add_command(general_cmds.CmdSay())
         self.add_command(general_cmds.CmdQuit())
 
-        # Staff commands
+
+class GlobalAdminCommandTable(CommandTable):
+    """
+    Global command table for admin players.
+    """
+    def __init__(self, *args, **kwargs):
+        super(GlobalAdminCommandTable, self).__init__(*args, **kwargs)
+
         self.add_command(staff_cmds.CmdAlias())
         self.add_command(staff_cmds.CmdRestart())
         self.add_command(staff_cmds.CmdFind())

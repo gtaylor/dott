@@ -14,7 +14,7 @@ from twisted.internet import reactor
 
 import settings
 from src.server.protocols.proxyamp import AmpServerFactory
-from src.game.commands.global_cmdtable import GlobalCommandTable
+from src.game.commands.global_cmdtable import GlobalCommandTable, GlobalAdminCommandTable
 from src.server.commands.handler import CommandHandler
 from src.server.objects.in_memory_store import InMemoryObjectStore
 from src.server.parent_loader.loader import ParentLoader
@@ -33,6 +33,8 @@ class MudService(service.Service):
         # Global command table. This is consulted  by the command handler
         # when users send input.
         self.global_cmd_table = GlobalCommandTable(self)
+        # Same, but for admin players only.
+        self.global_admin_cmd_table = GlobalAdminCommandTable(self)
 
         # The command handler takes user input and figures out what to do
         # with it. This typically results in a command from a command table

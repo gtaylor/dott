@@ -18,17 +18,8 @@ class CommandHandler(object):
         """
         self._mud_service = mud_service
         self.parser = CommandParser()
-
-    @property
-    def command_table(self):
-        """
-        Returns a reference to the global CommandTable instance. Go through
-        a property to avoid reference counting, which would mess up code reload.
-
-        :rtype: :class:`src.game.commands.global_cmdtable.GlobalCommandTable`
-        :returns: A reference to the global command table instance.
-        """
-        return self._mud_service.global_cmd_table
+        self.global_command_table = self._mud_service.global_cmd_table
+        self.global_admin_command_table = self._mud_service.global_admin_cmd_table
 
     def _match_user_input_to_exit(self, invoker, parsed_command):
         """
@@ -66,16 +57,14 @@ class CommandHandler(object):
         :returns: The BaseCommand sub-class that matched the user's input,
             or ``None`` if no match was found.
         """
-        result = self.command_table.lookup_command(parsed_command)
-        if result:
-            try:
-                result.func(invoker, parsed_command)
-            except CommandError, exc:
-                invoker.emit_to(exc.message)
-            except:
-                invoker.emit_to('ERROR: A critical error has occured.')
-                raise
+        # First try the global command table.
+        result = self.global_command_table.lookup_command(parsed_command)
 
+        # No match was found, try the admin table if the invoker is an admin.
+        if not result and invoker.is_admin():
+            result = self.global_admin_command_table.lookup_command(parsed_command)
+
+        if result:
             return result
 
         # No command match.
@@ -105,6 +94,20 @@ class CommandHandler(object):
 
         cmd_match = self._match_user_input_to_command(invoker, parsed_command)
         if cmd_match:
+            # We found a command match, try to run it.
+            try:
+                cmd_match.func(invoker, parsed_command)
+            except CommandError, exc:
+                # An PEBKAC type error occured within the command.
+                invoker.emit_to(exc.message)
+            except:
+                # Something bad happened. We'll want to handle this more
+                # gracefully in the future.
+                # TODO: Handle this more gracefully.
+                invoker.emit_to('ERROR: A critical error has occured.')
+                raise
+            
+            # Everything went better than expected.
             return cmd_match
 
         # No matches, show the "Huh?".
