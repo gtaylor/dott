@@ -489,35 +489,62 @@ class BaseObject(object):
 
         return result
 
+    def _find_object_id_match(self, desc):
+        """
+        Given an object ID string (ie: '#9'), determine whether this object
+        can find said object.
+
+        :param str desc: A string with which to perform a search
+        :rtype: :class:'BaseObject' or ``None``
+        :returns: An object that best matches the string provided. If no
+            suitable match was found, returns ``None``.
+        """
+        mud_service = self._mud_service
+        # Absolute object identifier: lookup the id
+        obj = mud_service.object_store.get_object(desc[1:])
+
+        if not self.is_admin():
+            # Non-admins can only find objects in their current location.
+            if self.location and obj.location:
+                # Both invoker and the target have a location. See if they
+                # are in the same place.
+                location_match = self.location.id == obj.location.id or \
+                                 self.location.id == obj.id
+                if location_match:
+                    # Locations match. Good to go.
+                    return obj
+            elif obj.base_type == 'room':
+                if  self.location and self.location.id == obj.id:
+                    # Non-admin is looking at their current location, which
+                    # is a room.
+                    return obj
+            else:
+                # Non-specified or differing locations. Either way, there
+                # is no usable match.
+                return None
+        else:
+            # Invoker is an admin, and can find object id matches globally.
+            return obj
+
     def contextual_object_search(self, desc):
         """
         Searches for objects using the current object as a frame of
         reference
 
         :param str desc: A string with which to perform a search
-
-        :rtype: :class:'BaseObject'
-        :returns: An object that best matches the string provided
+        :rtype: :class:'BaseObject' or ``None``
+        :returns: An object that best matches the string provided. If no
+            suitable match was found, returns ``None``.
         """
         desc = desc.strip()
         if not desc:
             # Probably an empty string, which we can't do much with.
             return None
 
-        mud_service = self._mud_service
-
         if desc[0] == '#':
-            # Absolute object identifier: lookup the id
-            obj = mud_service.object_store.get_object(desc[1:])
-
-            if not self.is_admin():
-                location_match = self.location.id == obj.location.id or \
-                                 self.location.id == obj.id
-            else:
-                location_match = True
-
-            if location_match:
-                return obj
+            oid_match = self._find_object_id_match(desc)
+            if oid_match:
+                return oid_match
 
         if desc.lower() == 'me':
             # Object is referring to itself

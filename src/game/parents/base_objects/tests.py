@@ -93,8 +93,8 @@ class BaseObjectTests(DottTestCase):
         self.assertEqual(room1, smallthing.contextual_object_search('here'))
 
         # #<id> should refer to an absolute id
-        absid = '#%s' % str(room2.id)
-        self.assertEqual(room2, smallthing.contextual_object_search(absid))
+        absid = '#%s' % str(room1.id)
+        self.assertEqual(room1, smallthing.contextual_object_search(absid))
 
         # 'big' should refer to bigthing which is in the room with smallthing
         self.assertEqual(bigthing, smallthing.contextual_object_search('big'))
