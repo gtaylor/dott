@@ -7,6 +7,7 @@ class SolarSystemObject(RoomObject):
     """
     pass
 
+
 class SolarSystemPlaceObject(ThingObject):
     """
     An object in space that may be warped to. These are more or less 'rooms'
@@ -14,11 +15,13 @@ class SolarSystemPlaceObject(ThingObject):
     """
     pass
 
+
 class PlanetObject(SolarSystemPlaceObject):
     """
     Planets are stationary objects in space that may be landed on.
     """
     pass
+
 
 class InSpaceObject(ThingObject):
     """
