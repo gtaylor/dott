@@ -6,7 +6,6 @@ from settings import DATABASES
 from src.server.objects.exceptions import InvalidObjectId
 from src.server.parent_loader.exceptions import InvalidParent
 from src.utils import logger
-from src.server.parent_loader.loader import ParentLoader
 
 class InMemoryObjectStore(object):
     """
@@ -249,8 +248,37 @@ class InMemoryObjectStore(object):
         odata key on all objects.
 
         :param str name: The name to search for.
+        :returns: A generator of ``BaseObject`` matches.
         """
         for id, obj in self._objects.iteritems():
             ratio = fuzz.partial_ratio(name, obj.name)
             if ratio > 50:
                 yield obj
+
+    def find_exits_linked_to_obj(self, obj):
+        """
+        Finds all exits that are linked to the given object.
+
+        :param BaseObject obj: The object which to find linked exits to.
+        :rtype: list
+        :return: A list of exits that are linked to the given object.
+        """
+        if obj.base_type == 'exit':
+            # Exits can't be linked to one another, this ends up being invalid.
+            return []
+
+        # We could use a generator for this, but then we couldn't iterate
+        # and delete as we went, as this would change the size of self._objects
+        # during the iteration (causing an exception). So store in list.
+        linked_exits = []
+        for id, db_obj in self._objects.iteritems():
+            if not db_obj.base_type == 'exit':
+                # Not an exit, not interested.
+                continue
+
+            destination = db_obj.destination
+            if destination and destination.id == obj.id:
+                # This object's destination matches the specified object's ID.
+                linked_exits.append(db_obj)
+
+        return linked_exits

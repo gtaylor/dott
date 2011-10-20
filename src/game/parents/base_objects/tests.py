@@ -1,4 +1,5 @@
 from src.game.parents.base_objects.thing import ThingObject
+from src.server.objects.exceptions import InvalidObjectId
 from src.utils.test_utils import DottTestCase
 
 class BaseObjectTests(DottTestCase):
@@ -7,6 +8,7 @@ class BaseObjectTests(DottTestCase):
     """
     # Here for convenient reference.
     ROOM_PARENT = 'src.game.parents.base_objects.room.RoomObject'
+    EXIT_PARENT = 'src.game.parents.base_objects.exit.ExitObject'
     THING_PARENT = 'src.game.parents.base_objects.thing.ThingObject'
     BASE_PARENT = 'src.game.parents.base_objects.base.BaseObject'
 
@@ -69,6 +71,7 @@ class BaseObjectTests(DottTestCase):
 
         # Create the rooms
         room1 = self.object_store.create_object(self.ROOM_PARENT, name='Room 1')
+        #noinspection PyUnusedLocal
         room2 = self.object_store.create_object(self.ROOM_PARENT, name='Room 2')
         # Create a thing in Room 1
         smallthing = self.object_store.create_object(
@@ -102,6 +105,23 @@ class BaseObjectTests(DottTestCase):
         # 'key' should refer to keything which is inside of smallthing
         self.assertEqual(keything, smallthing.contextual_object_search('key'))
 
+    def test_exit_deletion_cleanup(self):
+        """
+        Whenever an object is deleted, any exits that point to said object
+        should also be deleted. I
+        """
+        room1 = self.object_store.create_object(self.ROOM_PARENT, name='Room 1')
+        room2 = self.object_store.create_object(self.ROOM_PARENT, name='Room 2')
+        test_exit = self.object_store.create_object(
+            self.EXIT_PARENT,
+            location_id=room1.id,
+            destination_id=room2.id,
+            name='Test Exit')
+        room2.destroy()
+        self.assertRaises(InvalidObjectId,
+            self.object_store.get_object,
+            test_exit.id)
+
 
 class ThingObjectTests(DottTestCase):
     """
@@ -115,8 +135,6 @@ class ThingObjectTests(DottTestCase):
         """
         Tests the object's base type property
         """
-
-
         room = self.object_store.create_object(self.ROOM_PARENT, name='A room')
         # Create a thing in the room.
         thing = self.object_store.create_object(

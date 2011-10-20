@@ -225,7 +225,7 @@ class BaseObject(object):
         :returns: The CouchDB ID of the PlayerAccount that controls this object.
         """
         return self._odata.get('controlled_by_account_id')
-    
+
     def set_controlled_by_id(self, account_id):
         """
         Sets the PlayerAccount ID that controls this object.
@@ -272,6 +272,11 @@ class BaseObject(object):
         """
         Destroys the object.
         """
+        # Destroy all exits that were linked to this object.
+        for exit in self._object_store.find_exits_linked_to_obj(self):
+            exit.destroy()
+
+        # Destroys this object, once all cleanup is done.
         self._object_store.destroy_object(self)
 
     def execute_command(self, command_string):
@@ -359,6 +364,7 @@ class BaseObject(object):
         """
         return self._object_store.get_object_contents(self)
 
+    #noinspection PyUnusedLocal
     def get_description(self, invoker, from_inside=False):
         """
         Returns the description of this object.
@@ -461,6 +467,7 @@ class BaseObject(object):
         :rtype: str
         :returns: The object's appearance, from the outside or inside.
         """
+        #noinspection PyUnresolvedReferences
         is_inside = invoker.location.id == self.id
 
         desc = self.get_description(invoker, from_inside=is_inside)
@@ -487,7 +494,7 @@ class BaseObject(object):
 
         if self.attributes:
             attributes_str += '\n### EXTRA ATTRIBUTES ###\n'
-            
+
             for key, value in self.attributes.items():
                 attributes_str += ' %s: %s\n' % (key, value)
 
@@ -513,6 +520,7 @@ class BaseObject(object):
 
             # No alias match found, so now we fuzzy match
             r = fuzz.partial_ratio(desc, obj.name)
+            #noinspection PyChainedComparisons
             if r > 50 and r > ratio:
                 ratio = r
                 result = obj
@@ -538,12 +546,14 @@ class BaseObject(object):
             if self.location and obj.location:
                 # Both invoker and the target have a location. See if they
                 # are in the same place.
+                #noinspection PyUnresolvedReferences
                 location_match = self.location.id == obj.location.id or \
                                  self.location.id == obj.id
                 if location_match:
                     # Locations match. Good to go.
                     return obj
             elif obj.base_type == 'room':
+                #noinspection PyUnresolvedReferences
                 if  self.location and self.location.id == obj.id:
                     # Non-admin is looking at their current location, which
                     # is a room.
@@ -588,6 +598,7 @@ class BaseObject(object):
 
         # First search the objects in the room
         if self.location:
+            #noinspection PyUnresolvedReferences
             neighboring_match = self._find_name_or_alias_match(
                 self.location.get_contents(),
                 desc
