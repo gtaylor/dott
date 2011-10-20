@@ -15,10 +15,9 @@ class CmdLaunch(BaseCommand):
 
 
 class ShipBridgeCommandTable(CommandTable):
-    def __init__(self, *args, **kwargs):
-        super(ShipBridgeCommandTable, self).__init__(*args, **kwargs)
-
-        self.add_command(CmdLaunch())
+    commands = [
+        CmdLaunch(),
+    ]
 
 
 class SpaceShipBridgeObject(SpaceShipInteriorObject):
@@ -26,6 +25,8 @@ class SpaceShipBridgeObject(SpaceShipInteriorObject):
     Ships are controlled from the bridge, regardless of size. Smaller ships
     call this a cockpit.
     """
+    local_command_table = ShipBridgeCommandTable()
+
     def _get_command_table(self):
         """
         Sets the command table to the bridge.

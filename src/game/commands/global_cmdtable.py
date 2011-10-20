@@ -7,35 +7,33 @@ class GlobalCommandTable(CommandTable):
     """
     The standard, global command table.
     """
-    def __init__(self, *args, **kwargs):
-        super(GlobalCommandTable, self).__init__(*args, **kwargs)
-
-        self.add_command(general_cmds.CmdLook())
-        self.add_command(general_cmds.CmdExamine())
-        self.add_command(general_cmds.CmdGo())
-        self.add_command(general_cmds.CmdWho())
-        self.add_command(general_cmds.CmdSay())
-        self.add_command(general_cmds.CmdQuit())
+    commands = [
+        general_cmds.CmdExamine(),
+        general_cmds.CmdGo(),
+        general_cmds.CmdLook(),
+        general_cmds.CmdSay(),
+        general_cmds.CmdQuit(),
+        general_cmds.CmdWho(),
+    ]
 
 
 class GlobalAdminCommandTable(CommandTable):
     """
     Global command table for admin players.
     """
-    def __init__(self, *args, **kwargs):
-        super(GlobalAdminCommandTable, self).__init__(*args, **kwargs)
-
-        self.add_command(staff_cmds.CmdAlias())
-        self.add_command(staff_cmds.CmdRestart())
-        self.add_command(staff_cmds.CmdFind())
-        self.add_command(staff_cmds.CmdCreate())
-        self.add_command(staff_cmds.CmdDig())
-        self.add_command(staff_cmds.CmdTeleport())
-        self.add_command(staff_cmds.CmdDescribe())
-        self.add_command(staff_cmds.CmdDestroy())
-        self.add_command(staff_cmds.CmdName())
-        self.add_command(staff_cmds.CmdOpen())
-        self.add_command(staff_cmds.CmdParent())
-        self.add_command(staff_cmds.CmdUnlink())
-        self.add_command(staff_cmds.CmdLink())
-        self.add_command(staff_cmds.CmdZone())
+    commands = [
+        staff_cmds.CmdAlias(),
+        staff_cmds.CmdRestart(),
+        staff_cmds.CmdFind(),
+        staff_cmds.CmdCreate(),
+        staff_cmds.CmdDig(),
+        staff_cmds.CmdTeleport(),
+        staff_cmds.CmdDescribe(),
+        staff_cmds.CmdDestroy(),
+        staff_cmds.CmdName(),
+        staff_cmds.CmdOpen(),
+        staff_cmds.CmdParent(),
+        staff_cmds.CmdUnlink(),
+        staff_cmds.CmdLink(),
+        staff_cmds.CmdZone(),
+    ]

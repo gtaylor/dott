@@ -32,9 +32,9 @@ class MudService(service.Service):
 
         # Global command table. This is consulted  by the command handler
         # when users send input.
-        self.global_cmd_table = GlobalCommandTable(self)
+        self.global_cmd_table = GlobalCommandTable()
         # Same, but for admin players only.
-        self.global_admin_cmd_table = GlobalAdminCommandTable(self)
+        self.global_admin_cmd_table = GlobalAdminCommandTable()
 
         # The command handler takes user input and figures out what to do
         # with it. This typically results in a command from a command table
@@ -48,7 +48,7 @@ class MudService(service.Service):
         # convenience method for finding and retrieving objects during
         # runtime.
         self.object_store = InMemoryObjectStore(self)
-        
+
         # All of the instantiations above just prep data structures. The
         # following lines do all of the loading.
         self.object_store._prepare_at_load()
@@ -58,7 +58,7 @@ class MudService(service.Service):
 
         self.start_time = time.time()
 
-        # Make output to the terminal. 
+        # Make output to the terminal.
         print(' %s started on port(s):' % settings.GAME_NAME)
         print('  * %s' % settings.SERVER_AMP_PORT)
         print('-'*50)
@@ -81,7 +81,7 @@ class MudService(service.Service):
         Gracefully shuts down the service.
         """
         reactor.callLater(0, reactor.stop)
-            
+
 # Putting it all together
 application = service.Application('dott_server')
 mud_service = MudService()

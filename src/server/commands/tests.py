@@ -7,7 +7,7 @@ class CommandTableTests(DottTestCase):
     def setUp(self):
         super(CommandTableTests, self).setUp()
 
-        self.table = CommandTable(self.mud_service)
+        self.table = CommandTable()
 
     def tearDown(self):
         del self.table

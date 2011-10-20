@@ -15,18 +15,22 @@ class CommandTable(object):
     These store references to various Command instances, their names and
     aliases.
 
-    :attr dict _commands: The master command dict. The keys are the command's
-        full names. The values are an instance of a Command sub-class.
-    :attr dict _aliases: Similar to :attr:`_commands`, but the keys are command
-        aliases and the values are references to the full entry in
-        :attr:`_commands`.
+    :attr list COMMANDS: A list of BaseCommand objects.
     """
-    def __init__(self, mud_service):
-        """
-        :param MudService mud_service: The MudService class running the game.
-        """
+    commands = []
+
+    def __init__(self):
+        # The master command dict. The keys are the command's full names. The
+        # values are an instance of a Command sub-class.
         self._commands = {}
+        # Similar to :attr:`_commands`, but the keys are command
+        # aliases and the values are references to the full entry in
+        # :attr:`_commands`.
         self._aliases = {}
+
+        # Populate the _command and _aliases dicts.
+        for command in self.commands:
+            self.add_command(command)
 
     def add_command(self, command):
         """
@@ -40,7 +44,7 @@ class CommandTable(object):
             msg = "Attempting to add command with name %s, but an entry in "\
                   "the table with this name already exists." % command.name
             raise DuplicateCommandException(msg)
-        
+
         self._commands[command.name] = command
 
         for alias in command.aliases:

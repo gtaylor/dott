@@ -6,6 +6,10 @@ class BaseObject(object):
     This is the base parent for every in-game "object". Rooms, Players, and
     Things are all considered objects. Behaviors here are very low level.
     """
+    # Holds this object's command table. Any objects inside of this object
+    # will check this for command matches before the global table.
+    local_command_table = None
+
     def __init__(self, mud_service, **kwargs):
         """
         :param MudService mud_service: The MudService class running the game.
@@ -14,10 +18,6 @@ class BaseObject(object):
             objects attributes is just a dict, this works really well.
         """
         self._mud_service = mud_service
-
-        # Holds this object's command table. Any objects inside of this object
-        # will check this for command matches before the global table.
-        self.local_command_table = self._get_command_table()
 
         # This stores all of the object's data. This includes core and
         # userspace attributes.
@@ -29,15 +29,6 @@ class BaseObject(object):
         if not self._odata.has_key('attributes'):
             # No attributes dict found, create one so it may be saved to the DB.
             self._odata['attributes'] = {}
-
-    def _get_command_table(self):
-        """
-        Override this in your child classes to set up command tables.
-
-        :rtype: src.server.commands.cmdtable.CommandTable
-        :returns: A correctly instantiated CommandTable object.
-        """
-        return None
 
     #
     ## Begin properties.
