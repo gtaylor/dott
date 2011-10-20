@@ -282,3 +282,23 @@ class InMemoryObjectStore(object):
                 linked_exits.append(db_obj)
 
         return linked_exits
+
+    def find_objects_in_zone(self, obj):
+        """
+        Finds all objects whose zone master object is set to the given object.
+
+        :param BaseObject obj: The object whose zone members to find.
+        :rtype: list
+        :return: A list of the object's zone members.
+        """
+        # We could use a generator for this, but then we couldn't iterate
+        # and delete as we went, as this would change the size of self._objects
+        # during the iteration (causing an exception). So store in list.
+        zone_members = []
+        for id, db_obj in self._objects.iteritems():
+            zone = db_obj.zone
+            if zone and zone.id == obj.id:
+                # This object's zone matches the specified object's ID.
+                zone_members.append(db_obj)
+
+        return zone_members

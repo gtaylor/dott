@@ -60,12 +60,33 @@ class InMemoryObjectStoreTests(DottTestCase):
         Tests the find_exits_linked_to_obj() method, which does what the name
         says.
         """
+        # Create a room that will have an exit.
         room1 = self.object_store.create_object(self.ROOM_PARENT, name='Room 1')
+        # Create the room that will be linked to.
         room2 = self.object_store.create_object(self.ROOM_PARENT, name='Room 2')
+        # Create an exit in room1 that points to room2.
         test_exit = self.object_store.create_object(
             self.EXIT_PARENT,
             location_id=room1.id,
             destination_id=room2.id,
             name='Test Exit')
+        # Get a list of all exits linked to room2.
         exits = self.object_store.find_exits_linked_to_obj(room2)
-        self.assertEqual(exits[0], test_exit)
+        # The first (and only) member should be the test exit.
+        self.assertEqual(exits[0].id, test_exit.id)
+        self.assertEqual(len(exits), 1)
+
+    def test_find_objects_in_zone(self):
+        """
+        Tests the find_objects_in_zone() method, which does what the name
+        says.
+        """
+        room1 = self.object_store.create_object(self.ROOM_PARENT, name='Room 1')
+        room2 = self.object_store.create_object(
+            self.ROOM_PARENT,
+            name='Room 2',
+            zone_id=room1.id,
+        )
+        members = self.object_store.find_objects_in_zone(room1)
+        self.assertEqual(members[0].id, room2.id)
+        self.assertEqual(len(members), 1)
