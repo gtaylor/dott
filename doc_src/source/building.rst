@@ -40,6 +40,7 @@ General object commands
 * @teleport <target-dbref>=<dest-dbref>
 
 * @alias <dbref>=<primary alias> [<alias2>]
+
 @alias/del <dbref>=<alias-to-delete>
 @alias/add <dbref>=<alias-to-add>
 

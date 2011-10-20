@@ -1,5 +1,5 @@
 import unittest2
-from src.game.commands.global_cmdtable import GlobalCommandTable
+from src.game.commands.global_cmdtable import GlobalCommandTable, GlobalAdminCommandTable
 from src.server.commands.handler import CommandHandler
 from src.server.objects.in_memory_store import InMemoryObjectStore
 from src.server.parent_loader.loader import ParentLoader
@@ -13,12 +13,14 @@ class FakeProxyAMP(object):
     def callRemote(self, *args, **kwargs):
         pass
 
+
 class MockMudService(object):
     """
     Mocks up the MudService class found in dott.tac.
     """
     def __init__(self):
         self.global_cmd_table = GlobalCommandTable(self)
+        self.global_admin_cmd_table = GlobalAdminCommandTable(self)
         self.command_handler = CommandHandler(self)
         self.session_manager = SessionManager(self)
         self.parent_loader = ParentLoader()
@@ -27,6 +29,7 @@ class MockMudService(object):
         self.proxyamp = FakeProxyAMP()
 
         self.object_store._prepare_at_load()
+
 
 class DottTestCase(unittest2.TestCase):
     """
