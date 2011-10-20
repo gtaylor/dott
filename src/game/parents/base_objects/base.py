@@ -15,6 +15,10 @@ class BaseObject(object):
         """
         self._mud_service = mud_service
 
+        # Holds this object's command table. Any objects inside of this object
+        # will check this for command matches before the global table.
+        self.local_command_table = self._get_command_table()
+
         # This stores all of the object's data. This includes core and
         # userspace attributes.
         self._odata = kwargs
@@ -25,6 +29,15 @@ class BaseObject(object):
         if not self._odata.has_key('attributes'):
             # No attributes dict found, create one so it may be saved to the DB.
             self._odata['attributes'] = {}
+
+    def _get_command_table(self):
+        """
+        Override this in your child classes to set up command tables.
+
+        :rtype: src.server.commands.cmdtable.CommandTable
+        :returns: A correctly instantiated CommandTable object.
+        """
+        return None
 
     #
     ## Begin properties.
@@ -341,6 +354,7 @@ class BaseObject(object):
         destination_obj.before_object_enters_event(self)
 
         self.set_location(destination_obj)
+        self.save()
 
         #noinspection PyUnresolvedReferences
         old_location_obj.after_object_leaves_event(self)
