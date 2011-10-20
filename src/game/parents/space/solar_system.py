@@ -7,14 +7,22 @@ class SolarSystemObject(RoomObject):
     """
     pass
 
-class InSpaceObject(ThingObject):
+class SolarSystemPlaceObject(ThingObject):
     """
-    All objects that are physically in space inherit from this class.
+    An object in space that may be warped to. These are more or less 'rooms'
+    within the solar system.
     """
     pass
 
-class PlanetObject(InSpaceObject):
+class PlanetObject(SolarSystemPlaceObject):
     """
     Planets are stationary objects in space that may be landed on.
+    """
+    pass
+
+class InSpaceObject(ThingObject):
+    """
+    All free-floating objects in a solar system. These differ from a Place
+    in that they may be fired upon, scanned, and interacted with.
     """
     pass
