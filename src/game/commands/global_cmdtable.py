@@ -10,6 +10,7 @@ class GlobalCommandTable(CommandTable):
     commands = [
         general_cmds.CmdExamine(),
         general_cmds.CmdGo(),
+        general_cmds.CmdCommands(),
         general_cmds.CmdLook(),
         general_cmds.CmdSay(),
         general_cmds.CmdQuit(),

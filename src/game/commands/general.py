@@ -82,6 +82,30 @@ class CmdGo(BaseCommand):
         obj_to_traverse.pass_object_through(invoker)
 
 
+class CmdCommands(BaseCommand):
+    """
+    Lists a break-down of available commands. Takes into account your location's
+    command table (if applicable), and admin status.
+    """
+    name = 'commands'
+
+    def func(self, invoker, parsed_cmd):
+        service = invoker._mud_service
+        # Buffer to send to user.
+        buffer = ''
+
+        if invoker.is_admin():
+            buffer += '\nGlobal Admin Commands:'
+            buffer += self._buffer_command_table(service.global_admin_cmd_table)
+
+        invoker.emit_to(buffer)
+
+    def _buffer_command_table(self, table):
+        buffer = ''
+        for cmd in table.commands:
+            buffer += ' %s' % cmd.name
+        return buffer
+
 class CmdLook(CmdExamine):
     """
     Synonymous with examine, aside from always getting the object's normal
@@ -169,7 +193,7 @@ class CmdQuit(BaseCommand):
 
     def func(self, invoker, parsed_cmd):
         invoker.emit_to("Quitting...")
-        
+
         service = invoker._mud_service
         # This asks the proxy to disconnect any sessions that are currently
         # controlling this object.
