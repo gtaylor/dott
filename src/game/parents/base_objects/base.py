@@ -9,6 +9,8 @@ class BaseObject(object):
     # Holds this object's command table. Any objects inside of this object
     # will check this for command matches before the global table.
     local_command_table = None
+    # Same as above, but for admin-only commands.
+    local_admin_command_table = None
 
     def __init__(self, mud_service, **kwargs):
         """

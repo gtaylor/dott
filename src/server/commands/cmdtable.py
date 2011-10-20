@@ -1,4 +1,3 @@
-from src.utils import logger
 from src.utils.exceptions import BaseException
 
 class DuplicateCommandException(BaseException):
@@ -15,7 +14,7 @@ class CommandTable(object):
     These store references to various Command instances, their names and
     aliases.
 
-    :attr list COMMANDS: A list of BaseCommand objects.
+    :attr list commands: A list of BaseCommand objects.
     """
     commands = []
 

@@ -60,20 +60,29 @@ class CommandHandler(object):
         # Default to no match.
         result = None
 
-        if invoker.location and invoker.location.local_command_table:
+        # Local admin table, but only if it exists and invoker is an admin.
+        if invoker.location \
+           and invoker.location.local_admin_command_table \
+           and invoker.is_admin():
+            result = invoker.location.local_admin_command_table.lookup_command(
+                parsed_command
+            )
+
+        if not result \
+           and invoker.location and invoker.location.local_command_table:
             result = invoker.location.local_command_table.lookup_command(
                 parsed_command
             )
 
-        if not result:
-            # First try the global command table.
-            result = self.global_command_table.lookup_command(
+        # Admin command table, but only if invoker is an admin.
+        if not result and invoker.is_admin():
+            result = self.global_admin_command_table.lookup_command(
                 parsed_command
             )
 
-        # No match was found, try the admin table if the invoker is an admin.
-        if not result and invoker.is_admin():
-            result = self.global_admin_command_table.lookup_command(
+        # Global command table.
+        if not result:
+            result = self.global_command_table.lookup_command(
                 parsed_command
             )
 
