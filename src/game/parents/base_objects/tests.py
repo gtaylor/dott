@@ -99,22 +99,41 @@ class BaseObjectTests(DottTestCase):
         # 'key' should refer to keything which is inside of smallthing
         self.assertEqual(keything, smallthing.contextual_object_search('key'))
 
-    def test_exit_deletion_cleanup(self):
+    def test_deletion_cleanup(self):
         """
-        Whenever an object is deleted, any exits that point to said object
-        should also be deleted. I
+        Whenever an object is deleted, any exits linking to it are destroyed.
+        If any other objects had the condemned object set as their zone master,
+        the zone value is wiped.
         """
+        # This room will hold an exit to room2.
         room1 = self.object_store.create_object(self.ROOM_PARENT, name='Room 1')
+        # The room to be linked to via exit in room1.
         room2 = self.object_store.create_object(self.ROOM_PARENT, name='Room 2')
+        # Create a third room to assist in zone deletion testing.
+        room3 = self.object_store.create_object(
+            self.ROOM_PARENT,
+            name='Room 3',
+            zone_id=room1.id
+        )
+        # Create an exit in room1 that links to room2.
         test_exit = self.object_store.create_object(
             self.EXIT_PARENT,
             location_id=room1.id,
             destination_id=room2.id,
             name='Test Exit')
+        # This should the test_exit.
         room2.destroy()
+        # Query the object store for the destroyed exit. Should fail due to it
+        # being deleted.
         self.assertRaises(InvalidObjectId,
             self.object_store.get_object,
             test_exit.id)
+        # Double-check that the zone was set correctly.
+        self.assertEqual(room3.zone.id, room1.id)
+        # This should wipe the zone on room3.
+        room1.destroy()
+        # Make sure room3's zone was wiped, since its zone master was destroyed.
+        self.assertEqual(room3.zone, None)
 
 
 class ThingObjectTests(DottTestCase):

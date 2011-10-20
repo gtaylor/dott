@@ -276,6 +276,11 @@ class BaseObject(object):
         for exit in self._object_store.find_exits_linked_to_obj(self):
             exit.destroy()
 
+        # Un-set the zones on all objects who are members of this object.
+        for obj in self._object_store.find_objects_in_zone(self):
+            obj.zone = None
+            obj.save()
+
         # Destroys this object, once all cleanup is done.
         self._object_store.destroy_object(self)
 
