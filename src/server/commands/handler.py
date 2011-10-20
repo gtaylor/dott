@@ -57,18 +57,27 @@ class CommandHandler(object):
         :returns: The BaseCommand sub-class that matched the user's input,
             or ``None`` if no match was found.
         """
-        # First try the global command table.
-        result = self.global_command_table.lookup_command(parsed_command)
+        # Default to no match.
+        result = None
+
+        if invoker.location and invoker.location.local_command_table:
+            result = invoker.location.local_command_table.lookup_command(
+                parsed_command
+            )
+
+        if not result:
+            # First try the global command table.
+            result = self.global_command_table.lookup_command(
+                parsed_command
+            )
 
         # No match was found, try the admin table if the invoker is an admin.
         if not result and invoker.is_admin():
-            result = self.global_admin_command_table.lookup_command(parsed_command)
+            result = self.global_admin_command_table.lookup_command(
+                parsed_command
+            )
 
-        if result:
-            return result
-
-        # No command match.
-        return None
+        return result
 
     def handle_input(self, invoker, command_string):
         """
@@ -106,7 +115,7 @@ class CommandHandler(object):
                 # TODO: Handle this more gracefully.
                 invoker.emit_to('ERROR: A critical error has occured.')
                 raise
-            
+
             # Everything went better than expected.
             return cmd_match
 
