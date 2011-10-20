@@ -35,6 +35,12 @@ class DottTestCase(unittest2.TestCase):
     """
     Some helpers for unit testing.
     """
+    # Here for convenient reference.
+    ROOM_PARENT = 'src.game.parents.base_objects.room.RoomObject'
+    EXIT_PARENT = 'src.game.parents.base_objects.exit.ExitObject'
+    THING_PARENT = 'src.game.parents.base_objects.thing.ThingObject'
+    BASE_PARENT = 'src.game.parents.base_objects.base.BaseObject'
+
     def setUp(self):
         """
         By default, create a bare minimal set of data stores.

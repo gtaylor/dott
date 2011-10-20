@@ -4,9 +4,6 @@ class InMemoryObjectStoreTests(DottTestCase):
     """
     Testing of the InMemoryObjectStore storage backend.
     """
-    # Here for convenient reference.
-    ROOM_PARENT = 'src.game.parents.base_objects.room.RoomObject'
-
     def test_starter_room_creation(self):
         """
         Makes sure the default DB is created with one room. Check some
@@ -57,3 +54,18 @@ class InMemoryObjectStoreTests(DottTestCase):
             if room1 == match or room2 == match or room3 == match:
                 num_found += 1
         self.assertEqual(num_found, 3)
+
+    def test_find_exits_linked_to_obj(self):
+        """
+        Tests the find_exits_linked_to_obj() method, which does what the name
+        says.
+        """
+        room1 = self.object_store.create_object(self.ROOM_PARENT, name='Room 1')
+        room2 = self.object_store.create_object(self.ROOM_PARENT, name='Room 2')
+        test_exit = self.object_store.create_object(
+            self.EXIT_PARENT,
+            location_id=room1.id,
+            destination_id=room2.id,
+            name='Test Exit')
+        exits = self.object_store.find_exits_linked_to_obj(room2)
+        self.assertEqual(exits[0], test_exit)

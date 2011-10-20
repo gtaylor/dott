@@ -6,12 +6,6 @@ class BaseObjectTests(DottTestCase):
     """
     Testing of the InMemoryObjectStore storage backend.
     """
-    # Here for convenient reference.
-    ROOM_PARENT = 'src.game.parents.base_objects.room.RoomObject'
-    EXIT_PARENT = 'src.game.parents.base_objects.exit.ExitObject'
-    THING_PARENT = 'src.game.parents.base_objects.thing.ThingObject'
-    BASE_PARENT = 'src.game.parents.base_objects.base.BaseObject'
-
     def test_contents(self):
         """
         Tests object contents calculations.
