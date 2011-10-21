@@ -98,9 +98,29 @@ class CmdCommands(BaseCommand):
             buffer += '\nGlobal Admin Commands:'
             buffer += self._buffer_command_table(service.global_admin_cmd_table)
 
+        buffer += '\nGlobal Commands:'
+        buffer += self._buffer_command_table(service.global_cmd_table)
+
+        location = invoker.location
+        if location and location.local_admin_command_table:
+            buffer += '\nLocal Admin Commands:'
+            buffer += self._buffer_command_table(location.local_admin_command_table)
+
+        if location and location.local_command_table:
+            buffer += '\nLocal Commands:'
+            buffer += self._buffer_command_table(location.local_command_table)
+
         invoker.emit_to(buffer)
 
     def _buffer_command_table(self, table):
+        """
+        Given a CommandTable instance, return a string that lists the commands
+        in the table.
+
+        :param CommandTable table: The command table whose commands to list.
+        :rtype: str
+        :returns: A string list of commands in the table.
+        """
         buffer = ''
         for cmd in table.commands:
             buffer += ' %s' % cmd.name
