@@ -325,8 +325,8 @@ class CmdParent(BaseCommand):
 
         try:
             mud_service.parent_loader.load_parent(parent_str)
-        except InvalidParent:
-            raise CommandError('Invalid parent.')
+        except InvalidParent, exc:
+            raise CommandError(exc.message)
 
         obj_to_parent.parent = parent_str
         obj_to_parent.save()

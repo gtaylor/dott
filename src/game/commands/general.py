@@ -96,19 +96,28 @@ class CmdCommands(BaseCommand):
 
         if invoker.is_admin():
             buffer += '\nGlobal Admin Commands:'
-            buffer += self._buffer_command_table(service.global_admin_cmd_table)
+            buffer += self._buffer_command_table(
+                service.global_admin_cmd_table
+            )
 
         buffer += '\nGlobal Commands:'
-        buffer += self._buffer_command_table(service.global_cmd_table)
+        buffer += self._buffer_command_table(
+            service.global_cmd_table
+        )
 
         location = invoker.location
-        if location and location.local_admin_command_table:
-            buffer += '\nLocal Admin Commands:'
-            buffer += self._buffer_command_table(location.local_admin_command_table)
+        if location:
+            if invoker.is_admin() and location.local_admin_command_table:
+                buffer += '\nLocal Admin Commands:'
+                buffer += self._buffer_command_table(
+                    location.local_admin_command_table
+                )
 
-        if location and location.local_command_table:
-            buffer += '\nLocal Commands:'
-            buffer += self._buffer_command_table(location.local_command_table)
+            if location.local_command_table:
+                buffer += '\nLocal Commands:'
+                buffer += self._buffer_command_table(
+                    location.local_command_table
+                )
 
         invoker.emit_to(buffer)
 

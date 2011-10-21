@@ -36,7 +36,12 @@ class ParentLoader(object):
             # This imports the top-level src module, from which we have to
             # iterate through sub-modules to eventually get to what we want.
             # For example, src -> game -> parents -> base_objects.
-            mod = __import__(module_str)
+            try:
+                mod = __import__(module_str)
+            except ImportError:
+                raise InvalidParent(
+                    'Attempted to load invalid parent: %s' % parent_str
+                )
             components = module_str.split('.')
             for comp in components[1:]:
                 # Enhance. ENHANCE!
