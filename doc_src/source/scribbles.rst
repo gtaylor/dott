@@ -73,6 +73,7 @@ weaps/weapons (Weapon display)
 Movement
 ^^^^^^^^
 
+warp (Lists all warp points)
 warp <dest> (Warps to a point in the system. Gates, planets, etc.)
 jump <gate> (Jumps through a warp gate or wormhole.)
 

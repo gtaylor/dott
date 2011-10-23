@@ -5,7 +5,17 @@ class SolarSystemObject(RoomObject):
     """
     Represents a solar system that may contain InSpaceObjects.
     """
-    pass
+    def get_places_obj_list(self):
+        """
+        Returns all warpable places in the solar system as a list.
+
+        :rtype: list
+        :returns: A list of :py:class:`SolarSystemPlaceObject` sub-classes.
+        """
+        return [
+            obj for obj in self.get_contents() \
+                    if isinstance(obj, SolarSystemPlaceObject)
+        ]
 
 
 class SolarSystemPlaceObject(ThingObject):

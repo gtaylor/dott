@@ -16,6 +16,7 @@ class TraffickerSpaceShipBridgeObject(SpaceShipBridgeObject):
                "windows are on either side of each row of seats, and a small " \
                "ramped hatch is in the floor near the aft."
 
+    
 class TraffickerSpaceShipObject(BaseSpaceShipObject):
     """
     A basic shuttle class ship.
