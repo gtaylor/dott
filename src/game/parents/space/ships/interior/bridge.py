@@ -1,3 +1,4 @@
+from src.game.parents.space.hangar import HangarMixin
 from src.game.parents.space.solar_system import SolarSystemPlaceObject
 from src.server.commands.cmdtable import CommandTable
 from src.server.commands.command import BaseCommand
@@ -27,14 +28,93 @@ class CmdLaunch(BaseCommand):
         bridge.emit_to_contents("Starting launch sequence...")
         ship.start_launch_sequence()
 
-"""
-      /@|
- ,-==/   ====[
-(            [
- '-==\   ====[
-      \@|
 
-"""
+class CmdDock(BaseCommand):
+    """
+    Either displays a list of dockable places, or docks if a destination is
+    specified.
+    """
+    name = 'dock'
+    aliases = ['land']
+
+    #noinspection PyUnusedLocal
+    def func(self, invoker, parsed_cmd):
+        self.bridge = invoker.location
+        self.ship = self.bridge.get_ship_obj()
+        self.current_place = self.ship.location
+        is_landed = self.ship.is_ship_landed()
+
+        if is_landed:
+            raise CommandError("You'll have to launch first!")
+
+        self.solar_system = self.ship.get_solar_system_obj()
+
+        if not parsed_cmd.arguments:
+            # No arguments passed, show the places list.
+            self.do_list_docks(invoker, parsed_cmd)
+        else:
+            # User provided input. Warping somewhere.
+            self.do_dock(invoker, parsed_cmd)
+
+    def do_list_docks(self, invoker, parsed_cmd):
+        """
+        The 'dock' command was invoked without arguments. This method
+        renders the dockable locations list for the current location.
+        """
+        dockables = self.current_place.get_dockable_obj_list(self.ship)
+
+        buffer = "Dockable Locations -- %s\n" % (
+            self.solar_system.get_appearance_name(invoker),
+        )
+        buffer += '-' * 78
+        for place in dockables:
+            buffer += "\n %s] %s" % (
+                place.id.rjust(8),
+                place.get_appearance_name(invoker),
+            )
+        buffer += '\n'
+        buffer += '-' * 78
+        invoker.emit_to(buffer)
+
+    def do_dock(self, invoker, parsed_cmd):
+        """
+        An argument was provided with dock, meaning that the user wishes to
+        dock.
+        """
+        service = invoker._mud_service
+        # Join all arguments together into one single string so we can
+        # do a contextual search for the whole thing.
+        full_arg_str = ' '.join(parsed_cmd.arguments)
+
+        try:
+            dock_obj = service.object_store.get_object(full_arg_str)
+        except InvalidObjectId:
+            raise CommandError('No dock with that ID found.')
+
+        if not isinstance(dock_obj, HangarMixin):
+            # Attempting to warp to a non-place.
+            raise CommandError('No dock with that ID found.')
+
+        dock_launch_to = dock_obj.get_launchto_location()
+        if not dock_launch_to or not self.current_place.id == dock_launch_to.id:
+            # Attempting to land in a dock in another solar system.
+            raise CommandError('No dock with that ID found.')
+
+        invoker.emit_to('Docking in %s' % (
+            dock_obj.get_appearance_name(invoker),
+        ))
+        self.ship.emit_to_interior(
+            'A docking tone sounds as the ship begins its approach.'
+        )
+        # TODO: A CallLater based on ship manueverabiliy.
+        self.ship.move_to(dock_obj)
+        self.ship.emit_to_interior(
+            'A loud CLANG resonates through the hull as a docking collar '\
+            'is slapped on from outside.'
+        )
+        invoker.emit_to('You have docked in %s' % (
+            dock_obj.get_appearance_name(invoker),
+        ))
 
 
 class CmdStatus(BaseCommand):
@@ -72,7 +152,8 @@ class CmdStatus(BaseCommand):
 
 class CmdWarp(BaseCommand):
     """
-    Either displays a list of warpable places, or warps to a place
+    Either displays a list of warpable places, or warps to a place if a
+    destination is specified.
     """
     name = 'warp'
 
@@ -131,6 +212,9 @@ class CmdWarp(BaseCommand):
         except InvalidObjectId:
             raise CommandError('No warp destination with that ID found.')
 
+        if place_obj.id == self.current_place.id:
+            raise CommandError('You are already there!')
+
         if not isinstance(place_obj, SolarSystemPlaceObject):
             # Attempting to warp to a non-place.
             raise CommandError('No warp destination with that ID found.')
@@ -139,8 +223,9 @@ class CmdWarp(BaseCommand):
             # Attempting to warp to a place in another solar system.
             raise CommandError('No warp destination with that ID found.')
 
-        invoker.emit_to('Warping to %s' % (
+        invoker.emit_to('Warping to %s in the %s system.' % (
             place_obj.get_appearance_name(invoker),
+            self.solar_system.get_appearance_name(invoker),
         ))
         self.ship.emit_to_interior(
             'The hull begins to vibrate, and the whine of the charging warp' \
@@ -156,10 +241,15 @@ class CmdWarp(BaseCommand):
         self.ship.emit_to_interior(
             'You feel a strong lurch as your vessel slows after its warp.'
         )
+        invoker.emit_to('You arrive at %s in the %s system.' % (
+            place_obj.get_appearance_name(invoker),
+            self.solar_system.get_appearance_name(invoker),
+        ))
 
 
 class ShipBridgeCommandTable(CommandTable):
     commands = [
+        CmdDock(),
         CmdLaunch(),
         CmdStatus(),
         CmdWarp(),

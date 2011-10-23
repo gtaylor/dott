@@ -73,6 +73,8 @@ weaps/weapons (Weapon display)
 Movement
 ^^^^^^^^
 
+land or dock (Lists all landable/dockable places)
+land <dest> or dock <dest> (Lands/docks somewhere)
 warp (Lists all warp points)
 warp <dest> (Warps to a point in the system. Gates, planets, etc.)
 jump <gate> (Jumps through a warp gate or wormhole.)

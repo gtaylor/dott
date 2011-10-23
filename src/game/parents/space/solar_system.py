@@ -34,6 +34,22 @@ class SolarSystemPlaceObject(ThingObject):
         if self.location:
             return self.location
 
+    def get_dockable_obj_list(self, invoker_ship):
+        """
+        Return a list of RoomHangarObject or ThingHangarObject objects that
+        the invoking ship can dock/land in.
+
+        :rtype: list
+        :returns: A list of HangarMixin sub-classed instances that are dockable.
+        """
+        zone_members = self._mud_service.object_store.find_objects_in_zone(self)
+        dockable_objs = []
+        for obj in zone_members:
+            if hasattr(obj, 'get_launchto_location'):
+                dockable_objs.append(obj)
+        # TODO: Factor in friendly ships with hangars.
+        return dockable_objs
+
 
 class PlanetObject(SolarSystemPlaceObject):
     """
