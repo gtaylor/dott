@@ -40,6 +40,18 @@ class HangarMixin(object):
 
         return None
 
+    def get_solar_system_obj(self):
+        """
+        Determines which solar system the hangar is in.
+
+        :rtype: SolarSystemObject or ``None``
+        :returns: The solar system the hangar is in, or ``None`` if we can't
+            figure it out.
+        """
+        launch_to = self.get_launchto_location()
+        if launch_to:
+            return launch_to.get_solar_system_obj()
+
 class RoomHangarObject(RoomObject, HangarMixin):
     """
     A room-based hangar.

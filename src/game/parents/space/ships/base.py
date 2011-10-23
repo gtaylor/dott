@@ -82,3 +82,15 @@ class BaseSpaceShipObject(InSpaceObject):
             # Solar system name
             launch_to.location.name,
         ))
+
+    def get_solar_system_obj(self):
+        """
+        Regardless of the location of the ship, return which solar system
+        the ship is in.
+
+        :rtype: SolarSystemObject or ``None``
+        :returns: The solar system the ship is in, or ``None`` if we can't
+            figure it out.
+        """
+        if self.location and hasattr(self.location, 'get_solar_system_obj'):
+            return self.location.get_solar_system_obj()

@@ -13,7 +13,16 @@ class SolarSystemPlaceObject(ThingObject):
     An object in space that may be warped to. These are more or less 'rooms'
     within the solar system.
     """
-    pass
+    def get_solar_system_obj(self):
+        """
+        Determines which solar system this place is in.
+
+        :rtype: SolarSystemObject or ``None``
+        :returns: The solar system the place is in, or ``None`` if we can't
+            figure it out.
+        """
+        if self.location:
+            return self.location
 
 
 class PlanetObject(SolarSystemPlaceObject):

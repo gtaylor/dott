@@ -45,13 +45,15 @@ class CmdStatus(BaseCommand):
     def func(self, invoker, parsed_cmd):
         bridge = invoker.location
         ship = bridge.get_ship_obj()
+        solar_system = ship.get_solar_system_obj()
 
         is_landed = ship.is_ship_landed()
-        ship_status = 'LANDED' if is_landed else 'IN FLIGHT'
+        ship_status = 'Landed' if is_landed else 'In flight'
+        ship_location = solar_system.get_appearance_name(invoker)
         ship_id = '[%s]' % ship.id
 
         retval = "Ship Name: {ship_name} ID: {ship_id} Ship Type: {ship_type} ({ship_class})\n" \
-                 "State: {ship_status}\n\n" \
+                 "State: {ship_status} Ship Location: {ship_location}\n\n" \
                  "  Armor: [=================     ] 80%\n" \
                  " Shield: [======================] 100%\n" \
                  "   Hull: [======================] 100%\n".format(
@@ -59,7 +61,8 @@ class CmdStatus(BaseCommand):
             ship_id = ship_id.ljust(10),
             ship_type=ship.ship_type_name,
             ship_class=ship.ship_class,
-            ship_status=ship_status
+            ship_status=ship_status.ljust(15),
+            ship_location=ship_location,
         )
 
         invoker.emit_to(retval)
