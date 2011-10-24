@@ -1,4 +1,4 @@
-
+import math, random
 
 def get_universe():
     """
@@ -40,3 +40,79 @@ def get_universe():
 
     return systemlist
 
+def create_spiral_galaxy(system_count=100, spirals=2):
+    sep = 2*math.pi/spirals
+
+    spiral_list = []
+
+    for x in range(2):
+        spiral_list.append(x*sep)
+
+
+    galaxy = {}
+
+    for system in range(system_count):
+        spiral_id = random.randint(0,spirals-1)
+        length = random.random()
+        dev_x = random.random()*0.2*random.choice([-1,1])
+        dev_y = random.random()*0.2*random.choice([-1,1])
+        dev_z = random.random()*0.1*random.choice([-1,1])
+        spiral_flow = length*(math.pi/(1.0/7.0))
+
+        pos_x = math.cos(spiral_flow)*length+dev_x
+        pos_y = math.sin(spiral_flow)*length+dev_y
+        pos_z = dev_z
+
+        galaxy[system] = {
+            'position_x': pos_x,
+            'position_y': pos_y,
+            'position_z': pos_z,
+            'id': system
+        }
+
+    return galaxy
+        
+def link_galaxy(galaxy, link_levels):
+
+    for system in galaxy:
+        galaxy[system]["link_level"] = random.choice(link_levels)
+
+    for system in galaxy:
+        # sort galaxy by nearest neighbors
+        neighbors = []
+        for nei in galaxy:
+            if nei != system:
+                dx = galaxy[nei]['position_x'] - galaxy[system]['position_x']
+                dy = galaxy[nei]['position_y'] - galaxy[system]['position_y']
+                dz = galaxy[nei]['position_z'] - galaxy[system]['position_z']
+                dist = math.sqrt(dx*dx+dy*dy+dz*dz)
+                neighbors.append((dist,nei))
+
+        neighbors = sorted(neighbors, key=lambda foo: foo[0]) #sort by dist
+
+        for link in range(galaxy[system]['link_level']):
+            # find it
+            satisfied = False
+            while not satisfied:
+                try:
+                    nearest = neighbors.pop(0)[1]
+                except IndexError:
+                    satisfied = True
+                    continue
+                
+                try:
+                    linksize = len(galaxy[nearest]['destinations'])
+                except KeyError:
+                    linksize = 0
+                    galaxy[nearest]['destinations'] = []
+
+                if galaxy[nearest]['link_level'] > linksize:
+                    galaxy[nearest]['destinations'].append(system)
+
+                    try:
+                        galaxy[system]['destinations'].append(nearest)
+                    except:
+                        galaxy[system]['destinations'] = [nearest]
+
+                    satisfied = True
+    return galaxy
