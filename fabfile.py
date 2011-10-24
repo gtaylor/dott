@@ -16,7 +16,6 @@ def get_db():
     """
     Pulls the latest DB from production.
     """
-    local('mkdir -p db')
-    get('/var/lib/couchdb/dott_accounts.couch', local_path='db')
-    get('/var/lib/couchdb/dott_objects.couch', local_path='db')
+    local('mkdir -p couchdb')
+    get('/var/lib/couchdb', local_path='.')
 
