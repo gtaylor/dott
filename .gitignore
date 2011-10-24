@@ -13,4 +13,4 @@ local_settings.py
 cover_html
 *.pid
 docs/
-db
+couchdb
