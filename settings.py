@@ -13,6 +13,11 @@ LOG_DIR = os.path.join(BASE_PATH, 'log')
 
 SECRET_KEY = 'CHANGE-ME-AND-KEEP-SAFE'
 
+# Optionally, provide a user/pass for CouchDB. If none is provided, assume
+# that your CouchDB doesn't require authentication.
+COUCHDB_USER = None
+COUCHDB_PASS = None
+
 DATABASES = {
     'objects': {
         'NAME': 'dott_objects',

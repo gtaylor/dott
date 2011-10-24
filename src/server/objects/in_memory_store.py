@@ -2,7 +2,7 @@ from fuzzywuzzy import fuzz
 import couchdb
 from couchdb.http import ResourceNotFound
 
-from settings import DATABASES
+import settings
 from src.server.objects.exceptions import InvalidObjectId
 from src.server.parent_loader.exceptions import InvalidParent
 from src.utils import logger
@@ -81,6 +81,11 @@ class InMemoryObjectStore(object):
         self._objects = {}
         # Reference to CouchDB server connection.
         self._server = couchdb.Server()
+        if settings.COUCHDB_USER:
+            self._server.resource.credentials = (
+                settings.COUCHDB_USER,
+                settings.COUCHDB_PASS
+            )
         # Loads or creates+loads the CouchDB database.
         self._prep_db(db_name=self._db_name)
         # Loads all of the objects into RAM from CouchDB.
@@ -95,7 +100,7 @@ class InMemoryObjectStore(object):
         """
         if not db_name:
             # Use the default configured DB name for objects DB.
-            db_name = DATABASES['objects']['NAME']
+            db_name = settings.DATABASES['objects']['NAME']
 
         try:
             # Try to get a reference to the CouchDB database.
