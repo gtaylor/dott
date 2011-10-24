@@ -20,6 +20,11 @@ class InMemoryAccountStore(object):
 
         # Reference to CouchDB server connection.
         self._server = couchdb.Server()
+        if settings.COUCHDB_USER:
+            self._server.resource.credentials = (
+                settings.COUCHDB_USER,
+                settings.COUCHDB_PASS
+            )
         # Eventually contains a CouchDB reference. Queries come through here.
         self._db = None
         # Keys are usernames, values are PlayerAccount instances.
