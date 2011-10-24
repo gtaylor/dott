@@ -1,3 +1,4 @@
+import settings
 from src.server.commands.command import BaseCommand
 from src.server.commands.exceptions import CommandError
 from src.server.objects.exceptions import InvalidObjectId
@@ -230,3 +231,19 @@ class CmdQuit(BaseCommand):
             DisconnectSessionsOnObjectCmd,
             object_id=invoker.id,
         )
+
+
+class CmdVersion(BaseCommand):
+    """
+    Shows the dott version identifier. Currently a git commit hash.
+    """
+    name = 'version'
+
+    def func(self, invoker, parsed_cmd):
+        buffer = "-" * 78
+        buffer += "\n %s version %s\n" % (
+            settings.GAME_NAME,
+            settings.VERSION
+        )
+        buffer += "-" * 78
+        invoker.emit_to(buffer)
