@@ -1,11 +1,11 @@
 import math, random
+import networkx as nx
+
 
 def get_universe():
     """
     Creates a universe and returns a dict with important universe information
     """
-
-    import networkx as nx
 
     # Generate a connected network of nodes
     G = nx.newman_watts_strogatz_graph(100,2,0.9)
@@ -45,7 +45,7 @@ def create_spiral_galaxy(system_count=100, spirals=2):
 
     spiral_list = []
 
-    for x in range(2):
+    for x in range(spirals):
         spiral_list.append(x*sep)
 
 
@@ -54,11 +54,12 @@ def create_spiral_galaxy(system_count=100, spirals=2):
     for system in range(system_count):
         spiral_id = random.randint(0,spirals-1)
         length = random.random()
-        dev_x = random.random()*0.2*random.choice([-1,1])
-        dev_y = random.random()*0.2*random.choice([-1,1])
-        dev_z = random.random()*0.1*random.choice([-1,1])
-        spiral_flow = length*(math.pi/(1.0/7.0))
-
+        dev_x = random.random()*0.15*random.choice([-1,1])
+        dev_y = random.random()*0.15*random.choice([-1,1])
+        dev_z = random.random()*0.05*random.choice([-1,1])
+        spiral_flow = length*((90.0/180.0)/math.pi)+spiral_list[spiral_id]
+        #spiral_flow = spiral_list[spiral_id]
+        
         pos_x = math.cos(spiral_flow)*length+dev_x
         pos_y = math.sin(spiral_flow)*length+dev_y
         pos_z = dev_z
@@ -116,3 +117,54 @@ def link_galaxy(galaxy, link_levels):
 
                     satisfied = True
     return galaxy
+
+def define_galaxy_security(galaxy, security_depth):
+    G = nx.Graph()
+
+    for system in galaxy:
+        for dest in galaxy[system]['destinations']:
+            G.add_edge(system, dest)
+
+    for system in galaxy:
+        if nx.shortest_path_length(G,source=system, target=1) > security_depth:
+            galaxy[system]["security"] = 0
+        else:
+            galaxy[system]["security"] = 1
+
+    return galaxy
+
+def plot_kml(galaxy):
+    from pykml.factory import KML_ElementMaker as KML
+    from lxml import etree
+
+    fld = KML.kml()
+
+    for system in galaxy:
+        a = KML.Placemark(
+            KML.name('foo'),
+            KML.Point(
+                KML.coordinates('%f,%f' % (galaxy[system]["position_x"],galaxy[system]["position_y"]))
+            )
+        )
+        fld.append(a)
+
+        for dest in galaxy[system]['destinations']:
+            a = KML.Placemark(
+                KML.name("foo"),
+                KML.LineString(
+                    KML.coordinates(
+                        "%s,%s %s,%s" % (galaxy[system]["position_x"],galaxy[system]["position_y"], galaxy[dest]["position_x"],galaxy[dest]["position_y"])
+                    )
+                )
+            )
+            fld.append(a)
+
+    f = open("test.kml", 'wa')
+
+    f.write(etree.tostring(fld, pretty_print=True))
+    f.close()
+
+def woot():
+    gal = create_spiral_galaxy(system_count=1000, spirals=5)
+    gal = link_galaxy(gal, [2,3,4])
+    plot_kml(gal)
