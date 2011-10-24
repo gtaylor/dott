@@ -14,6 +14,7 @@ class GlobalCommandTable(CommandTable):
         general_cmds.CmdLook(),
         general_cmds.CmdSay(),
         general_cmds.CmdQuit(),
+        general_cmds.CmdVersion(),
         general_cmds.CmdWho(),
     ]
 

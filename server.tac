@@ -59,8 +59,9 @@ class MudService(service.Service):
         self.start_time = time.time()
 
         # Make output to the terminal.
-        print(' %s started on port(s):' % settings.GAME_NAME)
-        print('  * %s' % settings.SERVER_AMP_PORT)
+        print(' Starting %s MUD server' % settings.GAME_NAME)
+        print(' Version: %s' % settings.VERSION)
+        print(' Listening for AMP connections on port: %s' % settings.SERVER_AMP_PORT)
         print('-'*50)
 
     def start_services(self, app_to_start):

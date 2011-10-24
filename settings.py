@@ -35,6 +35,15 @@ SERVER_EMAIL_FROM = 'your@email.com'
 # The ID of the room or object that new PlayerObjects are created in.
 NEW_PLAYER_LOCATION_ID = 1
 
+# Pull the hash from the head of the current branch.
+GIT_COMMIT_HASH_FILE = os.path.join(
+    os.path.dirname(__file__),
+    '.git',
+    'ORIG_HEAD'
+)
+# The current version is a git hash.
+VERSION = open(GIT_COMMIT_HASH_FILE, 'r').read().strip()
+
 try:
     from local_settings import *
 except ImportError:

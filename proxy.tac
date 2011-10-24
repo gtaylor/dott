@@ -48,7 +48,9 @@ class ProxyService(service.Service):
         telnet_factory = MudTelnetServerFactory(self)
 
         print('\n' + '-' * 50)
-        print(' %s started on port(s):' % settings.GAME_NAME)
+        print(' Starting %s proxy server' % settings.GAME_NAME)
+        print(' Version: %s' % settings.VERSION)
+        print(' Listening for telnet connections on ports:')
         for port in settings.PROXY_LISTEN_PORTS:
             telnet_server = internet.TCPServer(port, telnet_factory)
             telnet_server.setName('dott_telnet_%s' % port)
