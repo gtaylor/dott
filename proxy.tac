@@ -66,6 +66,16 @@ class ProxyService(service.Service):
         amp_client.setName('dott_amp')
         amp_client.setServiceParent(self.service_collection)
 
+    def is_connected_to_mud_server(self):
+        """
+        Determines whether the proxy has connected to the MUD server.
+
+        :rtype: boo
+        :returns: ``True`` if the proxy has established a connection to the
+            MUD server over AMP. ``False`` if not.
+        """
+        return self.proxyamp.transport is not None
+
 # Putting it all together.
 application = service.Application('dott_proxy')
 mud_service = ProxyService()

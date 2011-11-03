@@ -165,6 +165,11 @@ class Session(object):
         object_sessions = self._session_manager.get_sessions_for_object_id(
             controlled_id)
 
+        if not self._mud_service.is_connected_to_mud_server():
+            # Proxy is not connected to MUD server, we can't go any further
+            # with events done at time of connection.
+            return
+
         if len(object_sessions) == 1:
             # This is the only Session controlling the object it is associated
             # with. Trigger the 'at connect' event on the object.
@@ -202,7 +207,7 @@ class Session(object):
             self.interactive_shell.process_input(command_string)
             return
 
-        try:
+        if self._mud_service.is_connected_to_mud_server():
             # This is the 'normal' case in that we just hand the input
             # off to the command handler.
             self._mud_service.proxyamp.callRemote(
@@ -210,7 +215,7 @@ class Session(object):
                 object_id=self.account.currently_controlling_id,
                 input=command_string,
             )
-        except AttributeError:
+        else:
             # proxyamp is a None value, mud server is unavailable.
             self.msg("The MUD server is currently re-loading. Please try "\
                      "your command again in a few seconds.")
