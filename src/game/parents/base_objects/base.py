@@ -678,7 +678,7 @@ class BaseObject(object):
         for obj in self.get_contents():
             # Can't use self.emit_to_contents because we need to determine
             # appearance on a per-object basis.
-            obj.emit_to('%s has left' % actor.get_appearance(actor))
+            obj.emit_to('%s has left' % actor.get_appearance_name(obj))
 
     #noinspection PyUnusedLocal
     def before_object_enters_event(self, actor):
@@ -690,7 +690,7 @@ class BaseObject(object):
         for obj in self.get_contents():
             # Can't use self.emit_to_contents because we need to determine
             # appearance on a per-object basis.
-            obj.emit_to('%s has arrived' % actor.get_appearance(actor))
+            obj.emit_to('%s has arrived' % actor.get_appearance_name(obj))
 
     #noinspection PyUnusedLocal
     def after_object_enters_event(self, actor):
