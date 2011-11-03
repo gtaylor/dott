@@ -66,12 +66,13 @@ class SessionManager(object):
             # the session was already removed. Probably garbage collected.
             return 
     
-    def announce_all(self, message):
+    def announce_all(self, message, prefix="ANNOUNCEMENT: "):
         """
         Announces something to all connected players.
         """
+        msg = '%s%s' % (prefix, message)
         for session in self.get_sessions():
-            session.msg('%s' % message)
+            session.msg(msg)
 
     def get_sessions_for_object_id(self, obj_id):
         """

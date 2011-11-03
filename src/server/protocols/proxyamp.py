@@ -126,6 +126,17 @@ class WhoConnectedCmd(amp.Command):
         ('accounts', amp.ListOf(amp.Unicode())),
     ]
 
+
+class AnnounceToAllSessionsCmd(amp.Command):
+    """
+    Announces a message to all connected, authenticated sessions.
+    """
+    arguments = [
+        ('message', amp.Unicode()),
+        ('prefix', amp.Unicode()),
+    ]
+    response = []
+
 #
 ## Proxy to MUD Server commands.
 #
@@ -201,6 +212,34 @@ class ProxyAMP(amp.AMP):
     """
 
     #
+    ## Protocol level overrides
+    #
+
+    def makeConnection(self, transport):
+        amp.AMP.makeConnection(self, transport)
+
+        # See if this the proxy server's ProxyAMP instance.
+        if hasattr(self.factory, '_proxy_service'):
+            # Announce to all connected sessions that the server has
+            # came back up.
+            self.factory._proxy_service.session_manager.announce_all(
+                'The haze clears, and your regain your senses.',
+                prefix='',
+            )
+
+    def connectionLost(self, reason):
+        amp.AMP.connectionLost(self, reason)
+
+        # See if this the proxy server's ProxyAMP instance.
+        if hasattr(self.factory, '_proxy_service'):
+            # Announce to all connected sessions that the server has
+            # gone down.
+            self.factory._proxy_service.session_manager.announce_all(
+                'Everything goes blurry, and you find yourself unable to move.',
+                prefix='',
+            )
+
+    #
     ## MUD Server to Proxy commands.
     #
 
@@ -263,6 +302,21 @@ class ProxyAMP(amp.AMP):
         }
     DisconnectSessionsOnObjectCmd.responder(
         disconnect_sessions_on_object_command
+    )
+
+    def announce_to_all_sessions_command(self, message, prefix):
+        """
+        Announces a message to all connected, authenticated sessions.
+
+        :param str message: The message to announce to all sessions.
+        """
+        service = self.factory._proxy_service
+        session_mgr = service.session_manager
+        session_mgr.announce_all(message, prefix=prefix)
+
+        return {}
+    AnnounceToAllSessionsCmd.responder(
+        announce_to_all_sessions_command
     )
 
     #
