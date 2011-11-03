@@ -1,26 +1,43 @@
 """
 Staff commands.
 """
-from src.game.parents.base_objects.exit import ExitObject
-from src.game.parents.base_objects.room import RoomObject
+from src.server.protocols.proxyamp import ShutdownProxyCmd
 from src.server.commands.command import BaseCommand
 from src.server.commands.exceptions import CommandError
 from src.server.objects.exceptions import InvalidObjectId
 from src.server.parent_loader.exceptions import InvalidParent
+from src.game.parents.base_objects.exit import ExitObject
+from src.game.parents.base_objects.room import RoomObject
 
 class CmdRestart(BaseCommand):
     """
     Shuts the MUD server down silently. Supervisor restarts it after noticing
     the exit, and most users will never notice since the proxy maintains
     their connections.
+
+    To restart the MUD server::
+
+        @restart
+        -or-
+        @restart mud
+
+    To restart the proxy server::
+
+        @restart proxy
     """
     name = '@restart'
 
     #noinspection PyUnusedLocal
     def func(self, invoker, parsed_cmd):
-        invoker.emit_to("Restarting...")
         mud_service = invoker._mud_service
-        mud_service.shutdown()
+        
+        if not parsed_cmd.arguments or 'mud' in parsed_cmd.arguments:
+            invoker.emit_to("Restarting MUD server...")
+            mud_service.shutdown()
+
+        if 'proxy' in parsed_cmd.arguments:
+            invoker.emit_to("Restarting proxy server...")
+            mud_service.proxyamp.callRemote(ShutdownProxyCmd)
 
 
 class CmdFind(BaseCommand):

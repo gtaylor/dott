@@ -14,6 +14,7 @@ The benefits are twofold:
 import time
 
 from twisted.application import internet, service
+from twisted.internet import reactor
 
 import settings
 from src.proxy.protocols.telnet import MudTelnetServerFactory
@@ -65,6 +66,12 @@ class ProxyService(service.Service):
         )
         amp_client.setName('dott_amp')
         amp_client.setServiceParent(self.service_collection)
+
+    def shutdown(self):
+        """
+        Gracefully shuts down the service.
+        """
+        reactor.callLater(0, reactor.stop)
 
     def is_connected_to_mud_server(self):
         """

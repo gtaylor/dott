@@ -104,6 +104,14 @@ class AmpClientFactory(protocol.ReconnectingClientFactory):
 ## MUD Server to Proxy commands.
 #
 
+class ShutdownProxyCmd(amp.Command):
+    """
+    Used for letting the MUD server shutdown the proxy.
+    """
+    arguments = []
+    response = []
+
+
 class DisconnectSessionsOnObjectCmd(amp.Command):
     """
     AMP command for disconnecting all sessions that control the specified
@@ -242,6 +250,20 @@ class ProxyAMP(amp.AMP):
     #
     ## MUD Server to Proxy commands.
     #
+
+    def shutdown_proxy_command(self):
+        """
+        Allows the MUD server to shutdown the proxy.
+        """
+        # The root ProxyService instance.
+        service = self.factory._proxy_service
+        # Shutdown the proxy.
+        service.shutdown()
+
+        return {}
+    ShutdownProxyCmd.responder(
+        shutdown_proxy_command
+    )
 
     def emit_to_object_command(self, object_id, message):
         """
