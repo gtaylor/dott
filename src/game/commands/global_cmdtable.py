@@ -8,12 +8,13 @@ class GlobalCommandTable(CommandTable):
     The standard, global command table.
     """
     commands = [
+        general_cmds.CmdCommands(),
+        general_cmds.CmdEnter(),
         general_cmds.CmdExamine(),
         general_cmds.CmdGo(),
-        general_cmds.CmdCommands(),
         general_cmds.CmdLook(),
-        general_cmds.CmdSay(),
         general_cmds.CmdQuit(),
+        general_cmds.CmdSay(),
         general_cmds.CmdVersion(),
         general_cmds.CmdWho(),
     ]

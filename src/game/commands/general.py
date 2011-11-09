@@ -69,7 +69,6 @@ class CmdGo(BaseCommand):
         # do a contextual search for the whole thing.
         full_arg_str = ' '.join(parsed_cmd.arguments)
 
-
         try:
             obj_to_traverse = invoker.contextual_object_search(full_arg_str)
         except InvalidObjectId:
@@ -81,6 +80,39 @@ class CmdGo(BaseCommand):
             invoker.emit_to("That doesn't look like an exit.")
 
         obj_to_traverse.pass_object_through(invoker)
+
+
+class CmdEnter(BaseCommand):
+    """
+    Attempts to enter an object.
+    """
+    name = 'enter'
+
+    def func(self, invoker, parsed_cmd):
+        if not parsed_cmd.arguments:
+            raise CommandError('Enter what?')
+
+        # Join all arguments together into one single string so we can
+        # do a contextual search for the whole thing.
+        full_arg_str = ' '.join(parsed_cmd.arguments)
+
+        try:
+            obj_to_enter = invoker.contextual_object_search(full_arg_str)
+        except InvalidObjectId:
+            obj_to_enter = None
+        if not obj_to_enter:
+            raise CommandError("You look around, but can't find it.")
+
+        can_enter, cant_enter_msg = obj_to_enter.can_object_enter(invoker)
+        if not can_enter:
+            raise CommandError(cant_enter_msg)
+
+        # Determine where entering the object puts us.
+        enter_to = obj_to_enter.determine_enter_destination(invoker)
+        # Use the original object's name for the user message.
+        enter_to_name = obj_to_enter.get_appearance_name(invoker)
+        invoker.emit_to("You enter %s" % enter_to_name)
+        invoker.move_to(enter_to)
 
 
 class CmdCommands(BaseCommand):

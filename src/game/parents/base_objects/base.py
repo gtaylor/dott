@@ -629,6 +629,36 @@ class BaseObject(object):
         # Unable to find anything
         return None
 
+    def can_object_enter(self, obj):
+        """
+        Determine whether another object can enter this object.
+
+        :param BaseObject obj: The object to check enter permissions for.
+        :rtype: tuple
+        :returns: A tuple in the format of ``(can_enter, message)``, where
+            ``can_enter`` is a bool, and ``message`` is a string or ``None``,
+            used to provide a reason for the object not being able to enter.
+        """
+        if obj.is_admin():
+            # Admin can enter anything.
+            return True, None
+
+        return False, "You can't enter that."
+
+    def determine_enter_destination(self, obj):
+        """
+        Given an object that is going to enter this one, determine where said
+        object will be moved to. This defaults to this object's inventory,
+        but in the case of something like a ship, they should enter to the
+        bridge.
+
+        :param BaseObject obj: The other object that is entering this one.
+        :rtype: BaseObject
+        :returns: The target location for the object to be moved to upon
+            entering this object.
+        """
+        return self
+
     #
     ## Begin events
     #

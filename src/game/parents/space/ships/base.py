@@ -30,6 +30,30 @@ class BaseSpaceShipObject(InSpaceObject):
     # in this ship.
     bridge_parent = 'src.game.parents.space.ships.interior.bridge.SpaceShipBridgeObject'
 
+    def can_object_enter(self, obj):
+        """
+        Determine whether another object can enter this ship.
+
+        :param BaseObject obj: The object to check enter permissions for.
+        :rtype: tuple
+        :returns: A tuple in the format of ``(can_enter, message)``, where
+            ``can_enter`` is a bool, and ``message`` is a string or ``None``,
+            used to provide a reason for the object not being able to enter.
+        """
+        # Everyone can enter everything, for now.
+        return True, None
+
+    def determine_enter_destination(self, obj):
+        """
+        Those entering ships should enter to the bridge, not this ship
+        object.
+
+        :param BaseObject obj: The other object that is entering this one.
+        :rtype: SpaceShipBridgeObject
+        :returns: The ship's bridge.
+        """
+        return self.get_bridge_obj()
+
     def is_ship_landed(self):
         """
         Returns True if this ship is landed/docked, False if not.
