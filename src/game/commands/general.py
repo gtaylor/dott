@@ -115,6 +115,26 @@ class CmdEnter(BaseCommand):
         invoker.move_to(enter_to)
 
 
+class CmdLeave(BaseCommand):
+    """
+    Attempts to leave an object.
+    """
+    name = 'leave'
+
+    def func(self, invoker, parsed_cmd):
+        location = invoker.location
+        can_leave, cant_leave_msg = location.can_object_leave(invoker)
+        if not can_leave:
+            raise CommandError(cant_leave_msg)
+
+        # Determine where leaving the object puts us.
+        leave_to = location.determine_leave_destination(invoker)
+        # Use the original object's name for the user message.
+        leave_from_name = location.get_appearance_name(invoker)
+        invoker.emit_to("You leave %s" % leave_from_name)
+        invoker.move_to(leave_to)
+
+
 class CmdCommands(BaseCommand):
     """
     Lists a break-down of available commands. Takes into account your location's

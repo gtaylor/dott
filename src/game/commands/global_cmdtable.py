@@ -12,6 +12,7 @@ class GlobalCommandTable(CommandTable):
         general_cmds.CmdEnter(),
         general_cmds.CmdExamine(),
         general_cmds.CmdGo(),
+        general_cmds.CmdLeave(),
         general_cmds.CmdLook(),
         general_cmds.CmdQuit(),
         general_cmds.CmdSay(),

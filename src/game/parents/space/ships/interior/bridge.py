@@ -262,3 +262,38 @@ class SpaceShipBridgeObject(SpaceShipInteriorObject):
     call this a cockpit.
     """
     local_command_table = ShipBridgeCommandTable()
+
+    def can_object_leave(self, obj):
+        """
+        Determine whether another object can leave this object.
+
+        :param BaseObject obj: The object to check enter permissions for.
+        :rtype: tuple
+        :returns: A tuple in the format of ``(can_leave, message)``, where
+            ``can_leave`` is a bool, and ``message`` is a string or ``None``,
+            used to provide a reason for the object not being able to leave.
+        """
+        ship = self.get_ship_obj()
+        ship_loc = ship.location
+        is_landed = ship.is_ship_landed()
+
+        if not is_landed or not ship_loc:
+            return False, "Leave to space? Doesn't sound like a good idea..."
+
+        # All is well
+        return True, None
+
+    def determine_leave_destination(self, obj):
+        """
+        Given an object that is going to leave this one, determine where said
+        object will be moved to. This defaults to this object's location,
+        but in the case of leaving a ship's bridge, they should end up outside
+        the ship, rather than inside the ship object.
+
+        :param BaseObject obj: The other object that is entering this one.
+        :rtype: BaseObject
+        :returns: The target location for the object to be moved to upon
+            leaving this object.
+        """
+        ship = self.get_ship_obj()
+        return ship.location
