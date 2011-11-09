@@ -495,10 +495,12 @@ class BaseObject(object):
         """
         Shows the object as it were examined.
         """
-        name = self.get_appearance_name(invoker=invoker)
-
-        attributes_str = ' Parent: %s\n' % self.parent
-        attributes_str += ' Location: %s\n' % self.location.get_appearance_name(invoker)
+        attributes_str = ''
+        if self.aliases:
+            attributes_str += ' Aliases: %s\n' % ', '.join(self.aliases)
+        attributes_str += ' Parent: %s\n' % self.parent
+        if self.location:
+            attributes_str += ' Location: %s\n' % self.location.get_appearance_name(invoker)
 
         if self.attributes:
             attributes_str += '\n### EXTRA ATTRIBUTES ###\n'
@@ -506,6 +508,7 @@ class BaseObject(object):
             for key, value in self.attributes.items():
                 attributes_str += ' %s: %s\n' % (key, value)
 
+        name = self.get_appearance_name(invoker=invoker)
         return "%s\n%s" % (name, attributes_str)
 
     def _find_name_or_alias_match(self, objects, desc):
