@@ -497,12 +497,8 @@ class BaseObject(object):
         """
         name = self.get_appearance_name(invoker=invoker)
 
-        attributes_str = ''
-
-        core_attribs = self._odata.keys()
-        core_attribs.sort()
-        for key in core_attribs:
-            attributes_str += ' %s: %s\n' % (key, self._odata[key])
+        attributes_str = ' Parent: %s\n' % self.parent
+        attributes_str += ' Location: %s\n' % self.location.get_appearance_name(invoker)
 
         if self.attributes:
             attributes_str += '\n### EXTRA ATTRIBUTES ###\n'
