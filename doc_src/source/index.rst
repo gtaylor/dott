@@ -42,3 +42,14 @@ Scratch Pad
    :maxdepth: 2
 
    scribbles
+
+Player Documentation
+--------------------
+
+The topics here will eventually be kept in a dedicated player guide. Things
+outlined here are considered our current approaches.
+
+.. toctree::
+   :maxdepth: 2
+
+   ships/index
