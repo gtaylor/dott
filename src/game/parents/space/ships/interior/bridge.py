@@ -11,6 +11,7 @@ class CmdLaunch(BaseCommand):
     Launches the ship into space from a hangar.
     """
     name = 'launch'
+    aliases = ['takeoff']
 
     #noinspection PyUnusedLocal
     def func(self, invoker, parsed_cmd):
