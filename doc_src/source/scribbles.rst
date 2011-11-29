@@ -82,6 +82,10 @@ jump <gate> (Jumps through a warp gate or wormhole.)
 Combat
 ^^^^^^
 
+contacts (Look at what's around your ship)
+  c
+scan 1234 (Scans ship or object ID 123)
+  s 1234
 fire 1 <target> (Fires first weapon at target)
   f 1 <target>
 fire <target> (Fires all weapons at target)
@@ -90,10 +94,6 @@ fire - (stops all weapons)
   f -
 fire stop (stops all weapons)
   f s
-stop 1 (Stops firing weapon)
-  s 1
-stop (stops all weapons)
-  s
 activate 1 (Activates add-on module 1)
   a 1
 deactivate 1 (Deactivates add-on-module 1)
