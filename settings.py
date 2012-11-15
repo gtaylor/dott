@@ -13,19 +13,9 @@ LOG_DIR = os.path.join(BASE_PATH, 'log')
 
 SECRET_KEY = 'CHANGE-ME-AND-KEEP-SAFE'
 
-# Optionally, provide a user/pass for CouchDB. If none is provided, assume
-# that your CouchDB doesn't require authentication.
-COUCHDB_USER = None
-COUCHDB_PASS = None
-
-DATABASES = {
-    'objects': {
-        'NAME': 'dott_objects',
-    },
-    'accounts': {
-        'NAME': 'dott_accounts',
-    }
-}
+# Full path to the SQLite3 DB.
+OBJECTS_DATABASE_PATH = 'dott_objects.db3'
+ACCOUNTS_DATABASE_PATH = 'dott_accounts.db3'
 
 # Amazon Web Services credentials.
 AWS_ACCESS_KEY_ID = 'XXXXXXXXXXXXXXXXXXXXX'

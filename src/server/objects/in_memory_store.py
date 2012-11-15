@@ -1,9 +1,10 @@
 from fuzzywuzzy import fuzz
-import couchdb
-from couchdb.http import ResourceNotFound
+from twisted.enterprise.adbapi import ConnectionPool
 
 import settings
+from src.server.objects import defines
 from src.server.objects.exceptions import InvalidObjectId
+from src.server.objects.on_first_run import setup_db
 from src.server.parent_loader.exceptions import InvalidParent
 from src.utils import logger
 
@@ -12,6 +13,7 @@ class InMemoryObjectStore(object):
     Serves as an in-memory object store for all "physical" entities in the
     game. An "object" can be stuff like a room or a thing.
     """
+
     def __init__(self, mud_service, db_name=None):
         """
         .. warning:: Due to the order this class is instantiated in
@@ -25,20 +27,13 @@ class InMemoryObjectStore(object):
         # Reference to the server's parent loader instance.
         self._parent_loader = mud_service.parent_loader
 
-        # Keys are CouchDB ids, values are the parent instances (children of
+        # Keys are dbrefs, values are the parent instances (children of
         # src.game.parents.base_objects.base.BaseObject
         self._objects = {}
 
-        # Eventually contains a CouchDB reference. Queries come through here.
+        # Eventually contains a ConnectionPool reference. Queries come through here.
         self._db = None
-        # The string name of the DB.
-        self._db_name = db_name
-        # Reference to CouchDB server connection.
-        self._server = None
 
-        # This is used to determine what the next dbref number will be.
-        # It's initially set at start time, then incremented as new objects
-        # are created.
         self.__next_dbref = 1
 
     @property
@@ -79,52 +74,48 @@ class InMemoryObjectStore(object):
         """
         # Just in case this is a code reload.
         self._objects = {}
-        # Reference to CouchDB server connection.
-        self._server = couchdb.Server()
-        if settings.COUCHDB_USER:
-            self._server.resource.credentials = (
-                settings.COUCHDB_USER,
-                settings.COUCHDB_PASS
-            )
-        # Loads or creates+loads the CouchDB database.
-        self._prep_db(db_name=self._db_name)
-        # Loads all of the objects into RAM from CouchDB.
-        self._load_objects_into_ram()
+        # Instantiate the Twisted adbapi connection.
+        self._db = ConnectionPool("sqlite3", settings.OBJECTS_DATABASE_PATH, cp_min=1, cp_max=1)
 
-    def _prep_db(self, db_name=None):
+        # Makes sure the DB is ready for game start.
+        self._prep_db()
+
+    def _prep_db(self):
         """
         Sets the :attr:`_db` reference. Creates the CouchDB if the requested
         one doesn't exist already.
 
         :keyword str db_name: Overrides the DB name for the object DB.
         """
-        if not db_name:
-            # Use the default configured DB name for objects DB.
-            db_name = settings.DATABASES['objects']['NAME']
 
-        try:
-            # Try to get a reference to the CouchDB database.
-            self._db = self._server[db_name]
-        except ResourceNotFound:
-            logger.warning('No DB found, creating a new one.')
-            self._db = self._server.create(db_name)
+        def look_for_objects_table_cb(is_table_present):
+            if not is_table_present:
+                setup_db(self._db)
+            else:
+                self._load_objects_into_ram()
 
-        if not len(self._db):
-            # No objects are in this DB. We know the starter room can't
-            # exist yet, so create it.
-            self._create_initial_room()
+        self._db.runQuery(
+            "SELECT * FROM sqlite_master WHERE type='table' AND name='%s'" % defines.DB_OBJECTS_TABLE
+        ).addCallback(look_for_objects_table_cb)
 
     def _load_objects_into_ram(self):
         """
         Loads all of the objects from the DB into RAM.
         """
-        for doc_id in self._db:
-            self._load_object(doc_id)
 
-            # See if this is the new highest dbref.
-            doc_id_int = int(doc_id)
-            if doc_id_int >= self.__next_dbref:
-                self.__next_dbref = doc_id_int + 1
+        def load_objects(txn):
+            logger.info("Loading objects into RAM. %s" % txn)
+            for doc_id in []:
+                self._load_object(doc_id)
+
+                # See if this is the new highest dbref.
+                doc_id_int = int(doc_id)
+                if doc_id_int >= self.__next_dbref:
+                    self.__next_dbref = doc_id_int + 1
+
+        self._db.runQuery(
+            "SELECT * FROM %s" % defines.DB_OBJECTS_TABLE
+        ).addCallback(load_objects)
 
     def _load_object(self, doc_id):
         """
