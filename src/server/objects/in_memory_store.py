@@ -1,5 +1,6 @@
 import json
 from fuzzywuzzy import fuzz
+from twisted.internet.defer import inlineCallbacks, returnValue
 from txpostgres import txpostgres
 
 import settings
@@ -68,6 +69,7 @@ class InMemoryObjectStore(object):
         """
         return self._mud_service.command_handler
 
+    @inlineCallbacks
     def _prepare_at_load(self):
         """
         Prepares the store for duty.
@@ -76,13 +78,14 @@ class InMemoryObjectStore(object):
         self._objects = {}
         # Instantiate the connection to Postgres.
         self._db = txpostgres.Connection()
-        d = self._db.connect(
+        yield self._db.connect(
             user=settings.DATABASE_USERNAME,
             database=settings.DATABASE_NAME
         )
         # Makes sure the DB is ready for game start.
-        d.addCallback(self._prep_db)
+        self._prep_db(self._db)
 
+    @inlineCallbacks
     def _prep_db(self, conn):
         """
         Sets the :attr:`_db` reference. Creates the CouchDB if the requested
@@ -92,38 +95,33 @@ class InMemoryObjectStore(object):
             connection to Postgres.
         """
 
-        def create_table_if_missing(is_table_present):
-            """
-            :param list is_table_present: A list that either contains a tuple
-                with a single 'dott_objects' member, or an empty list if the
-                dott_objects table doesn't exist yet.
-            """
-            if not is_table_present:
-                setup_db(self, self._db)
-            else:
-                self._load_objects_into_ram()
-
         # See if the dott_objects table already exists. If not, create it.
-        self._db.runQuery(
+        results = yield self._db.runQuery(
             "SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name='dott_objects'"
-        ).addCallback(create_table_if_missing)
+        )
 
+        if not results:
+            setup_db(self, self._db)
+        else:
+            self._load_objects_into_ram()
+
+    @inlineCallbacks
     def _load_objects_into_ram(self):
         """
         Loads all of the objects from the DB into RAM.
         """
 
-        def load_objects(results):
-            logger.info("Loading objects into RAM. %s" % results)
-            for dbref, json_str in results:
-                self._load_object(dbref, json_str)
+        logger.info("Loading objects into RAM.")
 
-                # See if this is the new highest dbref.
-                doc_id_int = int(dbref)
-                if doc_id_int >= self.__next_dbref:
-                    self.__next_dbref = doc_id_int + 1
+        results = yield self._db.runQuery("SELECT * FROM dott_objects")
 
-        self._db.runQuery("SELECT * FROM dott_objects").addCallback(load_objects)
+        for dbref, json_str in results:
+            self._load_object(dbref, json_str)
+
+            # See if this is the new highest dbref.
+            doc_id_int = int(dbref)
+            if doc_id_int >= self.__next_dbref:
+                self.__next_dbref = doc_id_int + 1
 
     def _load_object(self, dbref, json_str):
         """
@@ -206,6 +204,7 @@ class InMemoryObjectStore(object):
         del self._objects[obj.id]
         del obj
 
+    @inlineCallbacks
     def reload_object(self, obj):
         """
         Re-loads the object from CouchDB.
@@ -217,16 +216,15 @@ class InMemoryObjectStore(object):
 
         obj_id = obj.id
 
-        def reload_object_cb(results):
-            logger.info("Reloading object from RAM. %s" % results)
-            for dbref, json_str in results:
-                del self._objects[obj_id]
-                self._load_object(dbref, json_str)
-                return self._load_object(dbref, json_str)
-
-        self._db.runQuery(
+        results = yield self._db.runQuery(
             "SELECT * FROM dott_objects WHERE id=%s", (obj.id,)
-        ).addCallback(reload_object_cb)
+        )
+
+        logger.info("Reloading object from RAM. %s" % results)
+        for dbref, json_str in results:
+            del self._objects[obj_id]
+            self._load_object(dbref, json_str)
+            returnValue(self._load_object(dbref, json_str))
 
     def get_object(self, obj_id):
         """

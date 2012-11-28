@@ -2,20 +2,16 @@
 This module contains stuff that is done on the game's first startup.
 """
 
+from twisted.internet.defer import inlineCallbacks
 from src.utils import logger
 
+@inlineCallbacks
 def setup_db(store, conn):
     """
     Setup our Postgres database. Do some really basic population.
     """
 
-    def post_create_cb(txn):
-        logger.info("dott_objects table created.")
-        # Now create the starter room.
-        parent_path = 'src.game.parents.base_objects.room.RoomObject'
-        store.create_object(parent_path, name='And so it begins...')
-
-    conn.runOperation(
+    yield conn.runOperation(
         """
         CREATE TABLE dott_objects
         (
@@ -27,4 +23,9 @@ def setup_db(store, conn):
           OIDS=FALSE
         );
         """
-    ).addCallback(post_create_cb)
+    )
+
+    logger.info("dott_objects table created.")
+    # Now create the starter room.
+    parent_path = 'src.game.parents.base_objects.room.RoomObject'
+    store.create_object(parent_path, name='And so it begins...')
