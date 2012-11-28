@@ -13,9 +13,8 @@ LOG_DIR = os.path.join(BASE_PATH, 'log')
 
 SECRET_KEY = 'CHANGE-ME-AND-KEEP-SAFE'
 
-# Full path to the SQLite3 DB.
-OBJECTS_DATABASE_PATH = 'dott_objects.db3'
-ACCOUNTS_DATABASE_PATH = 'dott_accounts.db3'
+DATABASE_NAME = 'dott'
+DATABASE_USERNAME = 'dott'
 
 # Amazon Web Services credentials.
 AWS_ACCESS_KEY_ID = 'XXXXXXXXXXXXXXXXXXXXX'

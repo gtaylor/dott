@@ -1,8 +1,8 @@
+import json
 from fuzzywuzzy import fuzz
-from twisted.enterprise.adbapi import ConnectionPool
+from txpostgres import txpostgres
 
 import settings
-from src.server.objects import defines
 from src.server.objects.exceptions import InvalidObjectId
 from src.server.objects.on_first_run import setup_db
 from src.server.parent_loader.exceptions import InvalidParent
@@ -74,60 +74,70 @@ class InMemoryObjectStore(object):
         """
         # Just in case this is a code reload.
         self._objects = {}
-        # Instantiate the Twisted adbapi connection.
-        self._db = ConnectionPool("sqlite3", settings.OBJECTS_DATABASE_PATH, cp_min=1, cp_max=1)
-
+        # Instantiate the connection to Postgres.
+        self._db = txpostgres.Connection()
+        d = self._db.connect(
+            user=settings.DATABASE_USERNAME,
+            database=settings.DATABASE_NAME
+        )
         # Makes sure the DB is ready for game start.
-        self._prep_db()
+        d.addCallback(self._prep_db)
 
-    def _prep_db(self):
+    def _prep_db(self, conn):
         """
         Sets the :attr:`_db` reference. Creates the CouchDB if the requested
         one doesn't exist already.
 
-        :keyword str db_name: Overrides the DB name for the object DB.
+        :param txpostgres.txpostgres.Connection conn: The txpostgres
+            connection to Postgres.
         """
 
-        def look_for_objects_table_cb(is_table_present):
+        def create_table_if_missing(is_table_present):
+            """
+            :param list is_table_present: A list that either contains a tuple
+                with a single 'dott_objects' member, or an empty list if the
+                dott_objects table doesn't exist yet.
+            """
             if not is_table_present:
-                setup_db(self._db)
+                setup_db(self, self._db)
             else:
                 self._load_objects_into_ram()
 
+        # See if the dott_objects table already exists. If not, create it.
         self._db.runQuery(
-            "SELECT * FROM sqlite_master WHERE type='table' AND name='%s'" % defines.DB_OBJECTS_TABLE
-        ).addCallback(look_for_objects_table_cb)
+            "SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name='dott_objects'"
+        ).addCallback(create_table_if_missing)
 
     def _load_objects_into_ram(self):
         """
         Loads all of the objects from the DB into RAM.
         """
 
-        def load_objects(txn):
-            logger.info("Loading objects into RAM. %s" % txn)
-            for doc_id in []:
-                self._load_object(doc_id)
+        def load_objects(results):
+            logger.info("Loading objects into RAM. %s" % results)
+            for dbref, json_str in results:
+                self._load_object(dbref, json_str)
 
                 # See if this is the new highest dbref.
-                doc_id_int = int(doc_id)
+                doc_id_int = int(dbref)
                 if doc_id_int >= self.__next_dbref:
                     self.__next_dbref = doc_id_int + 1
 
-        self._db.runQuery(
-            "SELECT * FROM %s" % defines.DB_OBJECTS_TABLE
-        ).addCallback(load_objects)
+        self._db.runQuery("SELECT * FROM dott_objects").addCallback(load_objects)
 
-    def _load_object(self, doc_id):
+    def _load_object(self, dbref, json_str):
         """
         This loads the parent class, instantiates the object through the
         parent class (passing the values from the DB as constructor kwargs).
 
-        :param str doc_id: The CouchDB ID for the object to load.
+        :param dbref:
+        :param json_str:
         :rtype: BaseObject
         :returns: The newly loaded object.
         """
-        # Retrieves the JSON doc from CouchDB.
-        doc = self._db[doc_id]
+
+        doc = json.loads(json_str)
+
         # Loads the parent class so we can instantiate the object.
         try:
             parent = self._parent_loader.load_parent(doc['parent'])
@@ -136,21 +146,13 @@ class InMemoryObjectStore(object):
             # will give us an object ID to look at in the logs.
             raise InvalidParent(
                 'Attempting to load invalid parent on object #%s: %s' % (
-                    doc_id,
+                    dbref,
                     doc['parent'],
                 )
             )
         # Instantiate the object, using the values from the DB as kwargs.
-        self._objects[doc_id] = parent(self._mud_service, **doc)
-        return self._objects[doc_id]
-
-    def _create_initial_room(self):
-        """
-        If the initial RoomObject that players login to doesn't exist, create
-        it and save it. Loading will be done later.
-        """
-        parent_path = 'src.game.parents.base_objects.room.RoomObject'
-        self.create_object(parent_path, name='And so it begins...')
+        self._objects[dbref] = parent(self._mud_service, **doc)
+        return self._objects[dbref]
 
     def create_object(self, parent_path, **kwargs):
         """
@@ -165,7 +167,7 @@ class InMemoryObjectStore(object):
         NewObject = self._parent_loader.load_parent(parent_path)
         obj = NewObject(
             self._mud_service,
-            _id='%s' % self.__next_dbref,
+            _id=self.__next_dbref,
             parent=parent_path,
             **kwargs
         )
@@ -182,11 +184,13 @@ class InMemoryObjectStore(object):
         :param BaseObject obj: The object to save to the DB.
         """
         odata = obj._odata
-        # Saves to CouchDB.
-        id, rev = self._db.save(odata)
-        # For new objects, update our in-memory object with the newly assigned
-        # _id in CouchDB.
-        obj._id = id
+
+        self._db.runOperation(
+            """
+            INSERT INTO dott_objects (dbref, data) VALUES (%s, %s)
+            """, (odata['_id'], json.dumps(odata))
+        )
+
         # Update our in-memory cache with the saved object.
         self._objects[odata['_id']] = obj
 
@@ -194,7 +198,11 @@ class InMemoryObjectStore(object):
         """
         Destroys an object by yanking it from :py:attr:`_objects` and CouchDB.
         """
-        del self._db[obj.id]
+
+        self._db.runOperation(
+            "DELETE FROM dott_objects WHERE dbref=%s", (obj.id,)
+        )
+
         del self._objects[obj.id]
         del obj
 
@@ -206,9 +214,19 @@ class InMemoryObjectStore(object):
         :rtype: BaseObject
         :returns: The newly re-loaded object.
         """
+
         obj_id = obj.id
-        del self._objects[obj_id]
-        return self._load_object(obj_id)
+
+        def reload_object_cb(results):
+            logger.info("Reloading object from RAM. %s" % results)
+            for dbref, json_str in results:
+                del self._objects[obj_id]
+                self._load_object(dbref, json_str)
+                return self._load_object(dbref, json_str)
+
+        self._db.runQuery(
+            "SELECT * FROM dott_objects WHERE id=%s", (obj.id,)
+        ).addCallback(reload_object_cb)
 
     def get_object(self, obj_id):
         """

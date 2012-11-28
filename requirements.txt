@@ -1,7 +1,8 @@
 twisted
-couchdb
 nose
 boto
 git+git://github.com/seatgeek/fuzzywuzzy.git#egg=fuzzywuzzy
 networkx
 fabric
+txpostgres
+psycopg2
