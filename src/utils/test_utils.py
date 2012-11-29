@@ -1,4 +1,4 @@
-import unittest2
+import unittest
 from src.game.commands.global_cmdtable import GlobalCommandTable, GlobalAdminCommandTable
 from src.server.commands.handler import CommandHandler
 from src.server.objects.in_memory_store import InMemoryObjectStore
@@ -31,7 +31,7 @@ class MockMudService(object):
         self.object_store._prepare_at_load()
 
 
-class DottTestCase(unittest2.TestCase):
+class DottTestCase(unittest.TestCase):
     """
     Some helpers for unit testing.
     """
