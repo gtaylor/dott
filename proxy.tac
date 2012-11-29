@@ -35,6 +35,8 @@ class ProxyService(service.Service):
         """
         self.session_manager = SessionManager(self)
         self.account_store = InMemoryAccountStore(self)
+        # Check the DB, load accounts into RAM.
+        self.account_store.prepare_at_startup()
 
         self.proxyamp = None
 

@@ -30,7 +30,7 @@ class InMemoryObjectStore(object):
         # Reference to the server's parent loader instance.
         self._parent_loader = mud_service.parent_loader
 
-        # Keys are dbrefs, values are the parent instances (children of
+        # Keys are object IDs, values are the parent instances (children of
         # src.game.parents.base_objects.base.BaseObject)
         self._objects = {}
 
@@ -39,8 +39,8 @@ class InMemoryObjectStore(object):
         # where we can query.
         self._db = None
 
-        # Kind of silly, but we manually keep track of the next dbref.
-        self.__next_dbref = 1
+        # Kind of silly, but we manually keep track of the next ID.
+        self.__next_id = 1
 
     @property
     def _session_manager(self):
@@ -125,26 +125,28 @@ class InMemoryObjectStore(object):
 
         results = yield self._db.runQuery("SELECT * FROM %s"% settings.OBJECT_TABLE_NAME)
 
-        for dbref, json_str in results:
-            self._load_object(dbref, json_str)
+        for oid, ojson_str in results:
+            self._load_object(str(oid), ojson_str)
 
-            # See if this is the new highest dbref.
-            doc_id_int = int(dbref)
-            if doc_id_int >= self.__next_dbref:
-                self.__next_dbref = doc_id_int + 1
+            # See if this is the new highest object ID.
+            doc_id_int = int(oid)
+            if doc_id_int >= self.__next_id:
+                self.__next_id = doc_id_int + 1
 
-    def _load_object(self, dbref, json_str):
+        logger.info("%d objects loaded." % len(self._objects))
+
+    def _load_object(self, oid, ojson_str):
         """
         This loads the parent class, instantiates the object through the
         parent class (passing the values from the DB as constructor kwargs).
 
-        :param dbref:
-        :param json_str:
+        :param oid:
+        :param ojson_str:
         :rtype: BaseObject
         :returns: The newly loaded object.
         """
 
-        doc = json.loads(json_str)
+        doc = json.loads(ojson_str)
 
         # Loads the parent class so we can instantiate the object.
         try:
@@ -154,13 +156,13 @@ class InMemoryObjectStore(object):
             # will give us an object ID to look at in the logs.
             raise InvalidParent(
                 'Attempting to load invalid parent on object #%s: %s' % (
-                    dbref,
+                    oid,
                     doc['parent'],
                 )
             )
         # Instantiate the object, using the values from the DB as kwargs.
-        self._objects[dbref] = parent(self._mud_service, **doc)
-        return self._objects[dbref]
+        self._objects[oid] = parent(self._mud_service, **doc)
+        return self._objects[oid]
 
     def create_object(self, parent_path, **kwargs):
         """
@@ -176,15 +178,16 @@ class InMemoryObjectStore(object):
         NewObject = self._parent_loader.load_parent(parent_path)
         obj = NewObject(
             self._mud_service,
-            _id=self.__next_dbref,
+            _id=self.__next_id,
             parent=parent_path,
             **kwargs
         )
         obj.save()
-        # Increment the next dbref counter for the next object.
-        self.__next_dbref += 1
+        # Increment the next ID counter for the next object.
+        self.__next_id += 1
         return obj
 
+    @inlineCallbacks
     def save_object(self, obj):
         """
         Saves an object to the DB. The _odata attribute on each object is
@@ -192,24 +195,26 @@ class InMemoryObjectStore(object):
 
         :param BaseObject obj: The object to save to the DB.
         """
+
         odata = obj._odata
 
-        self._db.runOperation(
+        yield self._db.runOperation(
             """
-            INSERT INTO dott_objects (dbref, data) VALUES (%s, %s)
+            INSERT INTO dott_objects (id, data) VALUES (%s, %s)
             """, (odata['_id'], json.dumps(odata))
         )
 
         # Update our in-memory cache with the saved object.
         self._objects[odata['_id']] = obj
 
+    @inlineCallbacks
     def destroy_object(self, obj):
         """
         Destroys an object by yanking it from :py:attr:`_objects` and the DB.
         """
 
-        self._db.runOperation(
-            "DELETE FROM dott_objects WHERE dbref=%s", (obj.id,)
+        yield self._db.runOperation(
+            "DELETE FROM dott_objects WHERE id=%s", (obj.id,)
         )
 
         del self._objects[obj.id]
@@ -232,10 +237,10 @@ class InMemoryObjectStore(object):
         )
 
         logger.info("Reloading object from RAM. %s" % results)
-        for dbref, json_str in results:
+        for oid, ojson_str in results:
             del self._objects[obj_id]
-            self._load_object(dbref, json_str)
-            returnValue(self._load_object(dbref, json_str))
+            self._load_object(oid, ojson_str)
+            returnValue(self._load_object(oid, ojson_str))
 
     def get_object(self, obj_id):
         """

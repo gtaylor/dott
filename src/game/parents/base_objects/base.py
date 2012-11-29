@@ -75,7 +75,7 @@ class BaseObject(object):
         :rtype: str
         :returns: The object's ID.
         """
-        return self._odata['_id']
+        return str(self._odata['_id'])
     def set_id(self, new_id):
         """
         Be really careful doing this. Sets the room's ID, but no duplication

@@ -1,7 +1,9 @@
-import couchdb
-from couchdb.http import ResourceNotFound
+import json
+from txpostgres import txpostgres
+from twisted.internet.defer import inlineCallbacks, returnValue
 
 import settings
+from src.proxy.accounts.on_first_run import setup_db
 from src.utils import logger
 from src.server.protocols.proxyamp import CreatePlayerObjectCmd
 from src.proxy.accounts.exceptions import AccountNotFoundException, UsernameTakenException
@@ -11,28 +13,22 @@ class InMemoryAccountStore(object):
     """
     Serves as an in-memory store for all account values.
     """
+
     def __init__(self, mud_service, db_name=None):
         """
         :param MudService mud_service: The MudService class running the game.
         :keyword str db_name: Overrides the DB name for the account DB.
         """
+
         self._mud_service = mud_service
 
-        # Reference to CouchDB server connection.
-        self._server = couchdb.Server()
-        if settings.COUCHDB_USER:
-            self._server.resource.credentials = (
-                settings.COUCHDB_USER,
-                settings.COUCHDB_PASS
-            )
-        # Eventually contains a CouchDB reference. Queries come through here.
-        self._db = None
         # Keys are usernames, values are PlayerAccount instances.
         self._accounts = {}
-        # Loads or creates+loads the CouchDB database.
-        self._prep_db(db_name=db_name)
-        # Loads all PlayerAccount objects into RAM from CouchDB.
-        self._load_accounts_into_ram()
+
+        self._db_name = db_name or settings.DATABASE_NAME
+        # This eventually contains a txpostgres Connection object, which is
+        # where we can query.
+        self._db = None
 
     @property
     def _object_store(self):
@@ -42,33 +38,49 @@ class InMemoryAccountStore(object):
         :rtype: InMemoryObjectStore
         :returns: Reference to the global object store instance.
         """
+
         return self._mud_service.object_store
 
-    def _prep_db(self, db_name=None):
+    @inlineCallbacks
+    def prepare_at_startup(self):
         """
-        Sets the :attr:`_db` reference. Creates the CouchDB if the requested
-        one doesn't exist already.
-
-        :param str db_name: Overrides the DB name for the account DB.
+        Sets the :attr:`_db` reference. Does some basic DB population if
+        need be.
         """
-        if not db_name:
-            # Use the default configured DB name for config DB.
-            db_name = settings.DATABASES['accounts']['NAME']
-        try:
-            # Try to get a reference to the CouchDB database.
-            self._db = self._server[db_name]
-        except ResourceNotFound:
-            logger.warning('No DB found, creating a new one.')
-            self._db = self._server.create(db_name)
 
+        # Just in case this is a code reload.
+        self._accounts = {}
+        # Instantiate the connection to Postgres.
+        self._db = txpostgres.Connection()
+        yield self._db.connect(
+            user=settings.DATABASE_USERNAME,
+            database=self._db_name
+        )
+
+        # See if the dott_objects table already exists. If not, create it.
+        results = yield self._db.runQuery(
+            "SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name=%s",
+            (settings.ACCOUNT_TABLE_NAME,)
+        )
+
+        if not results:
+            setup_db(self, self._db)
+        else:
+            self._load_accounts_into_ram()
+
+    @inlineCallbacks
     def _load_accounts_into_ram(self):
         """
         Loads all of the PlayerAccount instances from the DB into RAM.
         """
-        for doc_id in self._db:
-            username = doc_id
-            doc = self._db[doc_id]
-            # Retrieves the JSON doc from CouchDB.
+
+        logger.info("Loading accounts into RAM.")
+
+        results = yield self._db.runQuery("SELECT * FROM %s"% settings.ACCOUNT_TABLE_NAME)
+
+        for username, json_str in results:
+            doc = json.loads(json_str)
+
             self._accounts[username.lower()] = PlayerAccount(
                 self._mud_service,
                 **doc
@@ -85,6 +97,7 @@ class InMemoryAccountStore(object):
         :raises: :class:`UsernameTakenException` if someone attempts to create
             a duplicate account.
         """
+
         if self._accounts.has_key(username.lower()):
             raise UsernameTakenException('Username already taken.')
 
@@ -105,6 +118,7 @@ class InMemoryAccountStore(object):
             :param str object_id: The newly created PlayerObject on the
                 mud server.
             """
+
             # Create the PlayerAccount, pointed at the PlayerObject's _id.
             account = PlayerAccount(
                 self._mud_service,
@@ -118,16 +132,26 @@ class InMemoryAccountStore(object):
             account.save()
         p_obj_created_deferred.addCallback(obj_created_callback)
 
+    @inlineCallbacks
     def save_account(self, account):
         """
-        Saves an account to CouchDB. The _odata attribute on each account is
-        the raw dict that gets saved to and loaded from CouchDB.
+        Saves an account to the DB. The _odata attribute on each account is
+        the raw dict that gets saved to and loaded from the DB entry.
 
         :param PlayerAccount account: The account to save.
         """
+
         odata = account._odata
         username = odata['_id'].lower()
-        self._db.save(odata)
+
+        logger.info("Saving new account")
+        yield self._db.runOperation(
+            """
+            INSERT INTO dott_accounts (username, data) VALUES (%s, %s)
+            """, (username, json.dumps(odata))
+        )
+        logger.info("Account saved.")
+
         self._accounts[username] = account
 
     def get_account(self, username):

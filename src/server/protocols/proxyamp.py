@@ -387,7 +387,7 @@ class ProxyAMP(amp.AMP):
         # The object's ID gets returned so the account creation code can
         # set the account to control the new object.
         return {
-            'object_id': player_obj._id,
+            'object_id': str(player_obj.id),
         }
     CreatePlayerObjectCmd.responder(
         create_player_object_command

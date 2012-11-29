@@ -2,19 +2,28 @@
 This module contains stuff that is done on the game's first startup.
 """
 
-import sqlite3
+from twisted.internet.defer import inlineCallbacks
 import settings
-from src.proxy.accounts import defines
+from src.utils import logger
 
-def setup_db():
+@inlineCallbacks
+def setup_db(store, conn):
     """
-    Setup our sqlite database.
+    Setup our Postgres database. Do some really basic population.
     """
 
-    conn = sqlite3.connect(settings.DATABASE_PATH)
-    curs = conn.cursor()
-    curs.execute(
-        "CREATE TABLE %s (id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT)" % defines.DB_ACCOUNTS_TABLE
+    yield conn.runOperation(
+        """
+        CREATE TABLE %s
+        (
+          username character varying(30) NOT NULL,
+          data json,
+          CONSTRAINT %s_username PRIMARY KEY (username)
+        )
+        WITH (
+          OIDS=FALSE
+        );
+        """ % (settings.ACCOUNT_TABLE_NAME, settings.ACCOUNT_TABLE_NAME)
     )
-    conn.commit()
-    curs.close()
+
+    logger.info("%s table created." % settings.ACCOUNT_TABLE_NAME)
