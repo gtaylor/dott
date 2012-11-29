@@ -22,19 +22,24 @@ class InMemoryObjectStore(object):
             this constructor, as it won't be set yet.
 
         :param MudService mud_service: The MudService class running the game.
-        :keyword str db_name: Overrides the DB name for the object DB.
+        :keyword str db_name: Overrides the DB name for the object DB. Currently
+            just used for unit testing.
         """
+
         self._mud_service = mud_service
         # Reference to the server's parent loader instance.
         self._parent_loader = mud_service.parent_loader
 
         # Keys are dbrefs, values are the parent instances (children of
-        # src.game.parents.base_objects.base.BaseObject
+        # src.game.parents.base_objects.base.BaseObject)
         self._objects = {}
 
-        # Eventually contains a ConnectionPool reference. Queries come through here.
+        self._db_name = db_name or settings.DATABASE_NAME
+        # This eventually contains a txpostgres Connection object, which is
+        # where we can query.
         self._db = None
 
+        # Kind of silly, but we manually keep track of the next dbref.
         self.__next_dbref = 1
 
     @property
@@ -45,6 +50,7 @@ class InMemoryObjectStore(object):
         :rtype: SessionManager
         :returns: Reference to the global session manager instance.
         """
+
         #noinspection PyUnresolvedReferences
         return self._mud_service.session_manager
 
@@ -56,6 +62,7 @@ class InMemoryObjectStore(object):
         :rtype: InMemoryAccountStore
         :returns: Reference to the global account store instance.
         """
+
         #noinspection PyUnresolvedReferences
         return self._mud_service.account_store
 
@@ -67,6 +74,7 @@ class InMemoryObjectStore(object):
         :rtype: CommandHandler
         :returns: Reference to the global command handler instance.
         """
+
         return self._mud_service.command_handler
 
     @inlineCallbacks
@@ -74,13 +82,14 @@ class InMemoryObjectStore(object):
         """
         Prepares the store for duty.
         """
+
         # Just in case this is a code reload.
         self._objects = {}
         # Instantiate the connection to Postgres.
         self._db = txpostgres.Connection()
         yield self._db.connect(
             user=settings.DATABASE_USERNAME,
-            database=settings.DATABASE_NAME
+            database=self._db_name
         )
         # Makes sure the DB is ready for game start.
         self._prep_db(self._db)
@@ -88,8 +97,8 @@ class InMemoryObjectStore(object):
     @inlineCallbacks
     def _prep_db(self, conn):
         """
-        Sets the :attr:`_db` reference. Creates the CouchDB if the requested
-        one doesn't exist already.
+        Sets the :attr:`_db` reference. Does some basic DB population if
+        need be.
 
         :param txpostgres.txpostgres.Connection conn: The txpostgres
             connection to Postgres.
@@ -97,7 +106,8 @@ class InMemoryObjectStore(object):
 
         # See if the dott_objects table already exists. If not, create it.
         results = yield self._db.runQuery(
-            "SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name='dott_objects'"
+            "SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name=%s",
+            (settings.OBJECT_TABLE_NAME,)
         )
 
         if not results:
@@ -113,7 +123,7 @@ class InMemoryObjectStore(object):
 
         logger.info("Loading objects into RAM.")
 
-        results = yield self._db.runQuery("SELECT * FROM dott_objects")
+        results = yield self._db.runQuery("SELECT * FROM %s"% settings.OBJECT_TABLE_NAME)
 
         for dbref, json_str in results:
             self._load_object(dbref, json_str)
@@ -162,6 +172,7 @@ class InMemoryObjectStore(object):
         :rtype: BaseObject
         :returns: The newly created/instantiated/saved object.
         """
+
         NewObject = self._parent_loader.load_parent(parent_path)
         obj = NewObject(
             self._mud_service,
@@ -176,8 +187,8 @@ class InMemoryObjectStore(object):
 
     def save_object(self, obj):
         """
-        Saves an object to CouchDB. The _odata attribute on each object is
-        the raw dict that gets saved to and loaded from CouchDB.
+        Saves an object to the DB. The _odata attribute on each object is
+        the raw dict that gets saved to and loaded from the DB entry.
 
         :param BaseObject obj: The object to save to the DB.
         """
@@ -194,7 +205,7 @@ class InMemoryObjectStore(object):
 
     def destroy_object(self, obj):
         """
-        Destroys an object by yanking it from :py:attr:`_objects` and CouchDB.
+        Destroys an object by yanking it from :py:attr:`_objects` and the DB.
         """
 
         self._db.runOperation(
@@ -207,7 +218,7 @@ class InMemoryObjectStore(object):
     @inlineCallbacks
     def reload_object(self, obj):
         """
-        Re-loads the object from CouchDB.
+        Re-loads the object from the DB.
 
         :param BaseObject obj: The object to re-load from the DB.
         :rtype: BaseObject
@@ -236,6 +247,7 @@ class InMemoryObjectStore(object):
         :raises: :py:exc:`src.server.objects.exceptions.InvalidObjectId` if
             no object with the requested ID exists.
         """
+
         try:
             return self._objects[str(obj_id)]
         except KeyError:
@@ -252,6 +264,7 @@ class InMemoryObjectStore(object):
         :returns: A list of BaseObject instances whose current location
             is ``obj``.
         """
+
         return [omatch for omatch in self._objects.values() if omatch.location == obj]
 
     def global_name_search(self, name):
@@ -262,6 +275,7 @@ class InMemoryObjectStore(object):
         :param str name: The name to search for.
         :returns: A generator of ``BaseObject`` matches.
         """
+
         for id, obj in self._objects.iteritems():
             ratio = fuzz.partial_ratio(name, obj.name)
             if ratio > 50:
@@ -275,6 +289,7 @@ class InMemoryObjectStore(object):
         :rtype: list
         :return: A list of exits that are linked to the given object.
         """
+
         if obj.base_type == 'exit':
             # Exits can't be linked to one another, this ends up being invalid.
             return []
@@ -303,6 +318,7 @@ class InMemoryObjectStore(object):
         :rtype: list
         :return: A list of the object's zone members.
         """
+
         # We could use a generator for this, but then we couldn't iterate
         # and delete as we went, as this would change the size of self._objects
         # during the iteration (causing an exception). So store in list.

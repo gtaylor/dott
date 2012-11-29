@@ -24,7 +24,7 @@ class MockMudService(object):
         self.command_handler = CommandHandler(self)
         self.session_manager = SessionManager(self)
         self.parent_loader = ParentLoader()
-        self.object_store = InMemoryObjectStore(self, db_name='dott_objects_test')
+        self.object_store = InMemoryObjectStore(self, test_mode=True)
         self.account_store = InMemoryAccountStore(self, db_name='dott_accounts_test')
         self.proxyamp = FakeProxyAMP()
 

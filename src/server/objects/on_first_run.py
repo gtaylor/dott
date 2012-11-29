@@ -3,6 +3,7 @@ This module contains stuff that is done on the game's first startup.
 """
 
 from twisted.internet.defer import inlineCallbacks
+import settings
 from src.utils import logger
 
 @inlineCallbacks
@@ -13,7 +14,7 @@ def setup_db(store, conn):
 
     yield conn.runOperation(
         """
-        CREATE TABLE dott_objects
+        CREATE TABLE %s
         (
           dbref integer NOT NULL,
           data json,
@@ -22,7 +23,7 @@ def setup_db(store, conn):
         WITH (
           OIDS=FALSE
         );
-        """
+        """ % settings.OBJECT_TABLE_NAME
     )
 
     logger.info("dott_objects table created.")
