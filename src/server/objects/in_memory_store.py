@@ -1,18 +1,20 @@
-import json
 from fuzzywuzzy import fuzz
-from twisted.internet.defer import inlineCallbacks, returnValue
-from txpostgres import txpostgres
+from twisted.internet.defer import inlineCallbacks
 
-import settings
+from src.server.objects.db_io import DBManager
 from src.server.objects.exceptions import InvalidObjectId
-from src.server.objects.on_first_run import setup_db
-from src.server.parent_loader.exceptions import InvalidParent
-from src.utils import logger
 
 class InMemoryObjectStore(object):
     """
     Serves as an in-memory object store for all "physical" entities in the
     game. An "object" can be stuff like a room or a thing.
+
+    Objects are persisted to a DB via the :py:attr:`db_manager` attribute,
+    which is a reference to a :py:class:`src.server.objects.db_io.DBManager`
+    instance.
+
+    .. note:: This class should know nothing about the DB that backs it.
+        Make sure to keep any DB-related things out of here.
     """
 
     def __init__(self, mud_service, db_name=None):
@@ -34,13 +36,10 @@ class InMemoryObjectStore(object):
         # src.game.parents.base_objects.base.BaseObject)
         self._objects = {}
 
-        self._db_name = db_name or settings.DATABASE_NAME
-        # This eventually contains a txpostgres Connection object, which is
-        # where we can query.
-        self._db = None
-
         # Kind of silly, but we manually keep track of the next ID.
-        self.__next_id = 1
+        self._next_id = 1
+
+        self.db_manager = DBManager(self, db_name=db_name)
 
     @property
     def _session_manager(self):
@@ -77,92 +76,13 @@ class InMemoryObjectStore(object):
 
         return self._mud_service.command_handler
 
-    @inlineCallbacks
-    def _prepare_at_load(self):
+    def prep_and_load(self):
         """
-        Prepares the store for duty.
-        """
-
-        # Just in case this is a code reload.
-        self._objects = {}
-        # Instantiate the connection to Postgres.
-        self._db = txpostgres.Connection()
-        yield self._db.connect(
-            user=settings.DATABASE_USERNAME,
-            database=self._db_name
-        )
-        # Makes sure the DB is ready for game start.
-        self._prep_db(self._db)
-
-    @inlineCallbacks
-    def _prep_db(self, conn):
-        """
-        Sets the :attr:`_db` reference. Does some basic DB population if
-        need be.
-
-        :param txpostgres.txpostgres.Connection conn: The txpostgres
-            connection to Postgres.
+        This runs early in server startup. Calls on the DBManager (self.db_manager)
+        to prep the DB and load all objects.
         """
 
-        # See if the dott_objects table already exists. If not, create it.
-        results = yield self._db.runQuery(
-            "SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name=%s",
-            (settings.OBJECT_TABLE_NAME,)
-        )
-
-        if not results:
-            setup_db(self, self._db)
-        else:
-            self._load_objects_into_ram()
-
-    @inlineCallbacks
-    def _load_objects_into_ram(self):
-        """
-        Loads all of the objects from the DB into RAM.
-        """
-
-        logger.info("Loading objects into RAM.")
-
-        results = yield self._db.runQuery("SELECT * FROM %s"% settings.OBJECT_TABLE_NAME)
-
-        for oid, ojson_str in results:
-            self._load_object(str(oid), ojson_str)
-
-            # See if this is the new highest object ID.
-            doc_id_int = int(oid)
-            if doc_id_int >= self.__next_id:
-                self.__next_id = doc_id_int + 1
-
-        logger.info("%d objects loaded." % len(self._objects))
-
-    def _load_object(self, oid, ojson_str):
-        """
-        This loads the parent class, instantiates the object through the
-        parent class (passing the values from the DB as constructor kwargs).
-
-        :param oid:
-        :param ojson_str:
-        :rtype: BaseObject
-        :returns: The newly loaded object.
-        """
-
-        doc = json.loads(ojson_str)
-
-        # Loads the parent class so we can instantiate the object.
-        try:
-            parent = self._parent_loader.load_parent(doc['parent'])
-        except InvalidParent:
-            # Get more specific with the exception output in this case. This
-            # will give us an object ID to look at in the logs.
-            raise InvalidParent(
-                'Attempting to load invalid parent on object #%s: %s' % (
-                    oid,
-                    doc['parent'],
-                )
-            )
-        # Instantiate the object, using the values from the DB as kwargs.
-        self._objects[oid] = parent(self._mud_service, **doc)
-        return self._objects[oid]
+        self.db_manager.prepare_and_load()
 
     def create_object(self, parent_path, **kwargs):
         """
@@ -178,34 +98,27 @@ class InMemoryObjectStore(object):
         NewObject = self._parent_loader.load_parent(parent_path)
         obj = NewObject(
             self._mud_service,
-            _id=self.__next_id,
+            _id=self._next_id,
             parent=parent_path,
             **kwargs
         )
         obj.save()
         # Increment the next ID counter for the next object.
-        self.__next_id += 1
+        self._next_id += 1
         return obj
 
     @inlineCallbacks
     def save_object(self, obj):
         """
-        Saves an object to the DB. The _odata attribute on each object is
-        the raw dict that gets saved to and loaded from the DB entry.
+        Saves an object to the DB.
 
         :param BaseObject obj: The object to save to the DB.
         """
 
-        odata = obj._odata
-
-        yield self._db.runOperation(
-            """
-            INSERT INTO dott_objects (id, data) VALUES (%s, %s)
-            """, (odata['_id'], json.dumps(odata))
-        )
+        yield self.db_manager.save_object(obj)
 
         # Update our in-memory cache with the saved object.
-        self._objects[odata['_id']] = obj
+        self._objects[obj.id] = obj
 
     @inlineCallbacks
     def destroy_object(self, obj):
@@ -213,10 +126,9 @@ class InMemoryObjectStore(object):
         Destroys an object by yanking it from :py:attr:`_objects` and the DB.
         """
 
-        yield self._db.runOperation(
-            "DELETE FROM dott_objects WHERE id=%s", (obj.id,)
-        )
+        yield self.db_manager.destroy_object(obj)
 
+        # Clear the object out of the store, mark it for GC.
         del self._objects[obj.id]
         del obj
 
@@ -230,17 +142,7 @@ class InMemoryObjectStore(object):
         :returns: The newly re-loaded object.
         """
 
-        obj_id = obj.id
-
-        results = yield self._db.runQuery(
-            "SELECT * FROM dott_objects WHERE id=%s", (obj.id,)
-        )
-
-        logger.info("Reloading object from RAM. %s" % results)
-        for oid, ojson_str in results:
-            del self._objects[obj_id]
-            self._load_object(oid, ojson_str)
-            returnValue(self._load_object(oid, ojson_str))
+        yield self.db_manager.reload_object(obj)
 
     def get_object(self, obj_id):
         """

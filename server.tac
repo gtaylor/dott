@@ -51,7 +51,7 @@ class MudService(service.Service):
 
         # All of the instantiations above just prep data structures. The
         # following lines do all of the loading.
-        self.object_store._prepare_at_load()
+        self.object_store.prep_and_load()
 
         # Begin startup debug output.
         print('\n' + '-' * 50)
