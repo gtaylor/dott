@@ -1,6 +1,6 @@
 import json
 from txpostgres import txpostgres
-from twisted.internet.defer import inlineCallbacks, returnValue
+from twisted.internet.defer import inlineCallbacks
 
 import settings
 from src.proxy.accounts.on_first_run import setup_db
@@ -114,9 +114,6 @@ class InMemoryAccountStore(object):
             This is ran once the mud server creates a new PlayerObject. The
             proxy then creates a matching PlayerAccount, set to controlling
             the newly created PlayerObject.
-
-            :param str object_id: The newly created PlayerObject on the
-                mud server.
             """
 
             # Create the PlayerAccount, pointed at the PlayerObject's _id.

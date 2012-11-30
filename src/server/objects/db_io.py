@@ -10,7 +10,7 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 
 import settings
 from src.utils import logger
-from src.server.objects.on_first_run import setup_db
+from src.server.objects import on_first_run
 from src.server.parent_loader.exceptions import InvalidParent
 
 class DBManager(object):
@@ -55,7 +55,7 @@ class DBManager(object):
         is_objects_table_present = yield self.is_objects_table_present()
         if not is_objects_table_present:
             # Table is not present, create it.
-            setup_db(self.store, self._db)
+            on_first_run.setup_db(self.store, self._db)
         else:
             # Table was present, load the whole shebang into the store.
             self.load_objects_into_store()
