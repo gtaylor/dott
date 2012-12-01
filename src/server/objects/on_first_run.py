@@ -16,7 +16,7 @@ def setup_db(store, conn):
         """
         CREATE TABLE %s
         (
-          id integer NOT NULL,
+          id serial NOT NULL,
           data json,
           CONSTRAINT %s_id PRIMARY KEY (id)
         )
@@ -29,4 +29,4 @@ def setup_db(store, conn):
     logger.info("%s table created." % settings.OBJECT_TABLE_NAME)
     # Now create the starter room.
     parent_path = 'src.game.parents.base_objects.room.RoomObject'
-    store.create_object(parent_path, name='And so it begins...')
+    yield store.create_object(parent_path, name='And so it begins...')

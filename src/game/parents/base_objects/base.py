@@ -6,21 +6,27 @@ class BaseObject(object):
     This is the base parent for every in-game "object". Rooms, Players, and
     Things are all considered objects. Behaviors here are very low level.
     """
+
     # Holds this object's command table. Any objects inside of this object
     # will check this for command matches before the global table.
     local_command_table = None
     # Same as above, but for admin-only commands.
     local_admin_command_table = None
 
-    def __init__(self, mud_service, **kwargs):
+    def __init__(self, mud_service, id=None, **kwargs):
         """
         :param MudService mud_service: The MudService class running the game.
+        :keyword int id: A unique ID for the object, or None if this is
+            a new object.
         :keyword dict kwargs: All objects are instantiated with the values from
             the DB as kwargs. Since the DB representation of all of an
             objects attributes is just a dict, this works really well.
         """
         self._mud_service = mud_service
 
+        # This mirrors the 'id' field in dott_objects. If this is set to None
+        # and the instance is saved, an insert is done.
+        self.id = id
         # This stores all of the object's data. This includes core and
         # userspace attributes.
         self._odata = kwargs
@@ -67,24 +73,6 @@ class BaseObject(object):
         :returns: A dict of additional attributes for the object.
         """
         return self._odata['attributes']
-
-    def get_id(self):
-        """
-        Returns the object's ID. This is a CouchDB hash string.
-
-        :rtype: str
-        :returns: The object's ID.
-        """
-        return str(self._odata['_id'])
-    def set_id(self, new_id):
-        """
-        Be really careful doing this. Sets the room's ID, but no duplication
-        checks are performed.
-
-        :param str new_id: The new ID to set.
-        """
-        self._odata['_id'] = new_id
-    id = property(get_id, set_id)
 
     def get_name(self):
         """
@@ -309,6 +297,9 @@ class BaseObject(object):
         :param str message: The message to emit to any Sessions attached to
             the object.
         """
+
+        assert self.id is not None, "Attempting to emit to an object with no ID."
+
         self._mud_service.proxyamp.callRemote(
             EmitToObjectCmd,
             object_id=self.id,

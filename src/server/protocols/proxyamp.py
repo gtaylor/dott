@@ -4,7 +4,10 @@ to service the MUD proxy.
 """
 from twisted.protocols import amp
 from twisted.internet import protocol
+from twisted.internet.defer import inlineCallbacks, returnValue
+
 import settings
+#from src.utils import logger
 
 class AmpServerFactory(protocol.ServerFactory):
     """
@@ -354,6 +357,11 @@ class ProxyAMP(amp.AMP):
         :param str input: The command to send to the command handler through
             the object.
         """
+
+        if not input:
+            # Empty string means no go.
+            return {}
+
         # The root MudService instance.
         service = self.factory._mud_service
         # Get a reference to the object that will send the command.
@@ -366,6 +374,7 @@ class ProxyAMP(amp.AMP):
         send_through_object_command
     )
 
+    @inlineCallbacks
     def create_player_object_command(self, username):
         """
         Creates a PlayerObject to match a newly created PlayerAccount.
@@ -376,7 +385,7 @@ class ProxyAMP(amp.AMP):
         service = self.factory._mud_service
 
         # Create the new PlayerObject.
-        player_obj = service.object_store.create_object(
+        player_obj = yield service.object_store.create_object(
             'src.game.parents.base_objects.player.PlayerObject',
             name=username,
             original_account_id=username,
@@ -386,9 +395,9 @@ class ProxyAMP(amp.AMP):
 
         # The object's ID gets returned so the account creation code can
         # set the account to control the new object.
-        return {
+        returnValue({
             'object_id': str(player_obj.id),
-        }
+        })
     CreatePlayerObjectCmd.responder(
         create_player_object_command
     )

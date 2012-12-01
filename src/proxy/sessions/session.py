@@ -187,10 +187,14 @@ class Session(object):
         :param str command_string: The raw command string to send off to the
             command handler/parser.
         """
+
         # The time the user last issued a command.
         self.cmd_last = datetime.time()
 
-        if str(command_string).strip().lower() == 'idle':
+        if isinstance(command_string, basestring):
+            command_string = command_string.strip()
+
+        if not command_string or command_string.lower() == 'idle':
             # Ignore idle command. This is often used as a keep-alive for
             # people with crappy NATs.
             self.update_counters(idle=True)

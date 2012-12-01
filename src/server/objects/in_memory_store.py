@@ -1,6 +1,7 @@
 from fuzzywuzzy import fuzz
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import inlineCallbacks, returnValue
 
+from src.utils import logger
 from src.server.objects.db_io import DBManager
 from src.server.objects.exceptions import InvalidObjectId
 
@@ -35,9 +36,6 @@ class InMemoryObjectStore(object):
         # Keys are object IDs, values are the parent instances (children of
         # src.game.parents.base_objects.base.BaseObject)
         self._objects = {}
-
-        # Kind of silly, but we manually keep track of the next ID.
-        self._next_id = 1
 
         self.db_manager = DBManager(self, db_name=db_name)
 
@@ -84,6 +82,7 @@ class InMemoryObjectStore(object):
 
         self.db_manager.prepare_and_load()
 
+    @inlineCallbacks
     def create_object(self, parent_path, **kwargs):
         """
         Creates and saves a new object of the specified parent.
@@ -98,14 +97,12 @@ class InMemoryObjectStore(object):
         NewObject = self._parent_loader.load_parent(parent_path)
         obj = NewObject(
             self._mud_service,
-            _id=self._next_id,
             parent=parent_path,
             **kwargs
         )
-        obj.save()
-        # Increment the next ID counter for the next object.
-        self._next_id += 1
-        return obj
+        yield self.save_object(obj)
+
+        returnValue(obj)
 
     @inlineCallbacks
     def save_object(self, obj):
