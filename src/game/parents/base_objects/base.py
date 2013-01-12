@@ -266,22 +266,24 @@ class BaseObject(object):
         saved_obj = yield self._object_store.save_object(self)
         returnValue(saved_obj)
 
+    @inlineCallbacks
     def destroy(self):
         """
         Destroys the object.
         """
 
         # Destroy all exits that were linked to this object.
-        for exit in self._object_store.find_exits_linked_to_obj(self):
-            exit.destroy()
+        if self.base_type not in ['exit', 'player']:
+            for exit in self._object_store.find_exits_linked_to_obj(self):
+                yield exit.destroy()
 
         # Un-set the zones on all objects who are members of this object.
         for obj in self._object_store.find_objects_in_zone(self):
             obj.zone = None
-            obj.save()
+            yield obj.save()
 
         # Destroys this object, once all cleanup is done.
-        self._object_store.destroy_object(self)
+        yield self._object_store.destroy_object(self)
 
     def execute_command(self, command_string):
         """
