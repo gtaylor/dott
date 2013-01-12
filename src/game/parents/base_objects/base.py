@@ -1,3 +1,4 @@
+from twisted.internet.defer import inlineCallbacks, returnValue
 from src.server.protocols.proxyamp import EmitToObjectCmd
 from fuzzywuzzy import fuzz
 
@@ -256,16 +257,20 @@ class BaseObject(object):
     ## Begin regular methods.
     #
 
+    @inlineCallbacks
     def save(self):
         """
         Shortcut for saving an object to the object store it's a member of.
         """
-        self._object_store.save_object(self)
+
+        saved_obj = yield self._object_store.save_object(self)
+        returnValue(saved_obj)
 
     def destroy(self):
         """
         Destroys the object.
         """
+
         # Destroy all exits that were linked to this object.
         for exit in self._object_store.find_exits_linked_to_obj(self):
             exit.destroy()

@@ -76,8 +76,8 @@ class InMemoryObjectStore(object):
 
     def prep_and_load(self):
         """
-        This runs early in server startup. Calls on the DBManager (self.db_manager)
-        to prep the DB and load all objects.
+        This runs early in server startup. Calls on the DBManager
+        (self.db_manager) to prep the DB and load all objects.
         """
 
         self.db_manager.prepare_and_load()
@@ -100,7 +100,7 @@ class InMemoryObjectStore(object):
             parent=parent_path,
             **kwargs
         )
-        yield self.save_object(obj)
+        obj = yield self.save_object(obj)
 
         returnValue(obj)
 
@@ -112,10 +112,9 @@ class InMemoryObjectStore(object):
         :param BaseObject obj: The object to save to the DB.
         """
 
-        yield self.db_manager.save_object(obj)
-
-        # Update our in-memory cache with the saved object.
-        self._objects[obj.id] = obj
+        saved_obj = yield self.db_manager.save_object(obj)
+        self._objects[saved_obj.id] = saved_obj
+        returnValue(saved_obj)
 
     @inlineCallbacks
     def destroy_object(self, obj):

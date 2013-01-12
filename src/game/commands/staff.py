@@ -78,8 +78,6 @@ class CmdFind(BaseCommand):
 class CmdDig(BaseCommand):
     """
     Digs a new room.
-
-    @dig <Room name>
     """
     name = '@dig'
 
@@ -92,21 +90,18 @@ class CmdDig(BaseCommand):
             raise CommandError('@dig requires a name for the new room.')
 
         room_parent = 'src.game.parents.base_objects.room.RoomObject'
-        mud_service.object_store.create_object(
+        new_room = mud_service.object_store.create_object(
             room_parent,
             name=name_str,
-        ).addCallback(lambda new_room:
-            invoker.emit_to('You have dug a new room named "%s"' % (
-                new_room.get_appearance_name(invoker),
-            )
+        )
+        invoker.emit_to('You have dug a new room named "%s"' % (
+            new_room.get_appearance_name(invoker),
         ))
 
 
 class CmdCreate(BaseCommand):
     """
     Creates a new ThingObject, which can be @parent'd to something else.
-
-    @create <Thing name>
     """
     name = '@create'
 
@@ -123,11 +118,7 @@ class CmdCreate(BaseCommand):
             thing_parent,
             location_id=invoker.location.id,
             name=name_str,
-        ).addCallback(lambda new_thing:
-            invoker.emit_to('You have created a new thing named "%s"' % (
-                new_thing.get_appearance_name(invoker),
-            )
-        ))
+        ).addCallback(lambda new_thing: invoker.emit_to('You have created a new thing named "%s"' % (new_thing.get_appearance_name(invoker),)))
 
 
 class CmdTeleport(BaseCommand):

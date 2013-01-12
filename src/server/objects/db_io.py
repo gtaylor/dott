@@ -142,7 +142,6 @@ class DBManager(object):
                 """, (json.dumps(odata),)
             )
             inserted_id = str(result[0][0])
-            logger.info("NEW ID %s" % inserted_id)
             obj.id = inserted_id
         else:
             yield self._db.runOperation(
@@ -150,6 +149,7 @@ class DBManager(object):
                 UPDATE dott_objects SET data=%s WHERE ID=%s
                 """, (json.dumps(odata), obj.id)
             )
+        returnValue(obj)
 
     @inlineCallbacks
     def destroy_object(self, obj):
