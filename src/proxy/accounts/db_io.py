@@ -3,8 +3,6 @@ This module manages all I/O from the DB, and handles the population of the
 AccountStore.
 """
 
-import json
-
 from txpostgres import txpostgres
 from twisted.internet.defer import inlineCallbacks, returnValue
 
@@ -12,6 +10,7 @@ import settings
 from src.proxy.accounts.account import PlayerAccount
 from src.utils import logger
 from src.proxy.accounts import on_first_run
+from src.utils.db import txPGDictConnection
 
 
 class DBManager(object):
@@ -46,7 +45,7 @@ class DBManager(object):
         # Just in case this is a code reload.
         self.store._accounts = {}
         # Instantiate the connection to Postgres.
-        self._db = txpostgres.Connection()
+        self._db = txPGDictConnection()
         yield self._db.connect(
             user=settings.DATABASE_USERNAME,
             database=self._db_name
@@ -87,11 +86,13 @@ class DBManager(object):
         logger.info("Loading accounts into RAM.")
 
         results = yield self._db.runQuery(
-            "SELECT id, username, currently_controlling_id, email, password FROM %s" %
-                settings.ACCOUNT_TABLE_NAME)
+            "SELECT "
+            "  id, username, currently_controlling_id, email, password "
+            "  FROM dott_accounts"
+        )
 
         for row in results:
-            id = row[0]
+            id = row['id']
 
             self.store._accounts[id] = self.instantiate_account_from_row(row)
 
@@ -104,15 +105,14 @@ class DBManager(object):
         :returns: The newly loaded player account.
         """
 
-        id, username, currently_controlling_id, email, password = row
         # Instantiate the object, using the values from the DB as kwargs.
         return PlayerAccount(
-            self.store._mud_service,
-            id,
-            username,
-            currently_controlling_id,
-            email,
-            password=password,
+            self.store._proxy_service,
+            row['id'],
+            row['username'],
+            row['currently_controlling_id'],
+            row['email'],
+            password=row['password'],
         )
 
     @inlineCallbacks
@@ -121,14 +121,15 @@ class DBManager(object):
         Saves an account to the DB. The _odata attribute on each account is
         the raw dict that gets saved to and loaded from the DB entry.
 
-        :param BaseObject obj: The object to save to the DB.
+        :param PlayerAccount account: The object to save to the DB.
         """
 
         if not account.id:
             result = yield self._db.runQuery(
-                """
-                INSERT INTO dott_accounts (username, currently_controlling_id, email, password) VALUES (%s, %s, %s, %s) RETURNING id
-                """,
+                "INSERT INTO dott_accounts"
+                "  (username, currently_controlling_id, email, password)"
+                "  VALUES (%s, %s, %s, %s) "
+                "  RETURNING id",
                 (
                     account.username,
                     account.currently_controlling_id,
@@ -140,9 +141,11 @@ class DBManager(object):
             account.id = inserted_id
         else:
             yield self._db.runOperation(
-                """
-                UPDATE dott_accounts SET username=%s, currently_controlling_id=%s, email=%s, password=%s WHERE ID=%s
-                """,
+                "UPDATE dott_accounts SET"
+                "  username=%s,"
+                "  currently_controlling_id=%s,"
+                "  email=%s,"
+                "  password=%s WHERE ID=%s",
                 (
                     account.username,
                     account.currently_controlling_id,

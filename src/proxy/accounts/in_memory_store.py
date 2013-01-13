@@ -18,8 +18,7 @@ class InMemoryAccountStore(object):
         :keyword str db_name: Overrides the DB name for the account DB.
         """
 
-        # TODO: This should be _proxy_service.
-        self._mud_service = proxy_service
+        self._proxy_service = proxy_service
 
         # Keys are usernames, values are PlayerAccount instances.
         self._accounts = {}
@@ -52,7 +51,7 @@ class InMemoryAccountStore(object):
 
         # Create the PlayerAccount, pointed at the PlayerObject's _id.
         account = PlayerAccount(
-            self._mud_service,
+            self._proxy_service,
             # This will be set after the first save.
             id=None,
             username=username,
@@ -65,7 +64,7 @@ class InMemoryAccountStore(object):
         account.set_password(password)
         yield account.save()
 
-        results = yield self._mud_service.proxyamp.callRemote(
+        results = yield self._proxy_service.proxyamp.callRemote(
             CreatePlayerObjectCmd,
             account_id=account.id,
             username=username,
