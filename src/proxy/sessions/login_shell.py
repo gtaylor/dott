@@ -6,6 +6,7 @@ from src.proxy.accounts.exceptions import AccountNotFoundException
 from src.server.commands.interactive import InteractiveShell
 from src.utils.email import OutboundEmail
 
+
 class LoginShell(InteractiveShell):
     """
     Handles the login and registration process in an interactive manner.

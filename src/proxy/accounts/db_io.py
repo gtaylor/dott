@@ -3,7 +3,6 @@ This module manages all I/O from the DB, and handles the population of the
 AccountStore.
 """
 
-from txpostgres import txpostgres
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 import settings
@@ -20,6 +19,15 @@ class DBManager(object):
     server start time, and all CRUD operations on the DB side. DBManager is
     allowed to manipulate the self.store._objects dict.
     """
+
+    # This is the base SELECT statement we'll use in a few methods for
+    # retrieving one or all account rows. To retrieve a subset, tack on a
+    # WHERE clause by string concatenation.
+    BASE_ACCOUNT_SELECT = (
+        "SELECT "
+        "  id, username, currently_controlling_id, email, password "
+        "  FROM dott_accounts"
+    )
 
     def __init__(self, store, db_name=None):
         """
@@ -85,15 +93,28 @@ class DBManager(object):
 
         logger.info("Loading accounts into RAM.")
 
+        results = yield self._db.runQuery(self.BASE_ACCOUNT_SELECT)
+
+        for row in results:
+            id = row['id']
+            self.store._accounts[id] = self.instantiate_account_from_row(row)
+
+    @inlineCallbacks
+    def reload_account(self, account):
+        """
+        Re-loads a single account from the DB.
+
+        :param PlayerAccount account: The account to re-load from the DB.
+        :rtype: PlayerAccount
+        :returns: The newly re-loaded account.
+        """
+
         results = yield self._db.runQuery(
-            "SELECT "
-            "  id, username, currently_controlling_id, email, password "
-            "  FROM dott_accounts"
+            "%s WHERE id=%s", (self.BASE_ACCOUNT_SELECT, account.id)
         )
 
         for row in results:
             id = row['id']
-
             self.store._accounts[id] = self.instantiate_account_from_row(row)
 
     def instantiate_account_from_row(self, row):
@@ -165,26 +186,3 @@ class DBManager(object):
         yield self._db.runOperation(
             "DELETE FROM dott_accounts WHERE id=%s", (account.id,)
         )
-
-    @inlineCallbacks
-    def reload_account(self, obj):
-        """
-        Re-loads the account from the DB.
-
-        :param BaseObject obj: The object to re-load from the DB.
-        :rtype: BaseObject
-        :returns: The newly re-loaded object.
-        """
-
-        # TODO: Adapt this for accounts.
-        obj_id = obj.id
-
-        results = yield self._db.runQuery(
-            "SELECT * FROM dott_objects WHERE id=%s", (obj.id,)
-        )
-
-        logger.info("Reloading object from RAM. %s" % results)
-        for oid, ojson_str in results:
-            del self.store._objects[obj_id]
-            self.load_object(oid, ojson_str)
-            returnValue(self.load_object(oid, ojson_str))
