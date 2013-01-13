@@ -21,6 +21,7 @@ class LoginShell(InteractiveShell):
     :attr str generated_password: For new accounts, the randomly generated
         password to be emailed.
     """
+
     def __init__(self, *args, **kwargs):
         super(LoginShell, self).__init__(*args, **kwargs)
 
@@ -38,6 +39,7 @@ class LoginShell(InteractiveShell):
         :rtype: InMemoryAccountStore
         :returns: Reference to the global account store instance.
         """
+
         return self.session._account_store
 
     def process_input(self, user_input):
@@ -45,14 +47,16 @@ class LoginShell(InteractiveShell):
         Regardless of which step they're on, this method cleanses input and
         hands off to whatever callable is set as the current step.
         """
+
         cleaned_input = user_input.strip()
-        
+
         self.current_step(cleaned_input)
 
     def prompt_get_username(self):
         """
-        The username promp to be sent to the player.
+        The username prompt to be sent to the player.
         """
+
         self.session.msg('Enter your name:')
 
     def step_get_username(self, user_input):
@@ -61,6 +65,7 @@ class LoginShell(InteractiveShell):
 
         :param str user_input: The username the player entered.
         """
+
         if not user_input:
             # Probably just hit enter. Ask again.
             self.prompt_get_username()
@@ -95,12 +100,14 @@ class LoginShell(InteractiveShell):
         """
         Ask an existing user for their password.
         """
+
         self.session.msg("Enter your password:")
 
     def step_get_existing_user_password(self, user_input):
         """
         Retrieve and check an existing user's password.
         """
+
         if not user_input:
             self.prompt_get_existing_user_password()
             return False
@@ -118,6 +125,7 @@ class LoginShell(InteractiveShell):
         """
         Ask the user whether they're new, or mis-typed a username.
         """
+
         self.session.msg("We haven't seen anyone called %s yet, are you a new player? (Y/N)" % self.username_given)
 
     def step_confirm_new_username(self, user_input):
@@ -128,6 +136,7 @@ class LoginShell(InteractiveShell):
         :param str user_input: The user's response to whether they are new (Y)
             or not (N).
         """
+
         if user_input not in ['Y', 'y', 'N', 'n']:
             # Something other than y/n. Ask again.
             self.prompt_confirm_new_username()
@@ -150,11 +159,14 @@ class LoginShell(InteractiveShell):
         """
         Explains why we ask for email addresses.
         """
-        message = "We use your email address to send you a generated password. "\
-                  "You may then login and leave it, or change it to whatever "\
-                  "you'd like. If you end up needing to reset your password, "\
-                  "the email address you provide here will be the key.\n\n"\
-                  "What is your email address?:"
+
+        message = (
+            "We use your email address to send you a generated password. "
+            "You may then login and leave it, or change it to whatever "
+            "you'd like. If you end up needing to reset your password, "
+            "the email address you provide here will be the key.\n\n"
+            "What is your email address?:"
+        )
         self.session.msg(message)
 
     def step_get_email_address_1(self, user_input):
@@ -163,6 +175,7 @@ class LoginShell(InteractiveShell):
 
         :param str user_input: The email address the user specifies.
         """
+
         if not user_input or not is_email_valid(user_input):
             self.session.msg('Invalid email address.\n')
             self.prompt_get_email_address_1()
@@ -201,12 +214,13 @@ class LoginShell(InteractiveShell):
         Ties together various things to create the account, send their
         randomly generated password, and boot their ass off.
         """
+
         self.generated_password = self._generate_password()
         self._send_registration_mail()
         self._create_account()
         self.session.msg(
-            "Your account has been created, and your randomly "\
-            "generated password has been sent to %s. Please "\
+            "Your account has been created, and your randomly "
+            "generated password has been sent to %s. Please "
             "check your mail, find the password, and re-connect.\n" %
             self.email_given)
         self.session.msg("Disconnecting...")
@@ -217,18 +231,24 @@ class LoginShell(InteractiveShell):
         Shoots out a rough email to the user letting them know to re-connect
         with the given user/pass.
         """
+
+        # TODO: Un-hardcode the game name.
         subject = 'Welcome to Dawn of the Titans!'
-        body = "Greetings,\n\n"\
-               "An account has been created for you with the following "\
-               "credentials:\n\n"\
-               "Username: %s\nPassword: %s\n\n"\
-               "You may connect to the game with your choice of MUD client at:\n\n"\
-               "gc-taylor.com, port 4000" % (
+        # TODO: Un-hardcode the host/port.
+        body = (
+            "Greetings,\n\n"
+            "An account has been created for you with the following "
+            "credentials:\n\n"
+            "Username: %s\nPassword: %s\n\n"
+            "You may connect to the game with your choice of MUD client at:\n\n"
+            "gc-taylor.com, port 4000"
+        ) % (
             self.username_given,
             self.generated_password,
         )
 
         # Bombs away.
+        # TODO: Make this non-blocking.
         email = OutboundEmail(
             subject,
             body,
@@ -241,6 +261,7 @@ class LoginShell(InteractiveShell):
         Creates the user's new account with the given info, and the randomly
         generated password.
         """
+
         self._account_store.create_account(
             self.username_given,
             self.generated_password,
@@ -254,5 +275,6 @@ class LoginShell(InteractiveShell):
         :rtype: str
         :returns: A 'randomly' generated password.
         """
+
         input = '%s%s' % (datetime.datetime.now(), self.username_given)
         return hashlib.sha512(input).hexdigest()[:5]
