@@ -1,90 +1,38 @@
-import json
-from txpostgres import txpostgres
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import inlineCallbacks, returnValue
 
-import settings
-from src.proxy.accounts.on_first_run import setup_db
-from src.utils import logger
+from src.proxy.accounts.db_io import DBManager
 from src.server.protocols.proxyamp import CreatePlayerObjectCmd
 from src.proxy.accounts.exceptions import AccountNotFoundException, UsernameTakenException
 from src.proxy.accounts.account import PlayerAccount
+
 
 class InMemoryAccountStore(object):
     """
     Serves as an in-memory store for all account values.
     """
 
-    def __init__(self, mud_service, db_name=None):
+    def __init__(self, proxy_service, db_name=None):
         """
-        :param MudService mud_service: The MudService class running the game.
+        :param ProxyService proxy_service: The Twisted service class that
+            runs the proxy.
         :keyword str db_name: Overrides the DB name for the account DB.
         """
 
-        self._mud_service = mud_service
+        # TODO: This should be _proxy_service.
+        self._mud_service = proxy_service
 
         # Keys are usernames, values are PlayerAccount instances.
         self._accounts = {}
 
-        self._db_name = db_name or settings.DATABASE_NAME
-        # This eventually contains a txpostgres Connection object, which is
-        # where we can query.
-        self._db = None
+        self.db_manager = DBManager(self, db_name=db_name)
 
-    @property
-    def _object_store(self):
-        """
-        Short-cut to the global object store.
-
-        :rtype: InMemoryObjectStore
-        :returns: Reference to the global object store instance.
-        """
-
-        return self._mud_service.object_store
-
-    @inlineCallbacks
-    def prepare_at_startup(self):
+    def prep_and_load(self):
         """
         Sets the :attr:`_db` reference. Does some basic DB population if
         need be.
         """
 
-        # Just in case this is a code reload.
-        self._accounts = {}
-        # Instantiate the connection to Postgres.
-        self._db = txpostgres.Connection()
-        yield self._db.connect(
-            user=settings.DATABASE_USERNAME,
-            database=self._db_name
-        )
-
-        # See if the dott_objects table already exists. If not, create it.
-        results = yield self._db.runQuery(
-            "SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name=%s",
-            (settings.ACCOUNT_TABLE_NAME,)
-        )
-
-        if not results:
-            setup_db(self, self._db)
-        else:
-            self._load_accounts_into_ram()
-
-    @inlineCallbacks
-    def _load_accounts_into_ram(self):
-        """
-        Loads all of the PlayerAccount instances from the DB into RAM.
-        """
-
-        logger.info("Loading accounts into RAM.")
-
-        results = yield self._db.runQuery("SELECT * FROM %s"% settings.ACCOUNT_TABLE_NAME)
-
-        for username, json_str in results:
-            doc = json.loads(json_str)
-
-            self._accounts[username.lower()] = PlayerAccount(
-                self._mud_service,
-                **doc
-            )
+        self.db_manager.prepare_and_load()
 
     def create_account(self, username, password, email):
         """
@@ -138,18 +86,21 @@ class InMemoryAccountStore(object):
         :param PlayerAccount account: The account to save.
         """
 
-        odata = account._odata
-        username = odata['_id'].lower()
+        saved_account = yield self.db_manager.save_account(account)
+        self._accounts[saved_account.username] = saved_account
+        returnValue(saved_account)
 
-        logger.info("Saving new account")
-        yield self._db.runOperation(
-            """
-            INSERT INTO dott_accounts (username, data) VALUES (%s, %s)
-            """, (username, json.dumps(odata))
-        )
-        logger.info("Account saved.")
+    @inlineCallbacks
+    def destroy_account(self, account):
+        """
+        Destroys an account by yanking it from :py:attr:`_accounts` and the DB.
+        """
 
-        self._accounts[username] = account
+        yield self.db_manager.destroy_account(account)
+
+        # Clear the object out of the store, mark it for GC.
+        del self._accounts[account.username]
+        del account
 
     def get_account(self, username):
         """
@@ -159,7 +110,9 @@ class InMemoryAccountStore(object):
         :rtype: :class:`PlayerAccount`
         :returns: The requested account.
         """
+
         try:
             return self._accounts[username.lower()]
         except KeyError:
-            raise AccountNotFoundException('No such account with username "%s" found' % username)
+            raise AccountNotFoundException(
+                'No such account with username "%s" found' % username)

@@ -11,6 +11,7 @@ The benefits are twofold:
     this, we don't need to implement any crazy code reloading junk. We can
     just cold restart without many players even noticing.
 """
+
 import time
 
 from twisted.application import internet, service
@@ -22,21 +23,24 @@ from src.proxy.sessions.session_manager import SessionManager
 from src.proxy.accounts.in_memory_store import InMemoryAccountStore
 from src.server.protocols.proxyamp import AmpClientFactory
 
+
 class ProxyService(service.Service):
     """
     This is the main Service class that ties the proxy together. It listens
     for telnet connections and maintains a client connection to the MUD
     server over AMP.
     """
+
     def __init__(self):
         """
         :attr ProxyAMP proxyamp: The currently active ProxyAMP instance.
             This can be used to communicate with the MUD server through.
         """
+
         self.session_manager = SessionManager(self)
         self.account_store = InMemoryAccountStore(self)
         # Check the DB, load accounts into RAM.
-        self.account_store.prepare_at_startup()
+        self.account_store.prep_and_load()
 
         self.proxyamp = None
 

@@ -10,6 +10,8 @@ from src.utils import logger
 def setup_db(store, conn):
     """
     Setup our Postgres database. Do some really basic population.
+
+    :param ObjectStore store:
     """
 
     yield conn.runOperation(

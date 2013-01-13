@@ -3,16 +3,20 @@ import time
 from src.utils import logger
 import settings
 
+
 class SessionManager(object):
     """
     This class keeps track of all of the :class:`src.server.session.Session`
     objects that are currently connected to the game.
     """
-    def __init__(self, mud_service):
+
+    def __init__(self, proxy_service):
         """
-        :param MudService mud_service: The MudService class running the game.
+        :param ProxyService proxy_service: The Twisted service class for the
+            proxy.
         """
-        self._mud_service = mud_service
+
+        self._mud_service = proxy_service
         # The list of currently connected sessions.
         self._sessions = []
 
@@ -49,7 +53,7 @@ class SessionManager(object):
         idle_timeout = settings.USER_IDLE_TIMEOUT
         if idle_timeout <= 0:
             return
-        
+
         for sess in self.get_sessions(return_unlogged=True):
             if (time.time() - sess.cmd_last) > idle_timeout:
                 sess.msg("Idle timeout exceeded, disconnecting.")
@@ -59,17 +63,19 @@ class SessionManager(object):
         """
         Removes a session from the session list.
         """
+
         try:
             self._sessions.remove(session)
             logger.info('Sessions active: %d' % len(self.get_sessions()))
-        except ValueError:        
+        except ValueError:
             # the session was already removed. Probably garbage collected.
-            return 
-    
+            return
+
     def announce_all(self, message, prefix="ANNOUNCEMENT: "):
         """
         Announces something to all connected players.
         """
+
         msg = '%s%s' % (prefix, message)
         for session in self.get_sessions():
             session.msg(msg)
@@ -84,6 +90,7 @@ class SessionManager(object):
         :rtype: list
         :returns: The sessions controlling the object, if any.
         """
+
         sessions = []
 
         for session in self._sessions:
@@ -102,6 +109,7 @@ class SessionManager(object):
         :param str obj_id: The object whose sessions to emit to.
         :param str message: The message to emit.
         """
+
         sessions = self.get_sessions_for_object_id(obj_id)
         for session in sessions:
             session.msg(message)

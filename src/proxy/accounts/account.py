@@ -2,11 +2,13 @@ import hashlib
 
 import settings
 
+
 class PlayerAccount(object):
     """
     This class abstracts accounts out, and is specific to the
     InMemoryAccountStore backend.
     """
+
     def __init__(self, mud_service, **kwargs):
         """
         :param MudService server: The top-level MudService instance found in
@@ -18,6 +20,7 @@ class PlayerAccount(object):
         :keyword str currently_controlling_id: The ID of the Object this
             account is currently controlling.
         """
+
         self._mud_service = mud_service
 
         self._odata = kwargs
@@ -34,6 +37,7 @@ class PlayerAccount(object):
         :rtype: InMemoryAccountStore
         :returns: Reference to the global account store instance.
         """
+
         return self._mud_service.account_store
 
     def get_username(self):
@@ -43,7 +47,9 @@ class PlayerAccount(object):
         :rtype: str
         :returns: The account's username.
         """
+
         return self._odata['_id']
+
     def set_username(self, username):
         """
         Sets the account's username to something else.
@@ -51,6 +57,7 @@ class PlayerAccount(object):
         .. warning:: Be careful with this, we might need to detect for
             collisions manually, or risk over-writing accounts.
         """
+
         self._odata['_id'] = username
     username = property(get_username, set_username)
 
@@ -62,15 +69,18 @@ class PlayerAccount(object):
         :returns: An instance of a :class:`BaseObject` sub-class, or
             ``None`` if this account is not controlling anything.
         """
+
         return self._odata.get('currently_controlling_id')
+
     def set_currently_controlling_id(self, obj_id):
         """
         Sets what this account is controlling.
 
-        :param obj_or_id: The object ID to set as the thing
+        :param obj_id: The object ID to set as the thing
             being controlled by this account.
         :type obj_id: ``str``
         """
+
         self._odata['currently_controlling_id'] = obj_id
     currently_controlling_id = property(get_currently_controlling_id,
                                         set_currently_controlling_id)
@@ -83,6 +93,7 @@ class PlayerAccount(object):
         """
         Shortcut for saving an object to the account store.
         """
+
         self._account_store.save_account(self)
 
     @property
@@ -93,6 +104,7 @@ class PlayerAccount(object):
         :rtype: str
         :returns: The SHA512 password hash.
         """
+
         return self._odata['password']
 
     def _get_hash_for_password(self, password):
@@ -103,6 +115,7 @@ class PlayerAccount(object):
 
         :param str password: The password to calc a hash for.
         """
+
         pass_str = 'sha512:%s:%s' % (settings.SECRET_KEY, password)
         return hashlib.sha512(pass_str).hexdigest()
 
@@ -116,6 +129,7 @@ class PlayerAccount(object):
 
         :param str new_password: The new password to set.
         """
+
         self._odata['password'] = self._get_hash_for_password(new_password)
 
     def check_password(self, password):
@@ -127,5 +141,6 @@ class PlayerAccount(object):
         :returns: If the given password's hash matches what we have for the
             account, returns `True`. If not, `False.
         """
+
         given_hash = self._get_hash_for_password(password)
         return given_hash == self.password

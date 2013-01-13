@@ -217,7 +217,7 @@ class BaseObject(object):
         .. note:: Controlled does not mean connected.
 
         :rtype: str
-        :returns: The CouchDB ID of the PlayerAccount that controls this object.
+        :returns: The ID of the PlayerAccount that controls this object.
         """
         return self._odata.get('controlled_by_account_id')
 
@@ -225,8 +225,7 @@ class BaseObject(object):
         """
         Sets the PlayerAccount ID that controls this object.
 
-        :param str account_id: The CouchDB ID of the PlayerAccount that
-            controls this object.
+        :param str account_id: The ID of the PlayerAccount that controls this object.
         """
         self._odata['controlled_by_account_id'] = account_id
     controlled_by_id = property(get_controlled_by_id, set_controlled_by_id)
