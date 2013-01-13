@@ -34,6 +34,7 @@ class InMemoryAccountStore(object):
 
         self.db_manager.prepare_and_load()
 
+    @inlineCallbacks
     def create_account(self, username, password, email):
         """
         Creates and returns a new account. Makes sure the username is unique.
@@ -49,33 +50,29 @@ class InMemoryAccountStore(object):
         if self._accounts.has_key(username.lower()):
             raise UsernameTakenException('Username already taken.')
 
-        # Tells the mud server to create a new PlayerObject to go with the
-        # eventual new PlayerAccount. Returns a deferred, which we add
-        # a callback for and handle in obj_created_callback.
-        p_obj_created_deferred = self._mud_service.proxyamp.callRemote(
+        # Create the PlayerAccount, pointed at the PlayerObject's _id.
+        account = PlayerAccount(
+            self._mud_service,
+            # This will be set after the first save.
+            id=None,
+            username=username,
+            email=email,
+            # We'll go back and adjust this.
+            currently_controlling_id=None,
+            password=None,
+        )
+        # Hashes the password for safety.
+        account.set_password(password)
+        yield account.save()
+
+        results = yield self._mud_service.proxyamp.callRemote(
             CreatePlayerObjectCmd,
+            account_id=account.id,
             username=username,
         )
 
-        def obj_created_callback(results):
-            """
-            This is ran once the mud server creates a new PlayerObject. The
-            proxy then creates a matching PlayerAccount, set to controlling
-            the newly created PlayerObject.
-            """
-
-            # Create the PlayerAccount, pointed at the PlayerObject's _id.
-            account = PlayerAccount(
-                self._mud_service,
-                _id=username,
-                email=email,
-                currently_controlling_id=results['object_id'],
-                password=None,
-            )
-            # Hashes the password for safety.
-            account.set_password(password)
-            account.save()
-        p_obj_created_deferred.addCallback(obj_created_callback)
+        account.currently_controlling_id = results['object_id']
+        yield account.save()
 
     @inlineCallbacks
     def save_account(self, account):
@@ -102,17 +99,43 @@ class InMemoryAccountStore(object):
         del self._accounts[account.username]
         del account
 
-    def get_account(self, username):
+    def get_account(self, account_id):
         """
         Retrieves the requested :class:`PlayerAccount` instance.
 
-        :param str username: The username of the account to retrieve.
+        :param id account_id: The ID of the account to return.
         :rtype: :class:`PlayerAccount`
         :returns: The requested account.
+        :raises: AccountNotFoundException if no PlayerAccount with the given
+            ID exists.
         """
 
         try:
-            return self._accounts[username.lower()]
+            return self._accounts[account_id]
         except KeyError:
             raise AccountNotFoundException(
-                'No such account with username "%s" found' % username)
+                'Invalid account ID requested: %s' % account_id)
+
+    def get_account_by_username(self, username):
+        """
+        Retrieves the PlayerAccount object matching the given username.
+
+        .. note:: This is much slower than :py:meth:`get_account`.
+
+        :param str username: The username to search for. This is not
+            case sensitive.
+        :rtype: :class:`PlayerAccount`
+        :returns: The requested account.
+        :raises: AccountNotFoundException if no PlayerAccount with the given
+            username exists.
+        """
+
+        lowered_username = username.lower()
+
+        #TODO: Use a deferred generator?
+        for id, player in self._accounts.items():
+            if player.username.lower() == lowered_username:
+                return player
+
+        raise AccountNotFoundException(
+            'Invalid username requested: %s' % username)

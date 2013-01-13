@@ -154,7 +154,8 @@ class BaseObject(object):
             is currently in. Typically a ``RoomObject``, but can also be
             other types.
         """
-        loc_id = self._odata.get('location_id')
+        # TODO: We shouldn't need to cast this in the future.
+        loc_id = int(self._odata.get('location_id'))
         if loc_id:
             return self._object_store.get_object(loc_id)
         else:
@@ -169,10 +170,13 @@ class BaseObject(object):
         """
         if self.base_type == 'room':
             # Rooms can't have locations.
-            pass
-        elif isinstance(obj_or_id, basestring):
+            return
+        elif isinstance(obj_or_id, int):
             # Already a string, assume this is an object ID.
             self._odata['location_id'] = obj_or_id
+        elif isinstance(obj_or_id, basestring):
+            # TODO: This should be removable in the future.
+            raise Exception("BaseObject.set_location() can't accept strings: %s" % obj_or_id)
         else:
             # Looks like a BaseObject sub-class. Grab the object ID.
             self._odata['location_id'] = obj_or_id.id

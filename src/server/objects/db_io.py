@@ -90,10 +90,7 @@ class DBManager(object):
 
         for oid, ojson_str in results:
             # Given an object ID and a JSON str, load this object into the store.
-            self.load_object(str(oid), ojson_str)
-
-        # TODO: Use a count(*) instead.
-        logger.info("%d objects loaded." % len(self.store._objects))
+            self.load_object(oid, ojson_str)
 
     def load_object(self, oid, ojson_str):
         """
@@ -118,7 +115,7 @@ class DBManager(object):
                 'Attempting to load invalid parent on object #%s: %s' % (
                     oid,
                     doc['parent'],
-                    )
+                )
             )
             # Instantiate the object, using the values from the DB as kwargs.
         self.store._objects[oid] = parent(self.store._mud_service, id=oid, **doc)
@@ -141,7 +138,7 @@ class DBManager(object):
                 INSERT INTO dott_objects (data) VALUES (%s) RETURNING id
                 """, (json.dumps(odata),)
             )
-            inserted_id = str(result[0][0])
+            inserted_id = result[0][0]
             obj.id = inserted_id
         else:
             yield self._db.runOperation(

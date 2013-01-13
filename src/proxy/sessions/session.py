@@ -4,12 +4,14 @@ from src.utils import logger
 from src.server.protocols.proxyamp import SendThroughObjectCmd, TriggerAtSessionDisconnectForObjectCmd, NotifyFirstSessionConnectedOnObjectCmd
 from src.proxy.sessions.login_shell import LoginShell
 
+
 class Session(object):
     """
     This class represents a player's session. Each player gets a session
     assigned to them whenever they connect to the game server. All communication
-    between game and player goes through here. 
+    between game and player goes through here.
     """
+
     def __init__(self, protocol):
         """
         :attr Protocol protocol: Typically
@@ -87,7 +89,7 @@ class Session(object):
         Disconnects the user.
         """
         self.protocol.disconnectClient()
-      
+
     def update_counters(self, idle=False):
         """
         Hit this when the user enters a command in order to update idle timers
@@ -112,7 +114,7 @@ class Session(object):
         :returns: ``True`` if this session is logged in, ``False`` otherwise.
         """
         return self.account is not None
-        
+
     def after_session_connect_event(self):
         """
         Triggered right after a connection is established.
@@ -148,13 +150,14 @@ class Session(object):
                 TriggerAtSessionDisconnectForObjectCmd,
                 object_id=controlled_id,
             )
-    
+
     def login(self, account):
         """
         After the user has authenticated, this actually logs them in. Attaches
         the Session to the account's default PlayerObject instance.
         """
-        # set the session properties 
+
+        # set the session properties
         self.account = account
         self.conn_time = datetime.time()
         self.interactive_shell = None

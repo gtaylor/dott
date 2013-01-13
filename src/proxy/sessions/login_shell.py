@@ -68,8 +68,8 @@ class LoginShell(InteractiveShell):
 
         if not is_username_valid(user_input):
             self.session.msg(
-                'Invalid username given. Usernames must be at least two '\
-                'characters long, no greater than 25, and must only contain '\
+                'Invalid username given. Usernames must be at least two '
+                'characters long, no greater than 25, and must only contain '
                 'alphanumerics, spaces, and underscores.\n'
             )
             self.prompt_get_username()
@@ -77,10 +77,10 @@ class LoginShell(InteractiveShell):
 
         # At this point, username is valid.
         self.username_given = user_input
-        
+
         try:
             # See if there's an account match.
-            self.matched_account = self._account_store.get_account(self.username_given)
+            self.matched_account = self._account_store.get_account_by_username(self.username_given)
         except AccountNotFoundException:
             # No account match, must be a new player.
             self.current_step = self.step_confirm_new_username

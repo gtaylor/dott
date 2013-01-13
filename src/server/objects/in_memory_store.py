@@ -1,7 +1,7 @@
 from fuzzywuzzy import fuzz
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-#from src.utils import logger
+from src.utils import logger
 from src.server.objects.db_io import DBManager
 from src.server.objects.exceptions import InvalidObjectId
 
@@ -152,8 +152,10 @@ class InMemoryObjectStore(object):
             no object with the requested ID exists.
         """
 
+        assert isinstance(obj_id, int), "get_object had a non-int passed"
+
         try:
-            return self._objects[str(obj_id)]
+            return self._objects[obj_id]
         except KeyError:
             raise InvalidObjectId(
                 'Invalid object ID requested: %s' % str(obj_id)

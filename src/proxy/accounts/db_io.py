@@ -86,12 +86,14 @@ class DBManager(object):
 
         logger.info("Loading accounts into RAM.")
 
-        results = yield self._db.runQuery("SELECT username, data FROM %s"% settings.ACCOUNT_TABLE_NAME)
+        results = yield self._db.runQuery(
+            "SELECT id, username, currently_controlling_id, email, password FROM %s" %
+                settings.ACCOUNT_TABLE_NAME)
 
         for row in results:
-            username = row[0]
+            id = row[0]
 
-            self.store._accounts[username.lower()] = self.instantiate_account_from_row(row)
+            self.store._accounts[id] = self.instantiate_account_from_row(row)
 
     def instantiate_account_from_row(self, row):
         """
@@ -102,30 +104,53 @@ class DBManager(object):
         :returns: The newly loaded player account.
         """
 
-        username, json_str = row
-        doc = json.loads(json_str)
+        id, username, currently_controlling_id, email, password = row
         # Instantiate the object, using the values from the DB as kwargs.
-        return PlayerAccount(self.store._mud_service, **doc)
+        return PlayerAccount(
+            self.store._mud_service,
+            id,
+            username,
+            currently_controlling_id,
+            email,
+            password=password,
+        )
 
     @inlineCallbacks
     def save_account(self, account):
         """
-        Saves an object to the DB. The _odata attribute on each object is
+        Saves an account to the DB. The _odata attribute on each account is
         the raw dict that gets saved to and loaded from the DB entry.
 
         :param BaseObject obj: The object to save to the DB.
         """
 
-        odata = account._odata
-        username = odata['_id'].lower()
+        if not account.id:
+            result = yield self._db.runQuery(
+                """
+                INSERT INTO dott_accounts (username, currently_controlling_id, email, password) VALUES (%s, %s, %s, %s) RETURNING id
+                """,
+                (
+                    account.username,
+                    account.currently_controlling_id,
+                    account.email,
+                    account.password,
+                )
+            )
+            inserted_id = str(result[0][0])
+            account.id = inserted_id
+        else:
+            yield self._db.runOperation(
+                """
+                UPDATE dott_accounts SET username=%s, currently_controlling_id=%s, email=%s, password=%s WHERE ID=%s
+                """,
+                (
+                    account.username,
+                    account.currently_controlling_id,
+                    account.email,
+                    account.password,
+                    account.id)
+            )
 
-        logger.info("Saving new account")
-        yield self._db.runOperation(
-            """
-            INSERT INTO dott_accounts (username, data) VALUES (%s, %s)
-            """, (username, json.dumps(odata))
-        )
-        # TODO: This doesn't support updates.
         returnValue(account)
 
     @inlineCallbacks
@@ -135,19 +160,20 @@ class DBManager(object):
         """
 
         yield self._db.runOperation(
-            "DELETE FROM dott_accounts WHERE username=%s", (account.username,)
+            "DELETE FROM dott_accounts WHERE id=%s", (account.id,)
         )
 
     @inlineCallbacks
-    def reload_object(self, obj):
+    def reload_account(self, obj):
         """
-        Re-loads the object from the DB.
+        Re-loads the account from the DB.
 
         :param BaseObject obj: The object to re-load from the DB.
         :rtype: BaseObject
         :returns: The newly re-loaded object.
         """
 
+        # TODO: Adapt this for accounts.
         obj_id = obj.id
 
         results = yield self._db.runQuery(

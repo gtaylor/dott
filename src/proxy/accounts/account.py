@@ -1,4 +1,5 @@
 import hashlib
+from twisted.internet.defer import inlineCallbacks
 
 import settings
 
@@ -9,21 +10,24 @@ class PlayerAccount(object):
     InMemoryAccountStore backend.
     """
 
-    def __init__(self, mud_service, **kwargs):
+    def __init__(self, mud_service, id, username, currently_controlling_id,
+                 email, password=None):
         """
         :param MudService server: The top-level MudService instance found in
             dott.tac.
 
-        :keyword str _id: The username for the account.
-        :keyword str email: The email address associated with this account.
-        :keyword str password: The encrypted password string.
-        :keyword str currently_controlling_id: The ID of the Object this
-            account is currently controlling.
+        :keyword int id: A unique ID for the object, or None if this is
+            a new account.
         """
 
+        # TODO: This should probably be self._proxy_service.
         self._mud_service = mud_service
 
-        self._odata = kwargs
+        self.id = id
+        self.username = username
+        self.currently_controlling_id = currently_controlling_id
+        self.email = email
+        self.password = password
 
     #
     ## Begin properties
@@ -40,72 +44,17 @@ class PlayerAccount(object):
 
         return self._mud_service.account_store
 
-    def get_username(self):
-        """
-        The account's username serves as its CouchDB _id.
-
-        :rtype: str
-        :returns: The account's username.
-        """
-
-        return self._odata['_id']
-
-    def set_username(self, username):
-        """
-        Sets the account's username to something else.
-
-        .. warning:: Be careful with this, we might need to detect for
-            collisions manually, or risk over-writing accounts.
-        """
-
-        self._odata['_id'] = username
-    username = property(get_username, set_username)
-
-    def get_currently_controlling_id(self):
-        """
-        Determines what object this account is currently controlling and
-        returns it.
-
-        :returns: An instance of a :class:`BaseObject` sub-class, or
-            ``None`` if this account is not controlling anything.
-        """
-
-        return self._odata.get('currently_controlling_id')
-
-    def set_currently_controlling_id(self, obj_id):
-        """
-        Sets what this account is controlling.
-
-        :param obj_id: The object ID to set as the thing
-            being controlled by this account.
-        :type obj_id: ``str``
-        """
-
-        self._odata['currently_controlling_id'] = obj_id
-    currently_controlling_id = property(get_currently_controlling_id,
-                                        set_currently_controlling_id)
-
     #
     ## Begin regular methods.
     #
 
+    @inlineCallbacks
     def save(self):
         """
         Shortcut for saving an object to the account store.
         """
 
-        self._account_store.save_account(self)
-
-    @property
-    def password(self):
-        """
-        Returns the raw, SHA512'd password hash.
-
-        :rtype: str
-        :returns: The SHA512 password hash.
-        """
-
-        return self._odata['password']
+        yield self._account_store.save_account(self)
 
     def _get_hash_for_password(self, password):
         """
@@ -130,7 +79,10 @@ class PlayerAccount(object):
         :param str new_password: The new password to set.
         """
 
-        self._odata['password'] = self._get_hash_for_password(new_password)
+        from src.utils import logger
+        logger.info("GIVEN PASS: %s" % new_password)
+        self.password = self._get_hash_for_password(new_password)
+        logger.info("GIVEN HASH: %s" % self.password)
 
     def check_password(self, password):
         """
@@ -142,5 +94,8 @@ class PlayerAccount(object):
             account, returns `True`. If not, `False.
         """
 
+        from src.utils import logger
         given_hash = self._get_hash_for_password(password)
+        logger.info("GIVEN HASH: %s" % given_hash)
+        logger.info("STORED HASH: %s" % self.password)
         return given_hash == self.password

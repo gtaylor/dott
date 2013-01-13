@@ -9,16 +9,19 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 import settings
 #from src.utils import logger
 
+
 class AmpServerFactory(protocol.ServerFactory):
     """
     This factory creates new ProxyAMP protocol instances to use for accepting
     connections from TCPServer.
     """
+
     def __init__(self, server):
         """
         :attr ProxyService _mud_service: The global :class:`MudService` instance.
         :attr ProxyAMP protocol: The protocol the factory creates instances of.
         """
+
         self._mud_service = server
         self.protocol = ProxyAMP
 
@@ -33,6 +36,7 @@ class AmpServerFactory(protocol.ServerFactory):
         :returns: A newly minted ProxyAMP instance. MudService uses this to
             accept connections from ProxyService.
         """
+
         self._mud_service.proxyamp = ProxyAMP()
         self._mud_service.proxyamp.factory = self
         return self._mud_service.proxyamp
@@ -44,6 +48,7 @@ class AmpClientFactory(protocol.ReconnectingClientFactory):
     on the :class:`ProxyService` instance, which is used for piping input
     fron Telnet to the MUD server.
     """
+
     # Initial reconnect delay in seconds.
     initialDelay = 1
     maxDelay = 1
@@ -52,12 +57,14 @@ class AmpClientFactory(protocol.ReconnectingClientFactory):
         """
         :attr ProxyService server: The global :class:`ProxyService` instance.
         """
+
         self._proxy_service = server
 
     def startedConnecting(self, connector):
         """
         Called when starting to try to connect to the MUD server.
         """
+
         print 'Attempting to connect to MUD server...'
 
     def buildProtocol(self, addr):
@@ -71,6 +78,7 @@ class AmpClientFactory(protocol.ReconnectingClientFactory):
         :returns: A newly minted ProxyAMP instance. ProxyService uses this
             to connect to the MUD server (MudService).
         """
+
         # Bring reconnect delay back down to initial value, in case the AMP
         # connection is broken later on.
         self.resetDelay()
@@ -85,6 +93,7 @@ class AmpClientFactory(protocol.ReconnectingClientFactory):
         """
         Called when the AMP connection to the MUD server is lost.
         """
+
         print 'Lost connection.  Reason:', reason
         protocol.ReconnectingClientFactory.clientConnectionLost(
             self,
@@ -96,6 +105,7 @@ class AmpClientFactory(protocol.ReconnectingClientFactory):
         """
         Called when an AMP connection attempt to the MUD server fails.
         """
+
         print 'Proxy->MUD server Connection failed. Reason:', reason
         protocol.ReconnectingClientFactory.clientConnectionFailed(
             self,
@@ -107,10 +117,12 @@ class AmpClientFactory(protocol.ReconnectingClientFactory):
 ## MUD Server to Proxy commands.
 #
 
+
 class ShutdownProxyCmd(amp.Command):
     """
     Used for letting the MUD server shutdown the proxy.
     """
+
     arguments = []
     response = []
 
@@ -120,8 +132,9 @@ class DisconnectSessionsOnObjectCmd(amp.Command):
     AMP command for disconnecting all sessions that control the specified
     object. Used in the voluntary 'quit' command and forceful '@boot'.
     """
+
     arguments = [
-        ('object_id', amp.Unicode()),
+        ('object_id', amp.Integer()),
     ]
     response = [
         ('num_sessions_closed', amp.Integer()),
@@ -132,6 +145,7 @@ class WhoConnectedCmd(amp.Command):
     """
     Command for asking the proxy for which accounts are connected.
     """
+
     arguments = []
     response = [
         ('accounts', amp.ListOf(amp.Unicode())),
@@ -142,6 +156,7 @@ class AnnounceToAllSessionsCmd(amp.Command):
     """
     Announces a message to all connected, authenticated sessions.
     """
+
     arguments = [
         ('message', amp.Unicode()),
         ('prefix', amp.Unicode()),
@@ -152,6 +167,7 @@ class AnnounceToAllSessionsCmd(amp.Command):
 ## Proxy to MUD Server commands.
 #
 
+
 class NotifyFirstSessionConnectedOnObjectCmd(amp.Command):
     """
     Sent to an object upon a controlling PlayerAccount connecting via
@@ -159,21 +175,25 @@ class NotifyFirstSessionConnectedOnObjectCmd(amp.Command):
     subsequent duplicate connections (IE: player connects with three different
     clients at the same time) will not trigger the event repeatedly.
     """
+
     arguments = [
-        ('object_id', amp.Unicode()),
+        ('object_id', amp.Integer()),
     ]
     response = []
+
 
 class CreatePlayerObjectCmd(amp.Command):
     """
     AMP command for creating a new PlayerObject for a new PlayerAccount.
     Called by the proxy during character creation.
     """
+
     arguments = [
+        ('account_id', amp.Integer()),
         ('username', amp.Unicode()),
     ]
     response = [
-        ('object_id', amp.Unicode()),
+        ('object_id', amp.Integer()),
     ]
 
 
@@ -181,8 +201,9 @@ class SendThroughObjectCmd(amp.Command):
     """
     AMP command for sending player input from the proxy to the MUD server.
     """
+
     arguments = [
-        ('object_id', amp.Unicode()),
+        ('object_id', amp.Integer()),
         ('input', amp.Unicode()),
     ]
     response = []
@@ -192,8 +213,9 @@ class EmitToObjectCmd(amp.Command):
     """
     AMP command for sending output to a player connected on the proxy.
     """
+
     arguments = [
-        ('object_id', amp.Unicode()),
+        ('object_id', amp.Integer()),
         ('message', amp.Unicode()),
     ]
     response = []
@@ -205,8 +227,9 @@ class TriggerAtSessionDisconnectForObjectCmd(amp.Command):
     command asks the MUD Server to run said object's
     ``after_session_disconnect_event()`` method.
     """
+
     arguments = [
-        ('object_id', amp.Unicode()),
+        ('object_id', amp.Integer()),
     ]
     response = []
 
@@ -258,6 +281,7 @@ class ProxyAMP(amp.AMP):
         """
         Allows the MUD server to shutdown the proxy.
         """
+
         # The root ProxyService instance.
         service = self.factory._proxy_service
         # Shutdown the proxy.
@@ -276,6 +300,7 @@ class ProxyAMP(amp.AMP):
         :param str object_id: The object whose session to emit to.
         :param str message: The message to emit to any sessions on the object.
         """
+
         # The root ProxyService instance.
         service = self.factory._proxy_service
         # Emit to the any Session objects responsible for object_id.
@@ -290,6 +315,7 @@ class ProxyAMP(amp.AMP):
         """
         Asks the proxy for a list of connected/authenticated accounts.
         """
+
         # The root ProxyService instance.
         service = self.factory._proxy_service
         sessions = service.session_manager.get_sessions()
@@ -313,6 +339,7 @@ class ProxyAMP(amp.AMP):
         :param str object_id: Sessions that are controlling this object will
             be disconnected.
         """
+
         service = self.factory._proxy_service
         session_mgr = service.session_manager
 
@@ -335,6 +362,7 @@ class ProxyAMP(amp.AMP):
 
         :param str message: The message to announce to all sessions.
         """
+
         service = self.factory._proxy_service
         session_mgr = service.session_manager
         session_mgr.announce_all(message, prefix=prefix)
@@ -375,12 +403,15 @@ class ProxyAMP(amp.AMP):
     )
 
     @inlineCallbacks
-    def create_player_object_command(self, username):
+    def create_player_object_command(self, account_id, username):
         """
         Creates a PlayerObject to match a newly created PlayerAccount.
 
+        :param int account_id: The ID of the PlayerAccount that controls
+            this object.
         :param str username: The username of the PlayerAccount.
         """
+
         # The root MudService instance.
         service = self.factory._mud_service
 
@@ -389,7 +420,7 @@ class ProxyAMP(amp.AMP):
             'src.game.parents.base_objects.player.PlayerObject',
             name=username,
             original_account_id=username,
-            controlled_by_account_id=username,
+            controlled_by_account_id=account_id,
             location_id=settings.NEW_PLAYER_LOCATION_ID,
         )
 
@@ -410,6 +441,7 @@ class ProxyAMP(amp.AMP):
         :param str object_id: The ID of the object who lost its last
             controlling session to disconnection.
         """
+
         # The root MudService instance.
         service = self.factory._mud_service
         # Get a reference to the object that is disconnecting.
@@ -430,9 +462,10 @@ class ProxyAMP(amp.AMP):
         different clients at the same time) will not trigger the event
         repeatedly.
 
-        :param str object_id: The object ID to trigger the
+        :param int object_id: The object ID to trigger the
             ``after_session_connect_event`` for.
         """
+
         # The root MudService instance.
         service = self.factory._mud_service
         # Get a reference to the object that will send the command.
