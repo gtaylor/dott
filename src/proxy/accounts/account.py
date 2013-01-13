@@ -79,10 +79,7 @@ class PlayerAccount(object):
         :param str new_password: The new password to set.
         """
 
-        from src.utils import logger
-        logger.info("GIVEN PASS: %s" % new_password)
         self.password = self._get_hash_for_password(new_password)
-        logger.info("GIVEN HASH: %s" % self.password)
 
     def check_password(self, password):
         """
@@ -94,8 +91,5 @@ class PlayerAccount(object):
             account, returns `True`. If not, `False.
         """
 
-        from src.utils import logger
         given_hash = self._get_hash_for_password(password)
-        logger.info("GIVEN HASH: %s" % given_hash)
-        logger.info("STORED HASH: %s" % self.password)
         return given_hash == self.password

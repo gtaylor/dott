@@ -6,8 +6,9 @@ from twisted.internet.defer import inlineCallbacks
 import settings
 from src.utils import logger
 
+
 @inlineCallbacks
-def setup_db(store, conn):
+def setup_db(conn):
     """
     Setup our Postgres database. Do some really basic population.
 
@@ -17,22 +18,27 @@ def setup_db(store, conn):
 
     yield conn.runOperation(
         """
-        CREATE TABLE %s
+        CREATE TABLE dott_accounts
         (
           id serial NOT NULL,
           username character varying(30) NOT NULL,
-          data json,
-          CONSTRAINT %s_id PRIMARY KEY (id),
-          CONSTRAINT %s_username UNIQUE (username)
+          currently_controlling_id integer,
+          email character varying(50) NOT NULL,
+          password character varying(255) NOT NULL,
+          CONSTRAINT dott_accounts_id PRIMARY KEY (id),
+          CONSTRAINT dott_accounts_currently_controlling_id FOREIGN KEY (currently_controlling_id)
+              REFERENCES dott_objects (id) MATCH SIMPLE
+              ON UPDATE NO ACTION ON DELETE NO ACTION,
+          CONSTRAINT dott_accounts_username UNIQUE (username)
         )
         WITH (
           OIDS=FALSE
         );
-        """ % (
-            settings.ACCOUNT_TABLE_NAME,
-            settings.ACCOUNT_TABLE_NAME,
-            settings.ACCOUNT_TABLE_NAME,
-        )
+        CREATE INDEX fki_dott_accounts_currently_controlling_id
+          ON dott_accounts
+          USING btree
+          (currently_controlling_id);
+        """
     )
 
     logger.info("%s table created." % settings.ACCOUNT_TABLE_NAME)

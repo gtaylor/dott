@@ -56,7 +56,7 @@ class DBManager(object):
         # present. Determine whether it exists.
         is_accounts_table_present = yield self.is_accounts_table_present()
         if not is_accounts_table_present:
-            on_first_run.setup_db(self.store, self._db)
+            on_first_run.setup_db(self._db)
         else:
             self.load_accounts_into_store()
 
