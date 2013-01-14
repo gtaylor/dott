@@ -1,7 +1,7 @@
 from fuzzywuzzy import fuzz
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from src.utils import logger
+#from src.utils import logger
 from src.server.objects.db_io import DBManager
 from src.server.objects.exceptions import InvalidObjectId
 

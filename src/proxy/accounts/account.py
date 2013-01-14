@@ -10,18 +10,17 @@ class PlayerAccount(object):
     InMemoryAccountStore backend.
     """
 
-    def __init__(self, mud_service, id, username, currently_controlling_id,
+    def __init__(self, proxy_service, id, username, currently_controlling_id,
                  email, password=None):
         """
-        :param MudService server: The top-level MudService instance found in
-            dott.tac.
+        :param ProxyService proxy_service: The top-level proxy service
+            instance found in dott.tac.
 
         :keyword int id: A unique ID for the object, or None if this is
             a new account.
         """
 
-        # TODO: This should probably be self._proxy_service.
-        self._mud_service = mud_service
+        self._proxy_service = proxy_service
 
         self.id = id
         self.username = username
@@ -42,7 +41,7 @@ class PlayerAccount(object):
         :returns: Reference to the global account store instance.
         """
 
-        return self._mud_service.account_store
+        return self._proxy_service.account_store
 
     #
     ## Begin regular methods.
