@@ -50,7 +50,9 @@ class PlayerAccount(object):
     @inlineCallbacks
     def save(self):
         """
-        Shortcut for saving an object to the account store.
+        Shortcut for saving an object to the account store. If this account
+        instance lacked a value for :py:attr:`id`, it will have one after
+        this fires.
         """
 
         yield self._account_store.save_account(self)

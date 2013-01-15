@@ -19,10 +19,7 @@ class InMemoryAccountStore(object):
         """
 
         self._proxy_service = proxy_service
-
-        # Keys are usernames, values are PlayerAccount instances.
-        self._accounts = {}
-
+        # All DB operations happen through here.
         self.db_manager = DBManager(self, db_name=db_name)
 
     def prep_and_load(self):
@@ -45,9 +42,6 @@ class InMemoryAccountStore(object):
         :raises: :class:`UsernameTakenException` if someone attempts to create
             a duplicate account.
         """
-
-        if self._accounts.has_key(username.lower()):
-            raise UsernameTakenException('Username already taken.')
 
         # Create the PlayerAccount, pointed at the PlayerObject's _id.
         account = PlayerAccount(
@@ -72,33 +66,31 @@ class InMemoryAccountStore(object):
 
         account.currently_controlling_id = results['object_id']
         yield account.save()
+        returnValue(account)
 
     @inlineCallbacks
     def save_account(self, account):
         """
-        Saves an account to the DB. The _odata attribute on each account is
-        the raw dict that gets saved to and loaded from the DB entry.
+        Saves an account to the DB. If the PlayerAccount's ``id`` attrib is
+        ``None``, it will be populated with an int PK value when the response
+        comes back from the DB.
 
         :param PlayerAccount account: The account to save.
         """
 
         saved_account = yield self.db_manager.save_account(account)
-        self._accounts[saved_account.username] = saved_account
         returnValue(saved_account)
 
     @inlineCallbacks
     def destroy_account(self, account):
         """
-        Destroys an account by yanking it from :py:attr:`_accounts` and the DB.
+        Destroys an account by dropping it from the DB.
         """
 
         yield self.db_manager.destroy_account(account)
 
-        # Clear the object out of the store, mark it for GC.
-        del self._accounts[account.username]
-        del account
-
-    def get_account(self, account_id):
+    @inlineCallbacks
+    def get_account_by_id(self, account_id):
         """
         Retrieves the requested :class:`PlayerAccount` instance.
 
@@ -109,17 +101,17 @@ class InMemoryAccountStore(object):
             ID exists.
         """
 
-        try:
-            return self._accounts[account_id]
-        except KeyError:
+        account = yield self.db_manager.get_account_by_id(account_id)
+        if not account:
             raise AccountNotFoundException(
                 'Invalid account ID requested: %s' % account_id)
+        else:
+            returnValue(account)
 
+    @inlineCallbacks
     def get_account_by_username(self, username):
         """
         Retrieves the PlayerAccount object matching the given username.
-
-        .. note:: This is much slower than :py:meth:`get_account`.
 
         :param str username: The username to search for. This is not
             case sensitive.
@@ -131,10 +123,9 @@ class InMemoryAccountStore(object):
 
         lowered_username = username.lower()
 
-        #TODO: Use a deferred generator?
-        for id, player in self._accounts.items():
-            if player.username.lower() == lowered_username:
-                return player
-
-        raise AccountNotFoundException(
-            'Invalid username requested: %s' % username)
+        account = yield self.db_manager.get_account_by_username(lowered_username)
+        if not account:
+            raise AccountNotFoundException(
+                'Invalid account username requested: %s' % lowered_username)
+        else:
+            returnValue(account)

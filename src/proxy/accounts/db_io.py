@@ -7,7 +7,7 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 
 import settings
 from src.proxy.accounts.account import PlayerAccount
-from src.utils import logger
+#from src.utils import logger
 from src.proxy.accounts import on_first_run
 from src.utils.db import txPGDictConnection
 
@@ -64,8 +64,6 @@ class DBManager(object):
         is_accounts_table_present = yield self.is_accounts_table_present()
         if not is_accounts_table_present:
             on_first_run.setup_db(self._db)
-        else:
-            self.load_accounts_into_store()
 
     @inlineCallbacks
     def is_accounts_table_present(self):
@@ -86,36 +84,42 @@ class DBManager(object):
         returnValue(bool(results))
 
     @inlineCallbacks
-    def load_accounts_into_store(self):
+    def get_account_by_id(self, account_id):
         """
-        Loads all of the objects from the DB into RAM.
+        Given an account's ID, return a matching PlayerAccount instance.
+
+        :param int account_id: The account's ID (pk).
+        :rtype: PlayerAccount
         """
 
-        logger.info("Loading accounts into RAM.")
-
-        results = yield self._db.runQuery(self.BASE_ACCOUNT_SELECT)
+        modified_query = "{base_query} WHERE id=%s".format(
+            base_query=self.BASE_ACCOUNT_SELECT
+        )
+        results = yield self._db.runQuery(modified_query, (account_id,))
 
         for row in results:
-            id = row['id']
-            self.store._accounts[id] = self.instantiate_account_from_row(row)
+            returnValue(self.instantiate_account_from_row(row))
+        else:
+            returnValue(None)
 
     @inlineCallbacks
-    def reload_account(self, account):
+    def get_account_by_username(self, account_username):
         """
-        Re-loads a single account from the DB.
+        Given an account's username, return a matching PlayerAccount instance.
 
-        :param PlayerAccount account: The account to re-load from the DB.
+        :param str account_username: The account's username.
         :rtype: PlayerAccount
-        :returns: The newly re-loaded account.
         """
 
-        results = yield self._db.runQuery(
-            "%s WHERE id=%s", (self.BASE_ACCOUNT_SELECT, account.id)
+        modified_query = "{base_query} WHERE username=%s".format(
+            base_query=self.BASE_ACCOUNT_SELECT
         )
+        results = yield self._db.runQuery(modified_query, (account_username,))
 
         for row in results:
-            id = row['id']
-            self.store._accounts[id] = self.instantiate_account_from_row(row)
+            returnValue(self.instantiate_account_from_row(row))
+        else:
+            returnValue(None)
 
     def instantiate_account_from_row(self, row):
         """

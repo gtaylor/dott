@@ -1,5 +1,6 @@
 import datetime
 import hashlib
+from twisted.internet.defer import inlineCallbacks, returnValue
 
 from src.proxy.accounts.validators import is_email_valid, is_username_valid
 from src.proxy.accounts.exceptions import AccountNotFoundException
@@ -60,6 +61,7 @@ class LoginShell(InteractiveShell):
 
         self.session.msg('Enter your name:')
 
+    @inlineCallbacks
     def step_get_username(self, user_input):
         """
         Processes the player's response to the username prompt.
@@ -70,7 +72,7 @@ class LoginShell(InteractiveShell):
         if not user_input:
             # Probably just hit enter. Ask again.
             self.prompt_get_username()
-            return False
+            returnValue(False)
 
         if not is_username_valid(user_input):
             self.session.msg(
@@ -79,23 +81,23 @@ class LoginShell(InteractiveShell):
                 'alphanumerics, spaces, and underscores.\n'
             )
             self.prompt_get_username()
-            return False
+            returnValue(False)
 
         # At this point, username is valid.
         self.username_given = user_input
 
         try:
             # See if there's an account match.
-            self.matched_account = self._account_store.get_account_by_username(self.username_given)
+            self.matched_account = yield self._account_store.get_account_by_username(self.username_given)
         except AccountNotFoundException:
             # No account match, must be a new player.
             self.current_step = self.step_confirm_new_username
             self.prompt_confirm_new_username()
-            return False
+            returnValue(False)
 
         self.current_step = self.step_get_existing_user_password
         self.prompt_get_existing_user_password()
-        return True
+        returnValue(True)
 
     def prompt_get_existing_user_password(self):
         """
