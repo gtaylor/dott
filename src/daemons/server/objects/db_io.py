@@ -72,8 +72,8 @@ class DBManager(object):
 
         # See if the dott_objects table already exists. If not, create it.
         results = yield self._db.runQuery(
-            "SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name=%s",
-            (settings.OBJECT_TABLE_NAME,)
+            "SELECT table_name FROM information_schema.tables"
+            "  WHERE table_schema='public' AND table_name=dott_objects"
         )
 
         returnValue(bool(results))
@@ -86,7 +86,7 @@ class DBManager(object):
 
         logger.info("Loading objects into store.")
 
-        results = yield self._db.runQuery("SELECT * FROM %s"% settings.OBJECT_TABLE_NAME)
+        results = yield self._db.runQuery("SELECT * FROM dott_objects")
 
         for oid, ojson_str in results:
             # Given an object ID and a JSON str, load this object into the store.

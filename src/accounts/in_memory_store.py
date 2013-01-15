@@ -24,8 +24,8 @@ class InMemoryAccountStore(object):
 
     def prep_and_load(self):
         """
-        Sets the :attr:`_db` reference. Does some basic DB population if
-        need be.
+        Creates DB connection objects. Makes sure the account-related
+        tables exists. Creates it if it doesn't.
         """
 
         self.db_manager.prepare_and_load()

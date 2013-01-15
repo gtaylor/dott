@@ -41,4 +41,4 @@ def setup_db(conn):
         """
     )
 
-    logger.info("%s table created." % settings.ACCOUNT_TABLE_NAME)
+    logger.info("dott_accounts table created.")

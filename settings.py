@@ -15,8 +15,6 @@ SECRET_KEY = 'CHANGE-ME-AND-KEEP-SAFE'
 
 DATABASE_NAME = 'dott'
 DATABASE_USERNAME = 'dott'
-OBJECT_TABLE_NAME = 'dott_objects'
-ACCOUNT_TABLE_NAME = 'dott_accounts'
 
 # Amazon Web Services credentials.
 AWS_ACCESS_KEY_ID = 'XXXXXXXXXXXXXXXXXXXXX'
