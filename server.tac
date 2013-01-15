@@ -13,11 +13,11 @@ from twisted.application import internet, service
 from twisted.internet import reactor
 
 import settings
-from src.server.protocols.proxyamp import AmpServerFactory
+from src.daemons.server.protocols.proxyamp import AmpServerFactory
 from src.game.commands.global_cmdtable import GlobalCommandTable, GlobalAdminCommandTable
-from src.server.commands.handler import CommandHandler
-from src.server.objects.in_memory_store import InMemoryObjectStore
-from src.server.parent_loader.loader import ParentLoader
+from src.daemons.server.commands.handler import CommandHandler
+from src.daemons.server.objects.in_memory_store import InMemoryObjectStore
+from src.daemons.server.parent_loader.loader import ParentLoader
 
 class MudService(service.Service):
     """

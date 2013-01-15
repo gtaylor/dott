@@ -1,4 +1,4 @@
-from src.server.commands.cmdtable import CommandTable
+from src.daemons.server.commands.cmdtable import CommandTable
 
 from src.game.commands import general as general_cmds
 from src.game.commands import staff as staff_cmds

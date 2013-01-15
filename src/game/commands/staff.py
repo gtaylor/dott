@@ -1,11 +1,11 @@
 """
 Staff commands.
 """
-from src.server.protocols.proxyamp import ShutdownProxyCmd
-from src.server.commands.command import BaseCommand
-from src.server.commands.exceptions import CommandError
-from src.server.objects.exceptions import InvalidObjectId
-from src.server.parent_loader.exceptions import InvalidParent
+from src.daemons.server.protocols.proxyamp import ShutdownProxyCmd
+from src.daemons.server.commands.command import BaseCommand
+from src.daemons.server.commands.exceptions import CommandError
+from src.daemons.server.objects.exceptions import InvalidObjectId
+from src.daemons.server.parent_loader.exceptions import InvalidParent
 from src.game.parents.base_objects.exit import ExitObject
 from src.game.parents.base_objects.room import RoomObject
 

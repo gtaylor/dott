@@ -1,10 +1,10 @@
 from src.game.parents.space.hangar import HangarMixin
 from src.game.parents.space.solar_system import SolarSystemPlaceObject
-from src.server.commands.cmdtable import CommandTable
-from src.server.commands.command import BaseCommand
+from src.daemons.server.commands.cmdtable import CommandTable
+from src.daemons.server.commands.command import BaseCommand
 from src.game.parents.space.ships.interior.base import SpaceShipInteriorObject
-from src.server.commands.exceptions import CommandError
-from src.server.objects.exceptions import InvalidObjectId
+from src.daemons.server.commands.exceptions import CommandError
+from src.daemons.server.objects.exceptions import InvalidObjectId
 
 class CmdLaunch(BaseCommand):
     """

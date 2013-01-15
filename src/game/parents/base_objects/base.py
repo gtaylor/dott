@@ -1,6 +1,8 @@
 from twisted.internet.defer import inlineCallbacks, returnValue
-from src.server.protocols.proxyamp import EmitToObjectCmd
 from fuzzywuzzy import fuzz
+
+from src.daemons.server.protocols.proxyamp import EmitToObjectCmd
+
 
 class BaseObject(object):
     """

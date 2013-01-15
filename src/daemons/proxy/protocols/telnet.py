@@ -6,7 +6,7 @@ from twisted.internet import protocol
 
 from src.utils import logger
 from src.utils.general import to_unicode, to_str
-from src.proxy.sessions.session import Session
+from src.daemons.proxy.sessions.session import Session
 
 class MudTelnetServerFactory(protocol.ServerFactory):
     """

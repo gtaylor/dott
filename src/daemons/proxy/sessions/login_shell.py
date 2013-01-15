@@ -2,9 +2,9 @@ import datetime
 import hashlib
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from src.proxy.accounts.validators import is_email_valid, is_username_valid
-from src.proxy.accounts.exceptions import AccountNotFoundException
-from src.server.commands.interactive import InteractiveShell
+from src.accounts.validators import is_email_valid, is_username_valid
+from src.accounts.exceptions import AccountNotFoundException
+from src.daemons.server.commands.interactive import InteractiveShell
 from src.utils.email import OutboundEmail
 
 

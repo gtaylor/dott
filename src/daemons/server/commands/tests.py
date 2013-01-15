@@ -1,7 +1,7 @@
 from src.utils.test_utils import DottTestCase
-from src.server.commands.parser import CommandParser, ParsedCommand
-from src.server.commands.cmdtable import CommandTable, DuplicateCommandException
-from src.server.commands.command import BaseCommand
+from src.daemons.server.commands.parser import CommandParser, ParsedCommand
+from src.daemons.server.commands.cmdtable import CommandTable, DuplicateCommandException
+from src.daemons.server.commands.command import BaseCommand
 
 class CommandTableTests(DottTestCase):
     def setUp(self):

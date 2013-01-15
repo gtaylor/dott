@@ -6,9 +6,9 @@ AccountStore.
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 import settings
-from src.proxy.accounts.account import PlayerAccount
+from src.accounts.account import PlayerAccount
 #from src.utils import logger
-from src.proxy.accounts import on_first_run
+from src.accounts import on_first_run
 from src.utils.db import txPGDictConnection
 
 

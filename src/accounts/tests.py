@@ -1,6 +1,6 @@
 from src.utils.test_utils import DottTestCase
-from src.proxy.accounts.exceptions import UsernameTakenException
-from src.proxy.accounts.validators import is_email_valid, is_username_valid
+from src.accounts.exceptions import UsernameTakenException
+from src.accounts.validators import is_email_valid, is_username_valid
 
 class DBAccountStoreTests(DottTestCase):
     def test_empty_db_creation(self):

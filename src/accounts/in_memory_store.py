@@ -1,9 +1,9 @@
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-from src.proxy.accounts.db_io import DBManager
-from src.server.protocols.proxyamp import CreatePlayerObjectCmd
-from src.proxy.accounts.exceptions import AccountNotFoundException, UsernameTakenException
-from src.proxy.accounts.account import PlayerAccount
+from src.accounts.db_io import DBManager
+from src.daemons.server.protocols.proxyamp import CreatePlayerObjectCmd
+from src.accounts.exceptions import AccountNotFoundException
+from src.accounts.account import PlayerAccount
 
 
 class InMemoryAccountStore(object):

@@ -1,8 +1,8 @@
 import datetime
 
 from src.utils import logger
-from src.server.protocols.proxyamp import SendThroughObjectCmd, TriggerAtSessionDisconnectForObjectCmd, NotifyFirstSessionConnectedOnObjectCmd
-from src.proxy.sessions.login_shell import LoginShell
+from src.daemons.server.protocols.proxyamp import SendThroughObjectCmd, TriggerAtSessionDisconnectForObjectCmd, NotifyFirstSessionConnectedOnObjectCmd
+from src.daemons.proxy.sessions.login_shell import LoginShell
 
 
 class Session(object):

@@ -1,10 +1,10 @@
 import unittest
 from src.game.commands.global_cmdtable import GlobalCommandTable, GlobalAdminCommandTable
-from src.server.commands.handler import CommandHandler
-from src.server.objects.in_memory_store import InMemoryObjectStore
-from src.server.parent_loader.loader import ParentLoader
-from src.proxy.accounts.in_memory_store import InMemoryAccountStore
-from src.proxy.sessions.session_manager import SessionManager
+from src.daemons.server.commands.handler import CommandHandler
+from src.daemons.server.objects.in_memory_store import InMemoryObjectStore
+from src.daemons.server.parent_loader.loader import ParentLoader
+from src.accounts.in_memory_store import InMemoryAccountStore
+from src.daemons.proxy.sessions.session_manager import SessionManager
 
 class FakeProxyAMP(object):
     """

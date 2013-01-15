@@ -1,8 +1,8 @@
 import settings
-from src.server.commands.command import BaseCommand
-from src.server.commands.exceptions import CommandError
-from src.server.objects.exceptions import InvalidObjectId
-from src.server.protocols.proxyamp import WhoConnectedCmd, DisconnectSessionsOnObjectCmd
+from src.daemons.server.commands.command import BaseCommand
+from src.daemons.server.commands.exceptions import CommandError
+from src.daemons.server.objects.exceptions import InvalidObjectId
+from src.daemons.server.protocols.proxyamp import WhoConnectedCmd, DisconnectSessionsOnObjectCmd
 
 class CmdExamine(BaseCommand):
     """

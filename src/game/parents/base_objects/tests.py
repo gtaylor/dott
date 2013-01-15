@@ -1,5 +1,5 @@
 from src.game.parents.base_objects.thing import ThingObject
-from src.server.objects.exceptions import InvalidObjectId
+from src.daemons.server.objects.exceptions import InvalidObjectId
 from src.utils.test_utils import DottTestCase
 
 class BaseObjectTests(DottTestCase):

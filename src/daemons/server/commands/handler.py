@@ -1,5 +1,5 @@
-from src.server.commands.parser import CommandParser
-from src.server.commands.exceptions import CommandError
+from src.daemons.server.commands.parser import CommandParser
+from src.daemons.server.commands.exceptions import CommandError
 
 class CommandHandler(object):
     """

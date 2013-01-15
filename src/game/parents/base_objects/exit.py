@@ -1,5 +1,5 @@
 from src.game.parents.base_objects.base import BaseObject
-from src.server.objects.exceptions import InvalidObjectId
+from src.daemons.server.objects.exceptions import InvalidObjectId
 
 class ExitObject(BaseObject):
     """

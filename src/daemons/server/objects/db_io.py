@@ -10,8 +10,8 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 
 import settings
 from src.utils import logger
-from src.server.objects import on_first_run
-from src.server.parent_loader.exceptions import InvalidParent
+from src.daemons.server.objects import on_first_run
+from src.daemons.server.parent_loader.exceptions import InvalidParent
 
 class DBManager(object):
     """
