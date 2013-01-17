@@ -220,7 +220,12 @@ class LoginShell(InteractiveShell):
 
         self.generated_password = self._generate_password()
         self._send_registration_mail()
-        self._create_account()
+
+        self._account_store.create_account(
+            self.username_given,
+            self.generated_password,
+            self.email_given)
+
         self.session.msg(
             "Your account has been created, and your randomly "
             "generated password has been sent to %s. Please "
@@ -258,17 +263,6 @@ class LoginShell(InteractiveShell):
             [self.email_given]
         )
         email.send_email()
-
-    def _create_account(self):
-        """
-        Creates the user's new account with the given info, and the randomly
-        generated password.
-        """
-
-        self._account_store.create_account(
-            self.username_given,
-            self.generated_password,
-            self.email_given)
 
     def _generate_password(self):
         """

@@ -10,38 +10,29 @@ class PlayerAccount(object):
     AccountStore backend.
     """
 
-    def __init__(self, proxy_service, id, username, currently_controlling_id,
+    def __init__(self, account_store, id, username, currently_controlling_id,
                  email, password=None):
         """
-        :param ProxyService proxy_service: The top-level proxy service
-            instance found in dott.tac.
-
-        :keyword int id: A unique ID for the object, or None if this is
+        :param AccountStore account_store: A reference to an AccountStore
+            instance.
+        :param id: A unique ID for the object, or None if this is
             a new account.
+        :type id: int or None
+        :param str username: A unique username for the Account.
+        :param int currently_controlling_id: The ID of the object that this
+            account is currently controlling.
+        :param str email: The email associated with the account.
+        :keyword str password: The account's hashed password. This is omitted
+            when creating new accounts, since passwords are randomly generated.
         """
 
-        self._proxy_service = proxy_service
+        self._account_store = account_store
 
         self.id = id
         self.username = username
         self.currently_controlling_id = currently_controlling_id
         self.email = email
         self.password = password
-
-    #
-    ## Begin properties
-    #
-
-    @property
-    def _account_store(self):
-        """
-        Short-cut to the global account store.
-
-        :rtype: AccountStore
-        :returns: Reference to the global account store instance.
-        """
-
-        return self._proxy_service.account_store
 
     #
     ## Begin regular methods.

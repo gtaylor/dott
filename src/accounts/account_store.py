@@ -44,8 +44,9 @@ class AccountStore(object):
         """
 
         # Create the PlayerAccount, pointed at the PlayerObject's _id.
+        #noinspection PyTypeChecker
         account = PlayerAccount(
-            self._proxy_service,
+            self,
             # This will be set after the first save.
             id=None,
             username=username,
