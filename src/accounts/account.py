@@ -19,8 +19,11 @@ class PlayerAccount(object):
             a new account.
         :type id: int or None
         :param str username: A unique username for the Account.
-        :param int currently_controlling_id: The ID of the object that this
-            account is currently controlling.
+        :param currently_controlling_id: The ID of the object that this
+            account is currently controlling. If this is a None, a new
+            PlayerObject will be created on the MUD server the first time
+            this account connects.
+        :type currently_controlling_id: int or None
         :param str email: The email associated with the account.
         :keyword str password: The account's hashed password. This is omitted
             when creating new accounts, since passwords are randomly generated.

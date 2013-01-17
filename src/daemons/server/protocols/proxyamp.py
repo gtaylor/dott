@@ -408,11 +408,18 @@ class ProxyAMP(amp.AMP):
     def on_session_connect_to_object_command(self, account_id, controlling_id,
                                              username):
         """
-        Creates a PlayerObject to match a newly created PlayerAccount.
+        This is sent by the proxy when an account is authenticated and the
+        player is ready to 'connect' to the game. We make sure they have an
+        in-game object to represent themselves, and track their connection
+        state.
 
         :param int account_id: The ID of the PlayerAccount that controls
             this object.
-        :param str username: The username of the PlayerAccount.
+        :param int controlling_id: The ID of the object that the PlayerAccount
+            controls in-game. If this is a -1, the MUD server will create a
+            new PlayerObject for the account.
+        :param str username: The username of the PlayerAccount. This is the
+            name used in the case that we need to create a new PlayerObject.
         """
 
         # The root MudService instance.
