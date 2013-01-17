@@ -15,7 +15,7 @@ from src.daemons.server.parent_loader.exceptions import InvalidParent
 
 class DBManager(object):
     """
-    This class serves as an abstraction layer between the InMemoryObjectStore
+    This class serves as an abstraction layer between the ObjectStore
     and the underlying database. It handles the loading of objects at
     server start time, and all CRUD operations on the DB side. DBManager is
     allowed to manipulate the self.store._objects dict.
@@ -23,7 +23,7 @@ class DBManager(object):
 
     def __init__(self, store, db_name=None):
         """
-        :keyword InMemoryObjectStore store: The object store this instance
+        :keyword ObjectStore store: The object store this instance
             manages.
         :keyword str db_name: Overrides the DB name for the object DB. Currently
             just used for unit testing.

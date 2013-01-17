@@ -4,7 +4,7 @@ from src.utils.test_utils import DottTestCase
 
 class BaseObjectTests(DottTestCase):
     """
-    Testing of the InMemoryObjectStore storage backend.
+    Testing of the ObjectStore storage backend.
     """
     def test_contents(self):
         """

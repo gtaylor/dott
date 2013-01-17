@@ -16,7 +16,7 @@ import settings
 from src.daemons.server.protocols.proxyamp import AmpServerFactory
 from src.game.commands.global_cmdtable import GlobalCommandTable, GlobalAdminCommandTable
 from src.daemons.server.commands.handler import CommandHandler
-from src.daemons.server.objects.in_memory_store import InMemoryObjectStore
+from src.daemons.server.objects.object_store import ObjectStore
 from src.daemons.server.parent_loader.loader import ParentLoader
 
 class MudService(service.Service):
@@ -47,7 +47,7 @@ class MudService(service.Service):
         # directs loading all objects from the DB at start time, and has some
         # convenience method for finding and retrieving objects during
         # runtime.
-        self.object_store = InMemoryObjectStore(self)
+        self.object_store = ObjectStore(self)
 
         # All of the instantiations above just prep data structures. The
         # following lines do all of the loading.

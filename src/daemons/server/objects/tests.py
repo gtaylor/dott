@@ -2,7 +2,7 @@ from src.utils.test_utils import DottTestCase
 
 class InMemoryObjectStoreTests(DottTestCase):
     """
-    Testing of the InMemoryObjectStore storage backend.
+    Testing of the ObjectStore storage backend.
     """
     def test_starter_room_creation(self):
         """

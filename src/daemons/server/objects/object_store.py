@@ -6,7 +6,7 @@ from src.daemons.server.objects.db_io import DBManager
 from src.daemons.server.objects.exceptions import InvalidObjectId
 
 
-class InMemoryObjectStore(object):
+class ObjectStore(object):
     """
     Serves as an in-memory object store for all "physical" entities in the
     game. An "object" can be stuff like a room or a thing.
@@ -152,7 +152,8 @@ class InMemoryObjectStore(object):
             no object with the requested ID exists.
         """
 
-        assert isinstance(obj_id, int), "get_object had a non-int passed"
+        assert isinstance(obj_id, int), \
+            "get_object had a non-int passed: %s %s" % (obj_id, type(obj_id))
 
         try:
             return self._objects[obj_id]

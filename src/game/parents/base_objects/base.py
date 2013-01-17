@@ -50,7 +50,7 @@ class BaseObject(object):
         """
         Short-cut to the global object store.
 
-        :rtype: InMemoryObjectStore
+        :rtype: ObjectStore
         :returns: Reference to the global object store instance.
         """
         return self._mud_service.object_store
@@ -551,9 +551,18 @@ class BaseObject(object):
         :returns: An object that best matches the string provided. If no
             suitable match was found, returns ``None``.
         """
+
         mud_service = self._mud_service
+
+        try:
+            # Object IDs are int primary keys in the object store.
+            obj_id = int(desc[1:])
+        except (ValueError, TypeError):
+            # This isn't an object ID.
+            return None
+
         # Absolute object identifier: lookup the id
-        obj = mud_service.object_store.get_object(desc[1:])
+        obj = mud_service.object_store.get_object(obj_id)
 
         if not self.is_admin():
             # Non-admins can only find objects in their current location.
