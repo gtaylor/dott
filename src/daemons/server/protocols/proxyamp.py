@@ -41,6 +41,7 @@ class AmpServerFactory(protocol.ServerFactory):
         self._mud_service.proxyamp.factory = self
         return self._mud_service.proxyamp
 
+
 class AmpClientFactory(protocol.ReconnectingClientFactory):
     """
     This factory creates new ProxyAMP protocol instances to use to connect
@@ -182,14 +183,15 @@ class NotifyFirstSessionConnectedOnObjectCmd(amp.Command):
     response = []
 
 
-class CreatePlayerObjectCmd(amp.Command):
+class OnSessionConnectToObjectCmd(amp.Command):
     """
-    AMP command for creating a new PlayerObject for a new PlayerAccount.
-    Called by the proxy during character creation.
+    AMP command sent when someone authenticates to the proxy and the
+    account/session is ready to take over its "host object".
     """
 
     arguments = [
         ('account_id', amp.Integer()),
+        ('controlling_id', amp.Integer()),
         ('username', amp.Unicode()),
     ]
     response = [
@@ -403,7 +405,8 @@ class ProxyAMP(amp.AMP):
     )
 
     @inlineCallbacks
-    def create_player_object_command(self, account_id, username):
+    def on_session_connect_to_object_command(self, account_id, controlling_id,
+                                             username):
         """
         Creates a PlayerObject to match a newly created PlayerAccount.
 
@@ -415,22 +418,20 @@ class ProxyAMP(amp.AMP):
         # The root MudService instance.
         service = self.factory._mud_service
 
-        # Create the new PlayerObject.
-        player_obj = yield service.object_store.create_object(
-            'src.game.parents.base_objects.player.PlayerObject',
-            name=username,
-            original_account_id=username,
-            controlled_by_account_id=account_id,
-            location_id=settings.NEW_PLAYER_LOCATION_ID,
-        )
-
-        # The object's ID gets returned so the account creation code can
-        # set the account to control the new object.
-        returnValue({
-            'object_id': str(player_obj.id),
-        })
-    CreatePlayerObjectCmd.responder(
-        create_player_object_command
+        if controlling_id == -1:
+            # Create the new PlayerObject.
+            player_obj = yield service.object_store.create_object(
+                'src.game.parents.base_objects.player.PlayerObject',
+                name=username,
+                original_account_id=username,
+                controlled_by_account_id=account_id,
+                location_id=settings.NEW_PLAYER_LOCATION_ID,
+            )
+            returnValue({'object_id': player_obj.id})
+        else:
+            returnValue({'object_id': controlling_id})
+    OnSessionConnectToObjectCmd.responder(
+        on_session_connect_to_object_command
     )
 
     def trigger_after_session_disconnect_event_object_command(self, object_id):

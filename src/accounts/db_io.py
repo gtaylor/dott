@@ -132,7 +132,7 @@ class DBManager(object):
 
         # Instantiate the object, using the values from the DB as kwargs.
         return PlayerAccount(
-            self.store._proxy_service,
+            self.store,
             row['id'],
             row['username'],
             row['currently_controlling_id'],

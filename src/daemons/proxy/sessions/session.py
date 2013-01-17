@@ -1,7 +1,8 @@
 import datetime
+from twisted.internet.defer import inlineCallbacks
 
 from src.utils import logger
-from src.daemons.server.protocols.proxyamp import SendThroughObjectCmd, TriggerAtSessionDisconnectForObjectCmd, NotifyFirstSessionConnectedOnObjectCmd
+from src.daemons.server.protocols.proxyamp import SendThroughObjectCmd, TriggerAtSessionDisconnectForObjectCmd, NotifyFirstSessionConnectedOnObjectCmd, OnSessionConnectToObjectCmd
 from src.daemons.proxy.sessions.login_shell import LoginShell
 
 
@@ -77,7 +78,7 @@ class Session(object):
         :returns: Reference to the global session manager instance.
         """
         return self._mud_service.session_manager
-        
+
     def msg(self, message):
         """
         Sends a message to the player.
@@ -151,6 +152,7 @@ class Session(object):
                 object_id=controlled_id,
             )
 
+    @inlineCallbacks
     def login(self, account):
         """
         After the user has authenticated, this actually logs them in. Attaches
@@ -173,10 +175,28 @@ class Session(object):
             # with events done at time of connection.
             return
 
+        # This command runs on the MUD server letting it know that the player
+        # is logging in. If no PlayerObject exists for this account yet,
+        # one will be created. The ID of the object that the player controls
+        # will always be returned, whether new or old.
+        results = yield self._mud_service.proxyamp.callRemote(
+            OnSessionConnectToObjectCmd,
+            account_id=self.account.id,
+            # A -1 value means a new object will be created for the player
+            # to control. Most likely their first time logging in.
+            controlling_id=self.account.currently_controlling_id or -1,
+            username=self.account.username,
+        )
+        # The ID of the object that the account controls in-game.
+        controlled_id = results['object_id']
+        if self.account.currently_controlling_id != controlled_id:
+            self.account.currently_controlling_id = controlled_id
+            yield self.account.save()
+
         if len(object_sessions) == 1:
             # This is the only Session controlling the object it is associated
             # with. Trigger the 'at connect' event on the object.
-            self._mud_service.proxyamp.callRemote(
+            yield self._mud_service.proxyamp.callRemote(
                 NotifyFirstSessionConnectedOnObjectCmd,
                 object_id=controlled_id,
             )

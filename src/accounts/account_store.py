@@ -1,7 +1,6 @@
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from src.accounts.db_io import DBManager
-from src.daemons.server.protocols.proxyamp import CreatePlayerObjectCmd
 from src.accounts.exceptions import AccountNotFoundException
 from src.accounts.account import PlayerAccount
 
@@ -51,21 +50,12 @@ class AccountStore(object):
             id=None,
             username=username,
             email=email,
-            # We'll go back and adjust this.
+            # This will be populated on first login.
             currently_controlling_id=None,
             password=None,
         )
         # Hashes the password for safety.
         account.set_password(password)
-        yield account.save()
-
-        results = yield self._proxy_service.proxyamp.callRemote(
-            CreatePlayerObjectCmd,
-            account_id=account.id,
-            username=username,
-        )
-
-        account.currently_controlling_id = results['object_id']
         yield account.save()
         returnValue(account)
 
