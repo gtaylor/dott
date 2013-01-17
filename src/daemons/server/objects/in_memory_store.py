@@ -57,7 +57,7 @@ class InMemoryObjectStore(object):
         """
         Short-cut to the global account store.
 
-        :rtype: InMemoryAccountStore
+        :rtype: AccountStore
         :returns: Reference to the global account store instance.
         """
 

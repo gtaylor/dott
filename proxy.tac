@@ -20,7 +20,7 @@ from twisted.internet import reactor
 import settings
 from src.daemons.proxy.protocols.telnet import MudTelnetServerFactory
 from src.daemons.proxy.sessions.session_manager import SessionManager
-from src.accounts.in_memory_store import InMemoryAccountStore
+from src.accounts.account_store import AccountStore
 from src.daemons.server.protocols.proxyamp import AmpClientFactory
 
 
@@ -38,7 +38,7 @@ class ProxyService(service.Service):
         """
 
         self.session_manager = SessionManager(self)
-        self.account_store = InMemoryAccountStore(self)
+        self.account_store = AccountStore(self)
         # Check the DB, load accounts into RAM.
         self.account_store.prep_and_load()
 

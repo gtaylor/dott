@@ -6,7 +6,7 @@ from src.accounts.exceptions import AccountNotFoundException
 from src.accounts.account import PlayerAccount
 
 
-class InMemoryAccountStore(object):
+class AccountStore(object):
     """
     Serves as an in-memory store for all account values.
     """

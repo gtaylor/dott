@@ -73,7 +73,7 @@ class DBManager(object):
         # See if the dott_objects table already exists. If not, create it.
         results = yield self._db.runQuery(
             "SELECT table_name FROM information_schema.tables"
-            "  WHERE table_schema='public' AND table_name=dott_objects"
+            "  WHERE table_schema='public' AND table_name='dott_objects'"
         )
 
         returnValue(bool(results))

@@ -3,7 +3,7 @@ from src.game.commands.global_cmdtable import GlobalCommandTable, GlobalAdminCom
 from src.daemons.server.commands.handler import CommandHandler
 from src.daemons.server.objects.in_memory_store import InMemoryObjectStore
 from src.daemons.server.parent_loader.loader import ParentLoader
-from src.accounts.in_memory_store import InMemoryAccountStore
+from src.accounts.account_store import AccountStore
 from src.daemons.proxy.sessions.session_manager import SessionManager
 
 class FakeProxyAMP(object):
@@ -27,7 +27,7 @@ class MockMudService(object):
         self.session_manager = SessionManager(self)
         self.parent_loader = ParentLoader()
         self.object_store = InMemoryObjectStore(self, db_name='dott_test')
-        self.account_store = InMemoryAccountStore(self, db_name='dott_test')
+        self.account_store = AccountStore(self, db_name='dott_test')
         self.proxyamp = FakeProxyAMP()
 
         self.object_store._prepare_at_load()

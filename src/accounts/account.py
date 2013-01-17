@@ -7,7 +7,7 @@ import settings
 class PlayerAccount(object):
     """
     This class abstracts accounts out, and is specific to the
-    InMemoryAccountStore backend.
+    AccountStore backend.
     """
 
     def __init__(self, proxy_service, id, username, currently_controlling_id,
@@ -37,7 +37,7 @@ class PlayerAccount(object):
         """
         Short-cut to the global account store.
 
-        :rtype: InMemoryAccountStore
+        :rtype: AccountStore
         :returns: Reference to the global account store instance.
         """
 
@@ -75,7 +75,7 @@ class PlayerAccount(object):
 
         .. note:: You will still need to save this PlayerAccount after setting
             a new password for the change to take affect. Saving is done
-            through :class:`InMemoryAccountStore`.
+            through :class:`AccountStore`.
 
         :param str new_password: The new password to set.
         """

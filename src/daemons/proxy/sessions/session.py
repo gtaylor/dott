@@ -63,7 +63,7 @@ class Session(object):
         """
         Short-cut to the global account store.
 
-        :rtype: InMemoryAccountStore
+        :rtype: AccountStore
         :returns: Reference to the global account store instance.
         """
         return self._mud_service.account_store
