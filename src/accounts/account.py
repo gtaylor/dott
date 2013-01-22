@@ -11,7 +11,7 @@ class PlayerAccount(object):
     """
 
     def __init__(self, account_store, id, username, currently_controlling_id,
-                 email, password=None):
+                 email, password):
         """
         :param AccountStore account_store: A reference to an AccountStore
             instance.
@@ -25,7 +25,7 @@ class PlayerAccount(object):
             this account connects.
         :type currently_controlling_id: int or None
         :param str email: The email associated with the account.
-        :keyword str password: The account's hashed password. This is omitted
+        :password str password: The account's hashed password. This is omitted
             when creating new accounts, since passwords are randomly generated.
         """
 

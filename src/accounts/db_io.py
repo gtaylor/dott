@@ -130,15 +130,8 @@ class DBManager(object):
         :returns: The newly loaded player account.
         """
 
-        # Instantiate the object, using the values from the DB as kwargs.
-        return PlayerAccount(
-            self.store,
-            row['id'],
-            row['username'],
-            row['currently_controlling_id'],
-            row['email'],
-            password=row['password'],
-        )
+        # Instantiate the object, using the values from dict-based row.
+        return PlayerAccount(account_store=self.store, **row)
 
     @inlineCallbacks
     def save_account(self, account):
