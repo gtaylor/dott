@@ -26,7 +26,7 @@ class DBManager(object):
     # retrieving one or all object rows. To retrieve a subset, tack on a
     # WHERE clause by string concatenation.
     BASE_OBJECT_SELECT = (
-        "SELECT id, name, data FROM dott_objects"
+        "SELECT id, name, parent, data FROM dott_objects"
     )
 
     def __init__(self, mud_service, parent_loader, db_name=None):
@@ -122,14 +122,14 @@ class DBManager(object):
 
         # Loads the parent class so we can instantiate the object.
         try:
-            parent = self._parent_loader.load_parent(doc['parent'])
+            parent = self._parent_loader.load_parent(row['parent'])
         except InvalidParent:
             # Get more specific with the exception output in this case. This
             # will give us an object ID to look at in the logs.
             raise InvalidParent(
                 'Attempting to load invalid parent on object #%s: %s' % (
                     id,
-                    doc['parent'],
+                    row['parent'],
                 )
             )
         # Instantiate the object, using the values from the DB as kwargs.
@@ -137,6 +137,7 @@ class DBManager(object):
             self._mud_service,
             id=id,
             name=row['name'],
+            parent=row['parent'],
             **doc
         )
 
@@ -153,17 +154,31 @@ class DBManager(object):
 
         if not obj.id:
             result = yield self._db.runQuery(
-                """
-                INSERT INTO dott_objects (name, data) VALUES (%s, %s) RETURNING id
-                """, (obj.name, json.dumps(odata),)
+                "INSERT INTO dott_objects"
+                "  (name, parent, data) "
+                "  VALUES (%s, %s) "
+                " RETURNING id",
+                (
+                    obj.name,
+                    obj.parent,
+                    json.dumps(odata),
+                )
             )
             inserted_id = result[0][0]
             obj.id = inserted_id
         else:
             yield self._db.runOperation(
-                """
-                UPDATE dott_objects SET name=%s, data=%s WHERE ID=%s
-                """, (obj.name, json.dumps(odata), obj.id)
+                "UPDATE dott_objects SET "
+                "  name=%s,"
+                "  parent=%s,"
+                "  data=%s "
+                " WHERE ID=%s",
+                (
+                    obj.name,
+                    obj.parent,
+                    json.dumps(odata),
+                    obj.id
+                )
             )
         returnValue(obj)
 

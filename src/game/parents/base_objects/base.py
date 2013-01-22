@@ -16,11 +16,13 @@ class BaseObject(object):
     # Same as above, but for admin-only commands.
     local_admin_command_table = None
 
-    def __init__(self, mud_service, id, name, **kwargs):
+    def __init__(self, mud_service, id, parent, name, **kwargs):
         """
         :param MudService mud_service: The MudService class running the game.
         :param int id: A unique ID for the object, or None if this is
             a new object.
+        :param str parent: The Python path to the parent class for this
+            instantiated object.
         :param str name: The non-ASCII'd name.
         :keyword dict kwargs: All objects are instantiated with the values from
             the DB as kwargs. Since the DB representation of all of an
@@ -32,6 +34,7 @@ class BaseObject(object):
         # and the instance is saved, an insert is done.
         self.id = id
         self.name = name
+        self.parent = parent
         # This stores all of the object's data. This includes core and
         # userspace attributes.
         self._odata = kwargs
@@ -114,23 +117,6 @@ class BaseObject(object):
         """
         self._odata['description'] = description
     description = property(get_description, set_description)
-
-    def get_parent(self):
-        """
-        Returns the object's parent class.
-
-        :rtype: str
-        :returns: The object's parent class.
-        """
-        return self._odata['parent']
-    def set_parent(self, parent_class_path):
-        """
-        Sets the object's parent.
-
-        :param str parent_class_path: The new name for the object.
-        """
-        self._odata['parent'] = parent_class_path
-    parent = property(get_parent, set_parent)
 
     def get_location(self):
         """

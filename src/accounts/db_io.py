@@ -147,7 +147,7 @@ class DBManager(object):
                 "INSERT INTO dott_accounts"
                 "  (username, currently_controlling_id, email, password)"
                 "  VALUES (%s, %s, %s, %s) "
-                "  RETURNING id",
+                " RETURNING id",
                 (
                     account.username,
                     account.currently_controlling_id,
@@ -163,7 +163,8 @@ class DBManager(object):
                 "  username=%s,"
                 "  currently_controlling_id=%s,"
                 "  email=%s,"
-                "  password=%s WHERE ID=%s",
+                "  password=%s "
+                " WHERE ID=%s",
                 (
                     account.username,
                     account.currently_controlling_id,
