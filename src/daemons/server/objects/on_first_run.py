@@ -18,8 +18,12 @@ def setup_db(conn):
           id serial NOT NULL,
           name character varying NOT NULL,
           parent character varying NOT NULL,
+          location_id integer,
           data json,
           CONSTRAINT dott_objects_id PRIMARY KEY (id)
+          CONSTRAINT dott_objects_location_id_to_id FOREIGN KEY (location_id)
+            REFERENCES dott_objects (id) MATCH SIMPLE
+            ON UPDATE NO ACTION ON DELETE NO ACTION
         )
         WITH (
           OIDS=FALSE

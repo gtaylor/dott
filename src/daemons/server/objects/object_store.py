@@ -84,6 +84,7 @@ class ObjectStore(object):
         obj = NewObject(
             self._mud_service,
             id=None,
+            name=name,
             parent=parent_path,
             **kwargs
         )

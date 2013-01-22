@@ -26,7 +26,7 @@ class DBManager(object):
     # retrieving one or all object rows. To retrieve a subset, tack on a
     # WHERE clause by string concatenation.
     BASE_OBJECT_SELECT = (
-        "SELECT id, name, parent, data FROM dott_objects"
+        "SELECT id, name, parent, location_id, data FROM dott_objects"
     )
 
     def __init__(self, mud_service, parent_loader, db_name=None):
@@ -138,6 +138,7 @@ class DBManager(object):
             id=id,
             name=row['name'],
             parent=row['parent'],
+            location_id=row['location_id'],
             **doc
         )
 
@@ -155,12 +156,13 @@ class DBManager(object):
         if not obj.id:
             result = yield self._db.runQuery(
                 "INSERT INTO dott_objects"
-                "  (name, parent, data) "
-                "  VALUES (%s, %s) "
+                "  (name, parent, location_id, data) "
+                "  VALUES (%s, %s, %s, %s) "
                 " RETURNING id",
                 (
                     obj.name,
                     obj.parent,
+                    obj.location_id,
                     json.dumps(odata),
                 )
             )
@@ -171,11 +173,13 @@ class DBManager(object):
                 "UPDATE dott_objects SET "
                 "  name=%s,"
                 "  parent=%s,"
+                "  location_id=%s,"
                 "  data=%s "
                 " WHERE ID=%s",
                 (
                     obj.name,
                     obj.parent,
+                    obj.location_id,
                     json.dumps(odata),
                     obj.id
                 )

@@ -16,7 +16,7 @@ class BaseObject(object):
     # Same as above, but for admin-only commands.
     local_admin_command_table = None
 
-    def __init__(self, mud_service, id, parent, name, **kwargs):
+    def __init__(self, mud_service, id, parent, name, location_id=None, **kwargs):
         """
         :param MudService mud_service: The MudService class running the game.
         :param int id: A unique ID for the object, or None if this is
@@ -24,6 +24,8 @@ class BaseObject(object):
         :param str parent: The Python path to the parent class for this
             instantiated object.
         :param str name: The non-ASCII'd name.
+        :keyword int location_id: The ID of the object this object resides within.
+            None if this object is location-less.
         :keyword dict kwargs: All objects are instantiated with the values from
             the DB as kwargs. Since the DB representation of all of an
             objects attributes is just a dict, this works really well.
@@ -35,6 +37,7 @@ class BaseObject(object):
         self.id = id
         self.name = name
         self.parent = parent
+        self.location_id = location_id
         # This stores all of the object's data. This includes core and
         # userspace attributes.
         self._odata = kwargs
@@ -127,10 +130,9 @@ class BaseObject(object):
             is currently in. Typically a ``RoomObject``, but can also be
             other types.
         """
-        # TODO: We shouldn't need to cast this in the future.
-        loc_id = int(self._odata.get('location_id'))
-        if loc_id:
-            return self._object_store.get_object(loc_id)
+
+        if self.location_id:
+            return self._object_store.get_object(self.location_id)
         else:
             return None
     def set_location(self, obj_or_id):
@@ -146,13 +148,13 @@ class BaseObject(object):
             return
         elif isinstance(obj_or_id, int):
             # Already a string, assume this is an object ID.
-            self._odata['location_id'] = obj_or_id
+            self.location_id = obj_or_id
         elif isinstance(obj_or_id, basestring):
             # TODO: This should be removable in the future.
             raise Exception("BaseObject.set_location() can't accept strings: %s" % obj_or_id)
         else:
             # Looks like a BaseObject sub-class. Grab the object ID.
-            self._odata['location_id'] = obj_or_id.id
+            self.location_id = obj_or_id.id
     location = property(get_location, set_location)
 
     def get_zone(self):

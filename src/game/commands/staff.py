@@ -1,6 +1,7 @@
 """
 Staff commands.
 """
+from twisted.internet.defer import inlineCallbacks
 from src.daemons.server.protocols.proxyamp import ShutdownProxyCmd
 from src.daemons.server.commands.command import BaseCommand
 from src.daemons.server.commands.exceptions import CommandError
@@ -81,6 +82,7 @@ class CmdDig(BaseCommand):
     """
     name = '@dig'
 
+    @inlineCallbacks
     def func(self, invoker, parsed_cmd):
         mud_service = invoker._mud_service
 
@@ -90,7 +92,7 @@ class CmdDig(BaseCommand):
             raise CommandError('@dig requires a name for the new room.')
 
         room_parent = 'src.game.parents.base_objects.room.RoomObject'
-        new_room = mud_service.object_store.create_object(
+        new_room = yield mud_service.object_store.create_object(
             room_parent,
             name=name_str,
         )
@@ -105,6 +107,7 @@ class CmdCreate(BaseCommand):
     """
     name = '@create'
 
+    @inlineCallbacks
     def func(self, invoker, parsed_cmd):
         mud_service = invoker._mud_service
 
@@ -114,11 +117,14 @@ class CmdCreate(BaseCommand):
             raise CommandError('You must provide a name for the new Thing.')
 
         thing_parent = 'src.game.parents.base_objects.thing.ThingObject'
-        mud_service.object_store.create_object(
+        new_thing = yield mud_service.object_store.create_object(
             thing_parent,
-            location_id=invoker.location.id,
             name=name_str,
-        ).addCallback(lambda new_thing: invoker.emit_to('You have created a new thing named "%s"' % (new_thing.get_appearance_name(invoker),)))
+            location_id=invoker.location.id,
+        )
+        invoker.emit_to('You have created a new thing named "%s"' % (
+            new_thing.get_appearance_name(invoker),
+        ))
 
 
 class CmdTeleport(BaseCommand):
