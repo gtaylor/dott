@@ -10,14 +10,11 @@ class AccountStore(object):
     Serves as an in-memory store for all account values.
     """
 
-    def __init__(self, proxy_service, db_name=None):
+    def __init__(self, db_name=None):
         """
-        :param ProxyService proxy_service: The Twisted service class that
-            runs the proxy.
         :keyword str db_name: Overrides the DB name for the account DB.
         """
 
-        self._proxy_service = proxy_service
         # All DB operations happen through here.
         self.db_manager = DBManager(self, db_name=db_name)
 

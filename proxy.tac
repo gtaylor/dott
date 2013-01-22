@@ -38,7 +38,7 @@ class ProxyService(service.Service):
         """
 
         self.session_manager = SessionManager(self)
-        self.account_store = AccountStore(self)
+        self.account_store = AccountStore()
         # Check the DB, load accounts into RAM.
         self.account_store.prep_and_load()
 
