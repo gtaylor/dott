@@ -16,11 +16,12 @@ class BaseObject(object):
     # Same as above, but for admin-only commands.
     local_admin_command_table = None
 
-    def __init__(self, mud_service, id=None, **kwargs):
+    def __init__(self, mud_service, id, name, **kwargs):
         """
         :param MudService mud_service: The MudService class running the game.
-        :keyword int id: A unique ID for the object, or None if this is
+        :param int id: A unique ID for the object, or None if this is
             a new object.
+        :param str name: The non-ASCII'd name.
         :keyword dict kwargs: All objects are instantiated with the values from
             the DB as kwargs. Since the DB representation of all of an
             objects attributes is just a dict, this works really well.
@@ -30,6 +31,7 @@ class BaseObject(object):
         # This mirrors the 'id' field in dott_objects. If this is set to None
         # and the instance is saved, an insert is done.
         self.id = id
+        self.name = name
         # This stores all of the object's data. This includes core and
         # userspace attributes.
         self._odata = kwargs
@@ -76,23 +78,6 @@ class BaseObject(object):
         :returns: A dict of additional attributes for the object.
         """
         return self._odata['attributes']
-
-    def get_name(self):
-        """
-        Returns the object's name.
-
-        :rtype: str
-        :returns: The object's name.
-        """
-        return self._odata['name']
-    def set_name(self, name):
-        """
-        Sets the object's name.
-
-        :param str name: The new name for the object.
-        """
-        self._odata['name'] = name
-    name = property(get_name, set_name)
 
     def get_aliases(self):
         """

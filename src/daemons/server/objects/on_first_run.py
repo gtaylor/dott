@@ -16,6 +16,7 @@ def setup_db(conn):
         CREATE TABLE dott_objects
         (
           id serial NOT NULL,
+          name character varying NOT NULL,
           data json,
           CONSTRAINT dott_objects_id PRIMARY KEY (id)
         )

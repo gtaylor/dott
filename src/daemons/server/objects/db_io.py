@@ -22,6 +22,13 @@ class DBManager(object):
     allowed to manipulate the self.store._objects dict.
     """
 
+    # This is the base SELECT statement we'll use in a few methods for
+    # retrieving one or all object rows. To retrieve a subset, tack on a
+    # WHERE clause by string concatenation.
+    BASE_OBJECT_SELECT = (
+        "SELECT id, name, data FROM dott_objects"
+    )
+
     def __init__(self, mud_service, parent_loader, db_name=None):
         """
         :param ParentLoader parent_loader: A reference to a ParentLoader instance.
@@ -94,7 +101,7 @@ class DBManager(object):
 
         logger.info("Loading objects into store.")
 
-        results = yield self._db.runQuery("SELECT id, data FROM dott_objects")
+        results = yield self._db.runQuery(self.BASE_OBJECT_SELECT)
 
         for row in results:
             # Given an object ID and a JSON str, load this object into the store.
@@ -126,7 +133,12 @@ class DBManager(object):
                 )
             )
         # Instantiate the object, using the values from the DB as kwargs.
-        return parent(self._mud_service, id=id, **doc)
+        return parent(
+            self._mud_service,
+            id=id,
+            name=row['name'],
+            **doc
+        )
 
     @inlineCallbacks
     def save_object(self, obj):
@@ -142,16 +154,16 @@ class DBManager(object):
         if not obj.id:
             result = yield self._db.runQuery(
                 """
-                INSERT INTO dott_objects (data) VALUES (%s) RETURNING id
-                """, (json.dumps(odata),)
+                INSERT INTO dott_objects (name, data) VALUES (%s, %s) RETURNING id
+                """, (obj.name, json.dumps(odata),)
             )
             inserted_id = result[0][0]
             obj.id = inserted_id
         else:
             yield self._db.runOperation(
                 """
-                UPDATE dott_objects SET data=%s WHERE ID=%s
-                """, (json.dumps(odata), obj.id)
+                UPDATE dott_objects SET name=%s, data=%s WHERE ID=%s
+                """, (obj.name, json.dumps(odata), obj.id)
             )
         returnValue(obj)
 
@@ -176,10 +188,12 @@ class DBManager(object):
         :returns: The newly re-loaded object.
         """
 
-        results = yield self._db.runQuery(
-            "SELECT id,data FROM dott_objects WHERE id=%s", (obj.id,)
+        modified_query = "{base_query} WHERE id=%s".format(
+            base_query=self.BASE_OBJECT_SELECT
         )
+        results = yield self._db.runQuery(modified_query, (obj.id,))
 
-        logger.info("Reloading object from RAM. %s" % results)
         for row in results:
             returnValue(self.instantiate_object_from_row(row))
+        else:
+            returnValue(None)

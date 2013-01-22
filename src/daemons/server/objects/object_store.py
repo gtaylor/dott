@@ -66,20 +66,24 @@ class ObjectStore(object):
         yield self.db_manager.load_objects_into_store(loader_func)
 
     @inlineCallbacks
-    def create_object(self, parent_path, **kwargs):
+    def create_object(self, parent_path, name, **kwargs):
         """
         Creates and saves a new object of the specified parent.
 
         :param str parent_path: The full Python path + class name for a parent.
             for example, src.game.parents.base_objects.room.RoomObject.
+        :param str name: The name of the object.
         :keyword dict kwargs: Additional attributes to set on the object.
         :rtype: BaseObject
         :returns: The newly created/instantiated/saved object.
         """
 
+        # TODO: Parameterize some of this?
+
         NewObject = self.parent_loader.load_parent(parent_path)
         obj = NewObject(
             self._mud_service,
+            id=None,
             parent=parent_path,
             **kwargs
         )
