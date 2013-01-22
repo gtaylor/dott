@@ -5,13 +5,14 @@ InMemoryObjectStore.
 
 import json
 
-from txpostgres import txpostgres
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 import settings
 from src.utils import logger
 from src.daemons.server.objects import on_first_run
-from src.daemons.server.parent_loader.exceptions import InvalidParent
+from src.daemons.server.objects.parent_loader.exceptions import InvalidParent
+from src.utils.db import txPGDictConnection
+
 
 class DBManager(object):
     """
@@ -21,30 +22,34 @@ class DBManager(object):
     allowed to manipulate the self.store._objects dict.
     """
 
-    def __init__(self, store, db_name=None):
+    def __init__(self, mud_service, parent_loader, db_name=None):
         """
-        :keyword ObjectStore store: The object store this instance
-            manages.
+        :param ParentLoader parent_loader: A reference to a ParentLoader instance.
+        :param MudService mud_service: A reference to the top-level MudService.
         :keyword str db_name: Overrides the DB name for the object DB. Currently
             just used for unit testing.
         """
-
-        self.store = store
 
         self._db_name = db_name or settings.DATABASE_NAME
         # This eventually contains a txpostgres Connection object, which is
         # where we can query.
         self._db = None
+        self._parent_loader = parent_loader
+        self._mud_service = mud_service
 
     @inlineCallbacks
     def prepare_and_load(self):
         """
-        Prepares the store for duty, then loads all objects from the DB into
-        the object store.
+        Checks to make sure that the dott_objects table exists. If it doesn't,
+        it creates it.
+
+        :rtype: bool
+        :returns: True if we had to create the dott_objects table, False if
+            it already existed.
         """
 
         # Instantiate the connection to Postgres.
-        self._db = txpostgres.Connection()
+        self._db = txPGDictConnection()
         yield self._db.connect(
             user=settings.DATABASE_USERNAME,
             database=self._db_name
@@ -55,10 +60,10 @@ class DBManager(object):
         is_objects_table_present = yield self.is_objects_table_present()
         if not is_objects_table_present:
             # Table is not present, create it.
-            on_first_run.setup_db(self.store, self._db)
+            on_first_run.setup_db(self._db)
+            returnValue(True)
         else:
-            # Table was present, load the whole shebang into the store.
-            self.load_objects_into_store()
+            returnValue(False)
 
     @inlineCallbacks
     def is_objects_table_present(self):
@@ -79,47 +84,49 @@ class DBManager(object):
         returnValue(bool(results))
 
     @inlineCallbacks
-    def load_objects_into_store(self):
+    def load_objects_into_store(self, loader_func):
         """
         Loads all of the objects from the DB into RAM.
+
+        :param function loader_func: The function to run on the instantiated
+            BaseObject sub-classes.
         """
 
         logger.info("Loading objects into store.")
 
-        results = yield self._db.runQuery("SELECT * FROM dott_objects")
+        results = yield self._db.runQuery("SELECT id, data FROM dott_objects")
 
-        for oid, ojson_str in results:
+        for row in results:
             # Given an object ID and a JSON str, load this object into the store.
-            self.load_object(oid, ojson_str)
+            loader_func(self.instantiate_object_from_row(row))
 
-    def load_object(self, oid, ojson_str):
+    def instantiate_object_from_row(self, row):
         """
         This loads the parent class, instantiates the object through the
         parent class (passing the values from the DB as constructor kwargs).
 
-        :param oid:
-        :param ojson_str:
+        :param row: the txPG row representing this object.
         :rtype: BaseObject
         :returns: The newly loaded object.
         """
 
-        doc = json.loads(ojson_str)
+        id = row['id']
+        doc = json.loads(row['data'])
 
         # Loads the parent class so we can instantiate the object.
         try:
-            parent = self.store._parent_loader.load_parent(doc['parent'])
+            parent = self._parent_loader.load_parent(doc['parent'])
         except InvalidParent:
             # Get more specific with the exception output in this case. This
             # will give us an object ID to look at in the logs.
             raise InvalidParent(
                 'Attempting to load invalid parent on object #%s: %s' % (
-                    oid,
+                    id,
                     doc['parent'],
                 )
             )
-            # Instantiate the object, using the values from the DB as kwargs.
-        self.store._objects[oid] = parent(self.store._mud_service, id=oid, **doc)
-        return self.store._objects[oid]
+        # Instantiate the object, using the values from the DB as kwargs.
+        return parent(self._mud_service, id=id, **doc)
 
     @inlineCallbacks
     def save_object(self, obj):
@@ -169,14 +176,10 @@ class DBManager(object):
         :returns: The newly re-loaded object.
         """
 
-        obj_id = obj.id
-
         results = yield self._db.runQuery(
-            "SELECT * FROM dott_objects WHERE id=%s", (obj.id,)
+            "SELECT id,data FROM dott_objects WHERE id=%s", (obj.id,)
         )
 
         logger.info("Reloading object from RAM. %s" % results)
-        for oid, ojson_str in results:
-            del self.store._objects[obj_id]
-            self.load_object(oid, ojson_str)
-            returnValue(self.load_object(oid, ojson_str))
+        for row in results:
+            returnValue(self.instantiate_object_from_row(row))

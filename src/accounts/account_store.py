@@ -18,13 +18,14 @@ class AccountStore(object):
         # All DB operations happen through here.
         self.db_manager = DBManager(self, db_name=db_name)
 
+    @inlineCallbacks
     def prep_and_load(self):
         """
         Creates DB connection objects. Makes sure the account-related
         tables exists. Creates it if it doesn't.
         """
 
-        self.db_manager.prepare_and_load()
+        yield self.db_manager.prepare_and_load()
 
     @inlineCallbacks
     def create_account(self, username, password, email):

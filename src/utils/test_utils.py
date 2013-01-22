@@ -2,7 +2,7 @@ import unittest
 from src.game.commands.global_cmdtable import GlobalCommandTable, GlobalAdminCommandTable
 from src.daemons.server.commands.handler import CommandHandler
 from src.daemons.server.objects.object_store import ObjectStore
-from src.daemons.server.parent_loader.loader import ParentLoader
+from src.daemons.server.objects.parent_loader.loader import ParentLoader
 from src.accounts.account_store import AccountStore
 from src.daemons.proxy.sessions.session_manager import SessionManager
 
@@ -25,7 +25,6 @@ class MockMudService(object):
         self.global_admin_cmd_table = GlobalAdminCommandTable()
         self.command_handler = CommandHandler(self)
         self.session_manager = SessionManager(self)
-        self.parent_loader = ParentLoader()
         self.object_store = ObjectStore(self, db_name='dott_test')
         self.account_store = AccountStore(db_name='dott_test')
         self.proxyamp = FakeProxyAMP()

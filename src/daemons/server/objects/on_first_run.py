@@ -6,11 +6,9 @@ from twisted.internet.defer import inlineCallbacks
 from src.utils import logger
 
 @inlineCallbacks
-def setup_db(store, conn):
+def setup_db(conn):
     """
     Setup our Postgres database. Do some really basic population.
-
-    :param ObjectStore store:
     """
 
     yield conn.runOperation(
@@ -28,7 +26,3 @@ def setup_db(store, conn):
     )
 
     logger.info("dott_objects table created.")
-    # Now create the starter room.
-    parent_path = 'src.game.parents.base_objects.room.RoomObject'
-    # TODO: Move this to the ObjectStore.
-    yield store.create_object(parent_path, name='And so it begins...')

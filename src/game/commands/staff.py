@@ -5,7 +5,7 @@ from src.daemons.server.protocols.proxyamp import ShutdownProxyCmd
 from src.daemons.server.commands.command import BaseCommand
 from src.daemons.server.commands.exceptions import CommandError
 from src.daemons.server.objects.exceptions import InvalidObjectId
-from src.daemons.server.parent_loader.exceptions import InvalidParent
+from src.daemons.server.objects.parent_loader.exceptions import InvalidParent
 from src.game.parents.base_objects.exit import ExitObject
 from src.game.parents.base_objects.room import RoomObject
 
@@ -338,7 +338,7 @@ class CmdParent(BaseCommand):
         mud_service = invoker._mud_service
 
         try:
-            mud_service.parent_loader.load_parent(parent_str)
+            mud_service.object_store.parent_loader.load_parent(parent_str)
         except InvalidParent, exc:
             raise CommandError(exc.message)
 
@@ -348,9 +348,8 @@ class CmdParent(BaseCommand):
         obj_to_parent= mud_service.object_store.reload_object(obj_to_parent)
 
         invoker.emit_to('You re-parent %s' % (
-                obj_to_parent.get_appearance_name(invoker),
-            )
-        )
+            obj_to_parent.get_appearance_name(invoker),
+        ))
 
     def _substitute_aliased_parent(self, parent_str):
         """

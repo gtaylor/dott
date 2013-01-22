@@ -4,6 +4,7 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 #from src.utils import logger
 from src.daemons.server.objects.db_io import DBManager
 from src.daemons.server.objects.exceptions import InvalidObjectId
+from src.daemons.server.objects.parent_loader.loader import ParentLoader
 
 
 class ObjectStore(object):
@@ -21,67 +22,48 @@ class ObjectStore(object):
 
     def __init__(self, mud_service, db_name=None):
         """
-        .. warning:: Due to the order this class is instantiated in
-            ``dott.tac``, do not interact with self._account_store within
-            this constructor, as it won't be set yet.
-
         :param MudService mud_service: The MudService class running the game.
         :keyword str db_name: Overrides the DB name for the object DB. Currently
             just used for unit testing.
         """
 
         self._mud_service = mud_service
-        # Reference to the server's parent loader instance.
-        self._parent_loader = mud_service.parent_loader
+        # This is used to sub-classes of BaseObject.
+        self.parent_loader = ParentLoader()
 
         # Keys are object IDs, values are the parent instances (children of
         # src.game.parents.base_objects.base.BaseObject)
         self._objects = {}
 
-        self.db_manager = DBManager(self, db_name=db_name)
+        # DB abstraction layer.
+        self.db_manager = DBManager(
+            mud_service, self.parent_loader, db_name=db_name
+        )
 
-    @property
-    def _session_manager(self):
-        """
-        Short-cut to the global session manager.
-
-        :rtype: SessionManager
-        :returns: Reference to the global session manager instance.
-        """
-
-        #noinspection PyUnresolvedReferences
-        return self._mud_service.session_manager
-
-    @property
-    def _account_store(self):
-        """
-        Short-cut to the global account store.
-
-        :rtype: AccountStore
-        :returns: Reference to the global account store instance.
-        """
-
-        #noinspection PyUnresolvedReferences
-        return self._mud_service.account_store
-
-    @property
-    def _command_handler(self):
-        """
-        Short-cut to the global command handler.
-
-        :rtype: CommandHandler
-        :returns: Reference to the global command handler instance.
-        """
-
-        return self._mud_service.command_handler
-
+    @inlineCallbacks
     def prep_and_load(self):
         """
         This runs early in server startup. Calls on the DBManager
         (self.db_manager) to prep the DB and load all objects.
         """
 
-        self.db_manager.prepare_and_load()
+        is_first_run = yield self.db_manager.prepare_and_load()
+        if is_first_run:
+            # If this is the first time the server has been started, we'll
+            # need to create the starter room.
+            parent_path = 'src.game.parents.base_objects.room.RoomObject'
+            yield self.create_object(parent_path, name='And so it begins...')
+
+        def loader_func(obj):
+            """
+            This function runs on each object instantiated from the DB at
+            start time.
+
+            :param BaseObject obj: The object to load into the store.
+            """
+            self._objects[obj.id] = obj
+
+        yield self.db_manager.load_objects_into_store(loader_func)
 
     @inlineCallbacks
     def create_object(self, parent_path, **kwargs):
@@ -95,7 +77,7 @@ class ObjectStore(object):
         :returns: The newly created/instantiated/saved object.
         """
 
-        NewObject = self._parent_loader.load_parent(parent_path)
+        NewObject = self.parent_loader.load_parent(parent_path)
         obj = NewObject(
             self._mud_service,
             parent=parent_path,
@@ -139,7 +121,9 @@ class ObjectStore(object):
         :returns: The newly re-loaded object.
         """
 
-        yield self.db_manager.reload_object(obj)
+        reloaded_obj = yield self.db_manager.reload_object(obj)
+        self._objects[reloaded_obj.id] = reloaded_obj
+        returnValue(reloaded_obj)
 
     def get_object(self, obj_id):
         """

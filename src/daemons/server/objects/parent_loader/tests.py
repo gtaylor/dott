@@ -1,5 +1,5 @@
 import unittest
-from src.daemons.server.parent_loader.loader import ParentLoader
+from src.daemons.server.objects.parent_loader.loader import ParentLoader
 
 class ParentLoaderTests(unittest.TestCase):
     def setUp(self):

@@ -1,9 +1,11 @@
-from src.daemons.server.parent_loader.exceptions import InvalidParent
+from src.daemons.server.objects.parent_loader.exceptions import InvalidParent
+
 
 class ParentLoader(object):
     """
     Handles loading and caching parent classes.
     """
+
     def __init__(self):
         # The parent cache has keys matching the full path + class to the
         # parent, and the value being a reference to the class.
@@ -22,6 +24,7 @@ class ParentLoader(object):
         :raises: :py:exc:`src.server.parent_loader.exceptions.InvalidParent`
             when an invalid parent is specified.
         """
+
         if not self._parent_cache.has_key(parent_str):
             # __import__ doesn't play nicely with class names within the
             # module you're importing. Split the parent class off from the
