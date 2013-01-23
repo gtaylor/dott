@@ -259,6 +259,7 @@ class CmdZone(BaseCommand):
     """
     name = '@zone'
 
+    @inlineCallbacks
     def func(self, invoker, parsed_cmd):
         if not parsed_cmd.arguments:
             raise CommandError('Set the zone on what?')
@@ -293,19 +294,17 @@ class CmdZone(BaseCommand):
                 raise CommandError('Unable to find your zone master object.')
 
         obj_to_zone.zone = zone_obj
-        obj_to_zone.save()
+        yield obj_to_zone.save()
 
         if zone_obj:
             invoker.emit_to('You zone %s to %s' % (
-                    obj_to_zone.get_appearance_name(invoker),
-                    zone_obj.get_appearance_name(invoker),
-                )
-            )
+                obj_to_zone.get_appearance_name(invoker),
+                zone_obj.get_appearance_name(invoker),
+            ))
         else:
             invoker.emit_to('You clear the zone (if any) on %s' % (
                     obj_to_zone.get_appearance_name(invoker),
-                )
-            )
+            ))
 
 class CmdParent(BaseCommand):
     """

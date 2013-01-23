@@ -17,7 +17,7 @@ class BaseObject(object):
     local_admin_command_table = None
 
     def __init__(self, mud_service, id, parent, name, description=None,
-                 location_id=None,
+                 location_id=None, zone_id=None,
                  originally_controlled_by_account_id=None,
                  controlled_by_account_id=None, **kwargs):
         """
@@ -30,6 +30,7 @@ class BaseObject(object):
         :param str description: The object's description.
         :keyword int location_id: The ID of the object this object resides within.
             None if this object is location-less.
+        :keyword int zone_id: Optional zone ID (ID of another BaseObject).
         :keyword int originally_controlled_by_account_id: Account ID that
             first controlled this object (if it was created in conjunction
             with an account).
@@ -48,6 +49,7 @@ class BaseObject(object):
         self.description = description
         self.parent = parent
         self.location_id = location_id
+        self.zone_id = zone_id
         self.originally_controlled_by_account_id = originally_controlled_by_account_id
         self.controlled_by_account_id = controlled_by_account_id
         # This stores all of the object's data. This includes core and
@@ -138,11 +140,12 @@ class BaseObject(object):
             object's location.
         :type obj_or_id: A ``BaseObject`` sub-class or a ``str``.
         """
+
         if self.base_type == 'room':
             # Rooms can't have locations.
             return
         elif isinstance(obj_or_id, int):
-            # Already a string, assume this is an object ID.
+            # Already an int, assume this is an object ID.
             self.location_id = obj_or_id
         elif isinstance(obj_or_id, basestring):
             # TODO: This should be removable in the future.
@@ -160,9 +163,9 @@ class BaseObject(object):
         :returns: The ``BaseObject`` instance (sub-class) that is this object's
             zone master object.
         """
-        zone_id = self._odata.get('zone_id')
-        if zone_id:
-            return self._object_store.get_object(zone_id)
+
+        if self.zone_id:
+            return self._object_store.get_object(self.zone_id)
         else:
             return None
     def set_zone(self, obj_or_id):
@@ -171,17 +174,20 @@ class BaseObject(object):
 
         :param obj_or_id: The object or object ID to set as the
             object's zone master.
-        :type obj_or_id: A ``BaseObject`` sub-class or a ``str``.
+        :type obj_or_id: A ``BaseObject`` sub-class or an ``int``.
         """
-        if isinstance(obj_or_id, basestring):
-            # Already a string, assume this is an object ID.
-            self._odata['zone_id'] = obj_or_id
+
+        if isinstance(obj_or_id, int):
+            # Already an int, assume this is an object ID.
+            self.zone_id = obj_or_id
+        elif isinstance(obj_or_id, basestring):
+            # TODO: This should be removable in the future.
+            raise Exception("BaseObject.set_zone() can't accept strings: %s" % obj_or_id)
         elif obj_or_id is None:
-            self._odata['zone_id'] = None
+            self.zone_id = None
         else:
             # Looks like a BaseObject sub-class. Grab the object ID.
-            self._odata['zone_id'] = obj_or_id.id
-    # TODO: Convert this to regular schema.
+            self.zone_id = obj_or_id.id
     zone = property(get_zone, set_zone)
 
     #noinspection PyPropertyDefinition

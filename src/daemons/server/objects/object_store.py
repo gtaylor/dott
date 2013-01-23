@@ -132,7 +132,7 @@ class ObjectStore(object):
         """
         Given an object ID, return the object's instance.
 
-        :param str obj_id: The ID of the object to return.
+        :param int obj_id: The ID of the object to return.
         :returns: The requested object, which will be a :class:`BaseObject`
             sub-class of some sort.
         :raises: :py:exc:`src.server.objects.exceptions.InvalidObjectId` if

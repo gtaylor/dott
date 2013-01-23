@@ -26,9 +26,9 @@ class DBManager(object):
     # retrieving one or all object rows. To retrieve a subset, tack on a
     # WHERE clause by string concatenation.
     BASE_OBJECT_SELECT = (
-        "SELECT id, name, parent, location_id, base_type, "
-        "originally_controlled_by_account_id, controlled_by_account_id,"
-        "description, data "
+        "SELECT id, name, parent, location_id, base_type,"
+        " originally_controlled_by_account_id, controlled_by_account_id,"
+        " description, zone_id, data "
         "FROM dott_objects"
     )
 
@@ -157,8 +157,8 @@ class DBManager(object):
                 "INSERT INTO dott_objects"
                 "  (name, parent, location_id, base_type, "
                 "   originally_controlled_by_account_id, "
-                "   controlled_by_account_id, description, data) "
-                "  VALUES (%s, %s, %s, %s, %s, %s, %s, %s) "
+                "   controlled_by_account_id, description, zone_id, data) "
+                "  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) "
                 " RETURNING id",
                 (
                     obj.name,
@@ -168,6 +168,7 @@ class DBManager(object):
                     obj.originally_controlled_by_account_id,
                     obj.controlled_by_account_id,
                     obj.description,
+                    obj.zone_id,
                     json.dumps(odata),
                 )
             )
@@ -183,6 +184,7 @@ class DBManager(object):
                 "  originally_controlled_by_account_id=%s,"
                 "  controlled_by_account_id=%s,"
                 "  description=%s,"
+                "  zone_id=%s,"
                 "  data=%s "
                 " WHERE ID=%s",
                 (
@@ -193,6 +195,7 @@ class DBManager(object):
                     obj.originally_controlled_by_account_id,
                     obj.controlled_by_account_id,
                     obj.description,
+                    obj.zone_id,
                     json.dumps(odata),
                     obj.id
                 )
