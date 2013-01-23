@@ -20,6 +20,9 @@ class DBManager(object):
     allowed to manipulate the self.store._objects dict.
     """
 
+    # TODO: Add a created_dtime column.
+    # TODO: Add last_saved_dtime column.
+
     # This is the base SELECT statement we'll use in a few methods for
     # retrieving one or all account rows. To retrieve a subset, tack on a
     # WHERE clause by string concatenation.

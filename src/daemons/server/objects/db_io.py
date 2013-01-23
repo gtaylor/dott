@@ -22,6 +22,13 @@ class DBManager(object):
     allowed to manipulate the self.store._objects dict.
     """
 
+    # TODO: Add created_by_id column.
+    # TODO: Add a created_dtime column.
+    # TODO: Add last_saved_dtime column.
+    # TODO: Add home_id column.
+    # TODO: Add destination_id column.
+    # TODO: Add flags column?
+
     # This is the base SELECT statement we'll use in a few methods for
     # retrieving one or all object rows. To retrieve a subset, tack on a
     # WHERE clause by string concatenation.
