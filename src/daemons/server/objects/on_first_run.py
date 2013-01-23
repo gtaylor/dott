@@ -19,6 +19,7 @@ def setup_db(conn):
           name character varying NOT NULL,
           parent character varying NOT NULL,
           location_id integer,
+          base_type character varying(10) NOT NULL,
           data json,
           CONSTRAINT dott_objects_id PRIMARY KEY (id)
           CONSTRAINT dott_objects_location_id_to_id FOREIGN KEY (location_id)
