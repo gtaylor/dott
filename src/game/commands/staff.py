@@ -412,15 +412,13 @@ class CmdAlias(BaseCommand):
             invoker.emit_to(
                 'You clear all aliases on %s.' % (
                     obj_to_alias.get_appearance_name(invoker),
-                )
-            )
+            ))
         else:
             invoker.emit_to(
                 'You alias %s to: %s' % (
                     obj_to_alias.get_appearance_name(invoker),
                     ', '.join(aliases),
-                )
-            )
+            ))
         obj_to_alias.aliases = aliases
         obj_to_alias.save()
 

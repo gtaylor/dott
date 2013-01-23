@@ -17,7 +17,7 @@ class BaseObject(object):
     local_admin_command_table = None
 
     def __init__(self, mud_service, id, parent, name, description=None,
-                 location_id=None, zone_id=None,
+                 location_id=None, zone_id=None, aliases=None,
                  originally_controlled_by_account_id=None,
                  controlled_by_account_id=None, **kwargs):
         """
@@ -50,6 +50,7 @@ class BaseObject(object):
         self.parent = parent
         self.location_id = location_id
         self.zone_id = zone_id
+        self.aliases = aliases or []
         self.originally_controlled_by_account_id = originally_controlled_by_account_id
         self.controlled_by_account_id = controlled_by_account_id
         # This stores all of the object's data. This includes core and
@@ -98,25 +99,6 @@ class BaseObject(object):
         :returns: A dict of additional attributes for the object.
         """
         return self._odata['attributes']
-
-    def get_aliases(self):
-        """
-        Returns the object's list of aliases.
-
-        :rtype: str
-        :returns: The object's list of aliases.
-        """
-        return self._odata.get('aliases', [])
-    def set_aliases(self, aliases):
-        """
-        Sets the object's aliases.
-
-        :param str aliases: The new list of aliases for the object.
-        """
-        if not isinstance(aliases, list):
-            aliases = [aliases]
-        self._odata['aliases'] = aliases
-    aliases = property(get_aliases, set_aliases)
 
     def get_location(self):
         """
