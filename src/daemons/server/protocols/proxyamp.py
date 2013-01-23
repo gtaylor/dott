@@ -430,7 +430,7 @@ class ProxyAMP(amp.AMP):
             player_obj = yield service.object_store.create_object(
                 'src.game.parents.base_objects.player.PlayerObject',
                 name=username,
-                original_account_id=username,
+                originally_controlled_by_account_id=account_id,
                 controlled_by_account_id=account_id,
                 location_id=settings.NEW_PLAYER_LOCATION_ID,
             )

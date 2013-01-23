@@ -16,7 +16,8 @@ class BaseObject(object):
     # Same as above, but for admin-only commands.
     local_admin_command_table = None
 
-    def __init__(self, mud_service, id, parent, name, location_id=None, **kwargs):
+    def __init__(self, mud_service, id, parent, name, location_id=None,
+                 originally_controlled_by_account_id=None, **kwargs):
         """
         :param MudService mud_service: The MudService class running the game.
         :param int id: A unique ID for the object, or None if this is
@@ -26,6 +27,9 @@ class BaseObject(object):
         :param str name: The non-ASCII'd name.
         :keyword int location_id: The ID of the object this object resides within.
             None if this object is location-less.
+        :keyword int originally_controlled_by_account_id: Account ID that
+            first controlled this object (if it was created in conjunction
+            with an account).
         :keyword dict kwargs: All objects are instantiated with the values from
             the DB as kwargs. Since the DB representation of all of an
             objects attributes is just a dict, this works really well.
@@ -38,6 +42,7 @@ class BaseObject(object):
         self.name = name
         self.parent = parent
         self.location_id = location_id
+        self.originally_controlled_by_account_id = originally_controlled_by_account_id
         # This stores all of the object's data. This includes core and
         # userspace attributes.
         self._odata = kwargs

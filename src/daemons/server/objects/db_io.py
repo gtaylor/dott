@@ -156,14 +156,16 @@ class DBManager(object):
         if not obj.id:
             result = yield self._db.runQuery(
                 "INSERT INTO dott_objects"
-                "  (name, parent, location_id, base_type, data) "
-                "  VALUES (%s, %s, %s, %s, %s) "
+                "  (name, parent, location_id, base_type, "
+                "   originally_controlled_by_account_id, data) "
+                "  VALUES (%s, %s, %s, %s, %s, %s) "
                 " RETURNING id",
                 (
                     obj.name,
                     obj.parent,
                     obj.location_id,
                     obj.base_type,
+                    obj.originally_controlled_by_account_id,
                     json.dumps(odata),
                 )
             )
@@ -176,6 +178,7 @@ class DBManager(object):
                 "  parent=%s,"
                 "  location_id=%s,"
                 "  base_type=%s,"
+                "  originally_controlled_by_account_id=%s,"
                 "  data=%s "
                 " WHERE ID=%s",
                 (
@@ -183,6 +186,7 @@ class DBManager(object):
                     obj.parent,
                     obj.location_id,
                     obj.base_type,
+                    obj.originally_controlled_by_account_id,
                     json.dumps(odata),
                     obj.id
                 )
