@@ -16,8 +16,10 @@ class BaseObject(object):
     # Same as above, but for admin-only commands.
     local_admin_command_table = None
 
-    def __init__(self, mud_service, id, parent, name, location_id=None,
-                 originally_controlled_by_account_id=None, **kwargs):
+    def __init__(self, mud_service, id, parent, name, description=None,
+                 location_id=None,
+                 originally_controlled_by_account_id=None,
+                 controlled_by_account_id=None, **kwargs):
         """
         :param MudService mud_service: The MudService class running the game.
         :param int id: A unique ID for the object, or None if this is
@@ -25,11 +27,14 @@ class BaseObject(object):
         :param str parent: The Python path to the parent class for this
             instantiated object.
         :param str name: The non-ASCII'd name.
+        :param str description: The object's description.
         :keyword int location_id: The ID of the object this object resides within.
             None if this object is location-less.
         :keyword int originally_controlled_by_account_id: Account ID that
             first controlled this object (if it was created in conjunction
             with an account).
+        :keyword in controlled_by_account_id: If this object is being controlled
+            by an account, this will be populated.
         :keyword dict kwargs: All objects are instantiated with the values from
             the DB as kwargs. Since the DB representation of all of an
             objects attributes is just a dict, this works really well.
@@ -40,9 +45,11 @@ class BaseObject(object):
         # and the instance is saved, an insert is done.
         self.id = id
         self.name = name
+        self.description = description
         self.parent = parent
         self.location_id = location_id
         self.originally_controlled_by_account_id = originally_controlled_by_account_id
+        self.controlled_by_account_id = controlled_by_account_id
         # This stores all of the object's data. This includes core and
         # userspace attributes.
         self._odata = kwargs
@@ -109,23 +116,6 @@ class BaseObject(object):
         self._odata['aliases'] = aliases
     aliases = property(get_aliases, set_aliases)
 
-    def get_description(self):
-        """
-        Returns the object's description.
-
-        :rtype: str
-        :returns: The object's description.
-        """
-        return self._odata.get('description', 'You see nothing special')
-    def set_description(self, description):
-        """
-        Sets the object's description.
-
-        :param str description: The new description for the object.
-        """
-        self._odata['description'] = description
-    description = property(get_description, set_description)
-
     def get_location(self):
         """
         Determines the object's location and returns the instance representing
@@ -191,28 +181,8 @@ class BaseObject(object):
         else:
             # Looks like a BaseObject sub-class. Grab the object ID.
             self._odata['zone_id'] = obj_or_id.id
+    # TODO: Convert this to regular schema.
     zone = property(get_zone, set_zone)
-
-    def get_controlled_by_id(self):
-        """
-        Returns the ID of the PlayerAccount that is controlling this object,
-        or ``None`` if the object is un-controlled.
-
-        .. note:: Controlled does not mean connected.
-
-        :rtype: str
-        :returns: The ID of the PlayerAccount that controls this object.
-        """
-        return self._odata.get('controlled_by_account_id')
-
-    def set_controlled_by_id(self, account_id):
-        """
-        Sets the PlayerAccount ID that controls this object.
-
-        :param str account_id: The ID of the PlayerAccount that controls this object.
-        """
-        self._odata['controlled_by_account_id'] = account_id
-    controlled_by_id = property(get_controlled_by_id, set_controlled_by_id)
 
     #noinspection PyPropertyDefinition
     @property

@@ -26,7 +26,10 @@ class DBManager(object):
     # retrieving one or all object rows. To retrieve a subset, tack on a
     # WHERE clause by string concatenation.
     BASE_OBJECT_SELECT = (
-        "SELECT id, name, parent, location_id, data FROM dott_objects"
+        "SELECT id, name, parent, location_id, base_type, "
+        "originally_controlled_by_account_id, controlled_by_account_id,"
+        "description, data "
+        "FROM dott_objects"
     )
 
     def __init__(self, mud_service, parent_loader, db_name=None):
@@ -135,11 +138,7 @@ class DBManager(object):
         # Instantiate the object, using the values from the DB as kwargs.
         return parent(
             self._mud_service,
-            id=id,
-            name=row['name'],
-            parent=row['parent'],
-            location_id=row['location_id'],
-            **doc
+            **row
         )
 
     @inlineCallbacks
@@ -157,8 +156,9 @@ class DBManager(object):
             result = yield self._db.runQuery(
                 "INSERT INTO dott_objects"
                 "  (name, parent, location_id, base_type, "
-                "   originally_controlled_by_account_id, data) "
-                "  VALUES (%s, %s, %s, %s, %s, %s) "
+                "   originally_controlled_by_account_id, "
+                "   controlled_by_account_id, description, data) "
+                "  VALUES (%s, %s, %s, %s, %s, %s, %s, %s) "
                 " RETURNING id",
                 (
                     obj.name,
@@ -166,6 +166,8 @@ class DBManager(object):
                     obj.location_id,
                     obj.base_type,
                     obj.originally_controlled_by_account_id,
+                    obj.controlled_by_account_id,
+                    obj.description,
                     json.dumps(odata),
                 )
             )
@@ -179,6 +181,8 @@ class DBManager(object):
                 "  location_id=%s,"
                 "  base_type=%s,"
                 "  originally_controlled_by_account_id=%s,"
+                "  controlled_by_account_id=%s,"
+                "  description=%s,"
                 "  data=%s "
                 " WHERE ID=%s",
                 (
@@ -187,6 +191,8 @@ class DBManager(object):
                     obj.location_id,
                     obj.base_type,
                     obj.originally_controlled_by_account_id,
+                    obj.controlled_by_account_id,
+                    obj.description,
                     json.dumps(odata),
                     obj.id
                 )

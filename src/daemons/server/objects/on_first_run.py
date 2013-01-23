@@ -21,10 +21,15 @@ def setup_db(conn):
           location_id integer,
           base_type character varying(10) NOT NULL,
           originally_controlled_by_account_id integer,
+          controlled_by_account_id integer,
+          description character varying,
           data json,
           CONSTRAINT dott_objects_id PRIMARY KEY (id),
           CONSTRAINT dott_objects_location_id_to_id FOREIGN KEY (location_id)
             REFERENCES dott_objects (id) MATCH SIMPLE
+            ON UPDATE NO ACTION ON DELETE NO ACTION,
+          CONSTRAINT dott_objects_controlled_by_account_id_to_id FOREIGN KEY (controlled_by_account_id)
+            REFERENCES dott_accounts (id) MATCH SIMPLE
             ON UPDATE NO ACTION ON DELETE NO ACTION,
           CONSTRAINT dott_objects_originally_controlled_by_account_id_to_id FOREIGN KEY (originally_controlled_by_account_id)
             REFERENCES dott_accounts (id) MATCH SIMPLE

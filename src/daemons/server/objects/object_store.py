@@ -78,8 +78,6 @@ class ObjectStore(object):
         :returns: The newly created/instantiated/saved object.
         """
 
-        # TODO: Parameterize some of this?
-
         NewObject = self.parent_loader.load_parent(parent_path)
         obj = NewObject(
             self._mud_service,
