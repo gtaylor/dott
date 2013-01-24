@@ -25,7 +25,7 @@ def setup_db(conn):
           description character varying,
           zone_id integer,
           destination_id integer,
-          data json,
+          attributes json,
           CONSTRAINT dott_objects_id PRIMARY KEY (id),
           CONSTRAINT dott_objects_location_id_to_id FOREIGN KEY (location_id)
             REFERENCES dott_objects (id) MATCH SIMPLE

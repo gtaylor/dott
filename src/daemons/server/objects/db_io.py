@@ -32,9 +32,9 @@ class DBManager(object):
     # retrieving one or all object rows. To retrieve a subset, tack on a
     # WHERE clause by string concatenation.
     BASE_OBJECT_SELECT = (
-        "SELECT id, name, parent, location_id, base_type,"
+        "SELECT id, name, parent, location_id,"
         " originally_controlled_by_account_id, controlled_by_account_id,"
-        " description, zone_id, aliases, destination_id, data "
+        " description, zone_id, aliases, destination_id, attributes "
         "FROM dott_objects"
     )
 
@@ -126,8 +126,7 @@ class DBManager(object):
         :returns: The newly loaded object.
         """
 
-        id = row['id']
-        doc = json.loads(row['data'])
+        row['attributes'] = json.loads(row['attributes'])
 
         # Loads the parent class so we can instantiate the object.
         try:
@@ -137,7 +136,7 @@ class DBManager(object):
             # will give us an object ID to look at in the logs.
             raise InvalidParent(
                 'Attempting to load invalid parent on object #%s: %s' % (
-                    id,
+                    row['id'],
                     row['parent'],
                 )
             )
@@ -150,13 +149,13 @@ class DBManager(object):
     @inlineCallbacks
     def save_object(self, obj):
         """
-        Saves an object to the DB. The _odata attribute on each object is
+        Saves an object to the DB. The ``attributes`` attribute on each object is
         the raw dict that gets saved to and loaded from the DB entry.
 
         :param BaseObject obj: The object to save to the DB.
         """
 
-        odata = obj._odata
+        attributes = obj.attributes
 
         if not obj.id:
             result = yield self._db.runQuery(
@@ -164,7 +163,7 @@ class DBManager(object):
                 "  (name, parent, location_id, base_type, "
                 "   originally_controlled_by_account_id, "
                 "   controlled_by_account_id, description, zone_id, "
-                "   aliases, destination_id, data) "
+                "   aliases, destination_id, attributes) "
                 "  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
                 " RETURNING id",
                 (
@@ -178,7 +177,7 @@ class DBManager(object):
                     obj.zone_id,
                     obj.aliases,
                     obj.destination_id,
-                    json.dumps(odata),
+                    json.dumps(attributes),
                 )
             )
             inserted_id = result[0][0]
@@ -196,7 +195,7 @@ class DBManager(object):
                 "  zone_id=%s,"
                 "  aliases=%s,"
                 "  destination_id=%s,"
-                "  data=%s "
+                "  attributes=%s "
                 " WHERE ID=%s",
                 (
                     obj.name,
@@ -209,7 +208,7 @@ class DBManager(object):
                     obj.zone_id,
                     obj.aliases,
                     obj.destination_id,
-                    json.dumps(odata),
+                    json.dumps(attributes),
                     obj.id
                 )
             )

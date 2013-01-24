@@ -140,8 +140,7 @@ class DBManager(object):
     @inlineCallbacks
     def save_account(self, account):
         """
-        Saves an account to the DB. The _odata attribute on each account is
-        the raw dict that gets saved to and loaded from the DB entry.
+        Saves an account to the DB.
 
         :param PlayerAccount account: The object to save to the DB.
         """

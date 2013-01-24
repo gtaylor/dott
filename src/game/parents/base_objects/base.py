@@ -1,6 +1,7 @@
 from twisted.internet.defer import inlineCallbacks, returnValue
 from fuzzywuzzy import fuzz
 
+from src.utils import logger
 from src.daemons.server.protocols.proxyamp import EmitToObjectCmd
 
 
@@ -19,7 +20,7 @@ class BaseObject(object):
     def __init__(self, mud_service, id, parent, name, description=None,
                  location_id=None, destination_id=None, zone_id=None,
                  aliases=None, originally_controlled_by_account_id=None,
-                 controlled_by_account_id=None, **kwargs):
+                 controlled_by_account_id=None, attributes=None):
         """
         :param MudService mud_service: The MudService class running the game.
         :param int id: A unique ID for the object, or None if this is
@@ -57,14 +58,9 @@ class BaseObject(object):
         self.controlled_by_account_id = controlled_by_account_id
         # This stores all of the object's data. This includes core and
         # userspace attributes.
-        self._odata = kwargs
+        self._attributes = attributes or {}
 
-        # The 'attributes' key in the _odata dict contains userspace attributes,
-        # which are "user" defined (user being the developer), rather than
-        # the core attributes in the top level of the dict.
-        if not self._odata.has_key('attributes'):
-            # No attributes dict found, create one so it may be saved to the DB.
-            self._odata['attributes'] = {}
+        assert isinstance(self._attributes, dict)
 
     #
     ## Begin properties.
@@ -89,18 +85,6 @@ class BaseObject(object):
         :returns: Reference to the global command handler instance.
         """
         return self._mud_service.command_handler
-
-    @property
-    def attributes(self):
-        """
-        Returns a reference to the attributes dict within self._odata.
-        These are anything but the bare minimum things like object ID,
-        location, parent, name, etc.
-
-        :rtype: dict
-        :returns: A dict of additional attributes for the object.
-        """
-        return self._odata['attributes']
 
     def get_location(self):
         """
@@ -138,6 +122,31 @@ class BaseObject(object):
             # Looks like a BaseObject sub-class. Grab the object ID.
             self.location_id = obj_or_id.id
     location = property(get_location, set_location)
+
+    def get_attributes(self):
+        """
+        Redirects to the object's attributes dict.
+
+        :rtype: dict
+        """
+
+        return self._attributes
+    def set_attributes(self, attrib_dict):
+        """
+        Sets this object's attribute dict.
+
+        :param dict attrib_dict: The attrib dict to set.
+        """
+
+        if not isinstance(attrib_dict, dict):
+            raise Exception(
+                "BaseObject.set_attributes() passed an invalid type: %s (%s)" % (
+                    attrib_dict, type(attrib_dict)
+            ))
+        else:
+            # Looks like a BaseObject sub-class. Grab the object ID.
+            self.attributes = attrib_dict
+    attributes = property(get_attributes, set_attributes)
 
     def get_zone(self):
         """
