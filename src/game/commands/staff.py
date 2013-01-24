@@ -189,6 +189,7 @@ class CmdDescribe(BaseCommand):
     name = '@describe'
     aliases = ['@desc']
 
+    @inlineCallbacks
     def func(self, invoker, parsed_cmd):
         if not parsed_cmd.arguments:
             raise CommandError('Describe what?')
@@ -213,9 +214,18 @@ class CmdDescribe(BaseCommand):
         if not obj_to_desc:
             raise CommandError('Unable to find your target object to describe.')
 
-        invoker.emit_to('You describe %s' % obj_to_desc.get_appearance_name(invoker))
-        obj_to_desc.description = description
-        obj_to_desc.save()
+        is_idesc = {'internal', 'i', 'in'} & parsed_cmd.switches
+        desc_verb = 'internally describe' if is_idesc else 'describe'
+
+        invoker.emit_to('You %s %s' % (
+            desc_verb,
+            obj_to_desc.get_appearance_name(invoker)))
+
+        if is_idesc:
+            obj_to_desc.internal_description = description
+        else:
+            obj_to_desc.description = description
+        yield obj_to_desc.save()
 
 
 class CmdName(BaseCommand):

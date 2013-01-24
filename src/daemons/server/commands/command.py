@@ -2,6 +2,7 @@
 Contains a parent class which all commands should inherit from.
 """
 
+
 class BaseCommand(object):
     """
     A command. All commands should sub-class this.
@@ -10,5 +11,6 @@ class BaseCommand(object):
     :attr list aliases: Alternative ways to call the
         command (e.g. 'l', 'glance', 'examine').
     """
+
     name = None
     aliases = []

@@ -8,16 +8,19 @@ class ParsedCommand(object):
     :attr list arguments: A list of strings representing the arguments passed
         with the command.
     """
+
     def __init__(self, command_str, switches, arguments):
         self.command_str = command_str
         self.switches = switches
         self.arguments = arguments
+
 
 class CommandParser(object):
     """
     Parses user input. Dices it up into bits that the command handler can
     look through to figure out what gets done.
     """
+
     def parse(self, raw_input):
         """
         Do the magic. Returns the parsed command in a convenient container
@@ -38,7 +41,7 @@ class CommandParser(object):
         command_str_split = command_str.split('/')
         # First element (0) is the command string, everything after that
         # is a switch.
-        switches = command_str_split[1:]
+        switches = set(command_str_split[1:])
         # Go back and re-set this to exclude any switches that were in the
         # original command_str.
         command_str = command_str_split[0]
