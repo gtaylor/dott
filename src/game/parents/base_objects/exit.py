@@ -1,6 +1,7 @@
 from src.game.parents.base_objects.base import BaseObject
 from src.daemons.server.objects.exceptions import InvalidObjectId
 
+
 class ExitObject(BaseObject):
     """
     An 'Exit' is used for moving from one location to another. The command
@@ -22,28 +23,33 @@ class ExitObject(BaseObject):
             destination is set, or the destination has been destroyed, this
             returns ``None``.
         """
-        destination_id = self._odata.get('destination_id')
+
         try:
-            return self._object_store.get_object(destination_id)
+            return self._object_store.get_object(self.destination_id)
         except InvalidObjectId:
             return None
 
-    def set_destination(self, destination):
+    def set_destination(self, obj_or_id):
         """
         Sets the object's destination.
 
-        :type destination: str or BaseObject
-        :param destination: The new destination for the object, in ID or
+        :type obj_or_id: int or BaseObject
+        :param obj_or_id: The new destination for the object in ID or
             BaseObject instance form.
         """
-        if not destination:
+
+        if not obj_or_id:
             # Clear the destination.
-            destination = None
-        elif not isinstance(destination, basestring):
-            # This is probably a BaseObject sub-class. We need to store the
-            # object's ID instead of the object itself.
-            destination = destination.id
-        self._odata['destination_id'] = destination
+            self.destination_id = None
+        elif isinstance(obj_or_id, int):
+            # Already an int, assume this is an object ID.
+            self.destination_id = obj_or_id
+        elif isinstance(obj_or_id, basestring):
+            # TODO: This should be removable in the future.
+            raise Exception("ExitObject.set_destination() can't accept strings: %s" % obj_or_id)
+        else:
+            # Looks like a BaseObject sub-class. Grab the object ID.
+            self.destination_id = obj_or_id.id
     destination = property(get_destination, set_destination)
 
     @property
@@ -54,6 +60,7 @@ class ExitObject(BaseObject):
         :rtype: str
         :returns: ``'exit'``
         """
+
         return 'exit'
 
     #
@@ -68,6 +75,7 @@ class ExitObject(BaseObject):
         :param BaseObject obj: The object to attempt to pass through this
             exit.
         """
+
         if not self.destination:
             obj.emit_to('That exit leads to nowhere.')
             return

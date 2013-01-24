@@ -17,8 +17,8 @@ class BaseObject(object):
     local_admin_command_table = None
 
     def __init__(self, mud_service, id, parent, name, description=None,
-                 location_id=None, zone_id=None, aliases=None,
-                 originally_controlled_by_account_id=None,
+                 location_id=None, destination_id=None, zone_id=None,
+                 aliases=None, originally_controlled_by_account_id=None,
                  controlled_by_account_id=None, **kwargs):
         """
         :param MudService mud_service: The MudService class running the game.
@@ -30,6 +30,7 @@ class BaseObject(object):
         :param str description: The object's description.
         :keyword int location_id: The ID of the object this object resides within.
             None if this object is location-less.
+        :keyword int destination_id: Used to determine where an exit leads.
         :keyword int zone_id: Optional zone ID (ID of another BaseObject).
         :keyword int originally_controlled_by_account_id: Account ID that
             first controlled this object (if it was created in conjunction
@@ -49,6 +50,7 @@ class BaseObject(object):
         self.description = description
         self.parent = parent
         self.location_id = location_id
+        self.destination_id = destination_id
         self.zone_id = zone_id
         self.aliases = aliases or []
         self.originally_controlled_by_account_id = originally_controlled_by_account_id

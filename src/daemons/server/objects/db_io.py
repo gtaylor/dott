@@ -26,7 +26,6 @@ class DBManager(object):
     # TODO: Add a created_dtime column.
     # TODO: Add last_saved_dtime column.
     # TODO: Add home_id column.
-    # TODO: Add destination_id column.
     # TODO: Add flags column?
 
     # This is the base SELECT statement we'll use in a few methods for
@@ -35,7 +34,7 @@ class DBManager(object):
     BASE_OBJECT_SELECT = (
         "SELECT id, name, parent, location_id, base_type,"
         " originally_controlled_by_account_id, controlled_by_account_id,"
-        " description, zone_id, aliases, data "
+        " description, zone_id, aliases, destination_id, data "
         "FROM dott_objects"
     )
 
@@ -165,8 +164,8 @@ class DBManager(object):
                 "  (name, parent, location_id, base_type, "
                 "   originally_controlled_by_account_id, "
                 "   controlled_by_account_id, description, zone_id, "
-                "   aliases, data) "
-                "  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) "
+                "   aliases, destination_id, data) "
+                "  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
                 " RETURNING id",
                 (
                     obj.name,
@@ -178,6 +177,7 @@ class DBManager(object):
                     obj.description,
                     obj.zone_id,
                     obj.aliases,
+                    obj.destination_id,
                     json.dumps(odata),
                 )
             )
@@ -195,6 +195,7 @@ class DBManager(object):
                 "  description=%s,"
                 "  zone_id=%s,"
                 "  aliases=%s,"
+                "  destination_id=%s,"
                 "  data=%s "
                 " WHERE ID=%s",
                 (
@@ -207,6 +208,7 @@ class DBManager(object):
                     obj.description,
                     obj.zone_id,
                     obj.aliases,
+                    obj.destination_id,
                     json.dumps(odata),
                     obj.id
                 )
