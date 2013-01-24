@@ -39,7 +39,7 @@ class CmdExamine(BaseCommand):
 
         invoker.emit_to(appearance)
 
-    def get_appearance(self, obj_match, invoker):
+    def get_appearance(self, obj, invoker):
         """
         Checks to see whether the invoker is an admin. If so, admins get
         a very nerdy examine display that shows an object's un-parsed
@@ -49,10 +49,41 @@ class CmdExamine(BaseCommand):
         :rtype: str
         :returns: The object's appearance, from the invoker's perspective.
         """
+
         if invoker.is_admin():
-            return obj_match.get_examine_appearance(invoker)
+            return self.get_examine_appearance(obj, invoker)
         else:
-            return obj_match.get_appearance(invoker)
+            return obj.get_appearance(invoker)
+
+    def get_examine_appearance(self, obj, invoker):
+        """
+        Shows the object as it were examined.
+        """
+
+        attributes_str = ' Parent: %s (%s)\n' % (obj.parent, obj.base_type)
+
+        if self.aliases:
+            attributes_str += ' Aliases: %s\n' % ', '.join(self.aliases)
+
+        if obj.location:
+            attributes_str += ' Location: %s\n' % obj.get_appearance_name(invoker)
+
+        if obj.zone:
+            attributes_str += ' Zone: %s\n' % obj.zone.get_appearance_name(invoker)
+
+        attributes_str += ' Description: %s\n' % obj.description
+
+        if obj.internal_description:
+            attributes_str += ' Internal Description: %s\n' % obj.internal_description
+
+        if obj.attributes:
+            attributes_str += '\n### ATTRIBUTES ###\n'
+
+            for key, value in obj.attributes.items():
+                attributes_str += ' %s: %s\n' % (key, value)
+
+        name = obj.get_appearance_name(invoker=invoker)
+        return "%s\n%s" % (name, attributes_str)
 
 
 class CmdGo(BaseCommand):

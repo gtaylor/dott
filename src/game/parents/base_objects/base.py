@@ -443,26 +443,6 @@ class BaseObject(object):
 
         return "%s\n%s\n%s" % (name, desc, contents)
 
-    def get_examine_appearance(self, invoker):
-        """
-        Shows the object as it were examined.
-        """
-        attributes_str = ''
-        if self.aliases:
-            attributes_str += ' Aliases: %s\n' % ', '.join(self.aliases)
-        attributes_str += ' Parent: %s\n' % self.parent
-        if self.location:
-            attributes_str += ' Location: %s\n' % self.location.get_appearance_name(invoker)
-
-        if self.attributes:
-            attributes_str += '\n### EXTRA ATTRIBUTES ###\n'
-
-            for key, value in self.attributes.items():
-                attributes_str += ' %s: %s\n' % (key, value)
-
-        name = self.get_appearance_name(invoker=invoker)
-        return "%s\n%s" % (name, attributes_str)
-
     def _find_name_or_alias_match(self, objects, desc):
         """
         Performs name and alias matches on a list of objects. Returns the
