@@ -66,7 +66,7 @@ class CmdFind(BaseCommand):
         match_counter = 0
         for match in matches:
             retval += '\n  #%s %s %s' % (
-                match.id.ljust(6),
+                str(match.id).ljust(6),
                 match.base_type.ljust(8),
                 match.name[:80]
             )
@@ -459,6 +459,7 @@ class CmdOpen(BaseCommand):
     """
     name = '@open'
 
+    @inlineCallbacks
     def func(self, invoker, parsed_cmd):
         if not parsed_cmd.arguments:
             raise CommandError('Open an exit named what, and to where?')
@@ -492,7 +493,7 @@ class CmdOpen(BaseCommand):
 
         mud_service = invoker._mud_service
         exit_parent = 'src.game.parents.base_objects.exit.ExitObject'
-        new_exit = mud_service.object_store.create_object(
+        new_exit = yield mud_service.object_store.create_object(
             exit_parent,
             name=exit_name,
             location_id=invoker.location.id,
