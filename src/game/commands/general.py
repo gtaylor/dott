@@ -4,6 +4,7 @@ from src.daemons.server.commands.exceptions import CommandError
 from src.daemons.server.objects.exceptions import InvalidObjectId
 from src.daemons.server.protocols.proxyamp import WhoConnectedCmd, DisconnectSessionsOnObjectCmd
 
+
 class CmdExamine(BaseCommand):
     """
     Examines an object.
@@ -150,6 +151,7 @@ class CmdLeave(BaseCommand):
     """
     Attempts to leave an object.
     """
+
     name = 'leave'
 
     def func(self, invoker, parsed_cmd):
@@ -171,6 +173,7 @@ class CmdCommands(BaseCommand):
     Lists a break-down of available commands. Takes into account your location's
     command table (if applicable), and admin status.
     """
+
     name = 'commands'
 
     def func(self, invoker, parsed_cmd):
@@ -214,16 +217,19 @@ class CmdCommands(BaseCommand):
         :rtype: str
         :returns: A string list of commands in the table.
         """
+
         buffer = ''
         for cmd in table.commands:
             buffer += ' %s' % cmd.name
         return buffer
+
 
 class CmdLook(CmdExamine):
     """
     Synonymous with examine, aside from always getting the object's normal
     appearance, regardless of whether the player is an admin or not.
     """
+
     name = 'look'
     aliases = ['l']
 
@@ -235,6 +241,7 @@ class CmdLook(CmdExamine):
         :rtype: str
         :returns: The object's appearance.
         """
+
         return obj_match.get_appearance(invoker)
 
 
@@ -242,6 +249,7 @@ class CmdWho(BaseCommand):
     """
     A REALLY basic WHO list.
     """
+
     name = 'who'
 
     def func(self, invoker, parsed_cmd):
@@ -249,6 +257,7 @@ class CmdWho(BaseCommand):
         The proxy has all of the details on who is connected, so the mud server
         has to ask. This is handled through a deferred and a callback.
         """
+
         service = invoker._mud_service
         deferred = service.proxyamp.callRemote(WhoConnectedCmd)
         deferred.addCallback(self._wholist_callback, invoker)
@@ -261,6 +270,7 @@ class CmdWho(BaseCommand):
         :param dict results: The details returned by the proxy.
         :param PlayerObject invoker: The player who ran the command.
         """
+
         accounts = results['accounts']
 
         retval = "Player\n"
@@ -281,12 +291,10 @@ class CmdSay(BaseCommand):
     """
     Communicate with people in the same room as you.
     """
+
     name = 'say'
 
     def func(self, invoker, parsed_cmd):
-        # The contents of the object's current location.
-        neighbors = invoker.location.get_contents()
-
         # The sentence to speak.
         speech = u' '.join(parsed_cmd.arguments)
         # Presentational arrangement for other neighboring objects to see.
@@ -302,6 +310,7 @@ class CmdQuit(BaseCommand):
     """
     Disconnects from the game.
     """
+
     name = 'quit'
 
     def func(self, invoker, parsed_cmd):
@@ -320,6 +329,7 @@ class CmdVersion(BaseCommand):
     """
     Shows the dott version identifier. Currently a git commit hash.
     """
+
     name = 'version'
 
     def func(self, invoker, parsed_cmd):

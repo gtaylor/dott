@@ -1,6 +1,7 @@
 """
 Staff commands.
 """
+
 from twisted.internet.defer import inlineCallbacks
 from src.daemons.server.protocols.proxyamp import ShutdownProxyCmd
 from src.daemons.server.commands.command import BaseCommand
@@ -9,6 +10,7 @@ from src.daemons.server.objects.exceptions import InvalidObjectId
 from src.daemons.server.objects.parent_loader.exceptions import InvalidParent
 from src.game.parents.base_objects.exit import ExitObject
 from src.game.parents.base_objects.room import RoomObject
+
 
 class CmdRestart(BaseCommand):
     """
@@ -26,12 +28,13 @@ class CmdRestart(BaseCommand):
 
         @restart proxy
     """
+
     name = '@restart'
 
     #noinspection PyUnusedLocal
     def func(self, invoker, parsed_cmd):
         mud_service = invoker._mud_service
-        
+
         if not parsed_cmd.arguments or 'mud' in parsed_cmd.arguments:
             invoker.emit_to("Restarting MUD server...")
             mud_service.shutdown()
@@ -46,6 +49,7 @@ class CmdFind(BaseCommand):
     Does a fuzzy name match for all objects in the DB. Useful for finding
     various objects.
     """
+
     name = '@find'
 
     def func(self, invoker, parsed_cmd):
@@ -80,6 +84,7 @@ class CmdDig(BaseCommand):
     """
     Digs a new room.
     """
+
     name = '@dig'
 
     @inlineCallbacks
@@ -131,6 +136,7 @@ class CmdTeleport(BaseCommand):
     """
     Moves an object from one place to another
     """
+
     name = '@teleport'
     aliases = ['@tel']
 
@@ -313,13 +319,15 @@ class CmdZone(BaseCommand):
             ))
         else:
             invoker.emit_to('You clear the zone (if any) on %s' % (
-                    obj_to_zone.get_appearance_name(invoker),
+                obj_to_zone.get_appearance_name(invoker),
             ))
+
 
 class CmdParent(BaseCommand):
     """
     Changes an object's parent.
     """
+
     name = '@parent'
 
     def func(self, invoker, parsed_cmd):
@@ -360,7 +368,7 @@ class CmdParent(BaseCommand):
         obj_to_parent.parent = parent_str
         obj_to_parent.save()
 
-        obj_to_parent= mud_service.object_store.reload_object(obj_to_parent)
+        obj_to_parent = mud_service.object_store.reload_object(obj_to_parent)
 
         invoker.emit_to('You re-parent %s' % (
             obj_to_parent.get_appearance_name(invoker),
@@ -437,6 +445,7 @@ class CmdDestroy(BaseCommand):
     """
     Destroys an object.
     """
+
     name = '@destroy'
     aliases = ['@dest', '@nuke']
 
@@ -447,7 +456,6 @@ class CmdDestroy(BaseCommand):
         # Join all arguments together into one single string so we can
         # do a contextual search for the whole thing.
         full_arg_str = ' '.join(parsed_cmd.arguments)
-
 
         try:
             obj_to_destroy = invoker.contextual_object_search(full_arg_str)
@@ -467,6 +475,7 @@ class CmdOpen(BaseCommand):
     @open <alias/dir> <exit-name>
     @open <alias/dir> <exit-name>=<dest-dbref>
     """
+
     name = '@open'
 
     @inlineCallbacks
@@ -530,6 +539,7 @@ class CmdUnlink(BaseCommand):
     """
     Removes an exit's destination.
     """
+
     name = '@unlink'
 
     def func(self, invoker, parsed_cmd):
@@ -562,6 +572,7 @@ class CmdLink(BaseCommand):
     """
     Links an exit to a destination, typically a room or thing.
     """
+
     name = '@link'
 
     def func(self, invoker, parsed_cmd):
