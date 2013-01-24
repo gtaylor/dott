@@ -34,7 +34,8 @@ class DBManager(object):
     BASE_OBJECT_SELECT = (
         "SELECT id, name, parent, location_id,"
         " originally_controlled_by_account_id, controlled_by_account_id,"
-        " description, zone_id, aliases, destination_id, attributes "
+        " description, internal_description, zone_id, aliases, destination_id, "
+        " attributes "
         "FROM dott_objects"
     )
 
@@ -163,8 +164,8 @@ class DBManager(object):
                 "  (name, parent, location_id, base_type, "
                 "   originally_controlled_by_account_id, "
                 "   controlled_by_account_id, description, zone_id, "
-                "   aliases, destination_id, attributes) "
-                "  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
+                "   aliases, destination_id, internal_description, attributes) "
+                "  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
                 " RETURNING id",
                 (
                     obj.name,
@@ -177,6 +178,7 @@ class DBManager(object):
                     obj.zone_id,
                     obj.aliases,
                     obj.destination_id,
+                    obj.internal_description,
                     json.dumps(attributes),
                 )
             )
@@ -195,6 +197,7 @@ class DBManager(object):
                 "  zone_id=%s,"
                 "  aliases=%s,"
                 "  destination_id=%s,"
+                "  internal_description=%s,"
                 "  attributes=%s "
                 " WHERE ID=%s",
                 (
@@ -208,6 +211,7 @@ class DBManager(object):
                     obj.zone_id,
                     obj.aliases,
                     obj.destination_id,
+                    obj.internal_description,
                     json.dumps(attributes),
                     obj.id
                 )

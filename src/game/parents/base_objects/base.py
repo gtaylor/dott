@@ -18,6 +18,7 @@ class BaseObject(object):
     local_admin_command_table = None
 
     def __init__(self, mud_service, id, parent, name, description=None,
+                 internal_description=None,
                  location_id=None, destination_id=None, zone_id=None,
                  aliases=None, originally_controlled_by_account_id=None,
                  controlled_by_account_id=None, attributes=None):
@@ -49,6 +50,7 @@ class BaseObject(object):
         self.id = id
         self.name = name
         self.description = description
+        self.internal_description = internal_description
         self.parent = parent
         self.location_id = location_id
         self.destination_id = destination_id
@@ -336,10 +338,9 @@ class BaseObject(object):
             of the normal description, if available. For example, the inside
             of a vehicle should have a different description than the outside.
         """
-        if from_inside:
-            idesc = self.attributes.get('internal_description')
-            if idesc:
-                return idesc
+
+        if from_inside and self.internal_description:
+            return self.internal_description
 
         return self.description
 
@@ -351,6 +352,7 @@ class BaseObject(object):
         :rtype: str
         :returns: The object's 'pretty' name.
         """
+
         ansi_hilight = "\033[1m"
         ansi_normal = "\033[0m"
 
