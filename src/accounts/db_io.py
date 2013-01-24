@@ -22,6 +22,7 @@ class DBManager(object):
 
     # TODO: Add a created_dtime column.
     # TODO: Add last_saved_dtime column.
+    # TODO: Add last_login_dtime column.
 
     # This is the base SELECT statement we'll use in a few methods for
     # retrieving one or all account rows. To retrieve a subset, tack on a
