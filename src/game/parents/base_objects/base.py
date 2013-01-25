@@ -43,6 +43,7 @@ class BaseObject(object):
             the DB as kwargs. Since the DB representation of all of an
             objects attributes is just a dict, this works really well.
         """
+
         self._mud_service = mud_service
 
         # This mirrors the 'id' field in dott_objects. If this is set to None
@@ -76,6 +77,7 @@ class BaseObject(object):
         :rtype: ObjectStore
         :returns: Reference to the global object store instance.
         """
+
         return self._mud_service.object_store
 
     @property
@@ -86,6 +88,7 @@ class BaseObject(object):
         :rtype: CommandHandler
         :returns: Reference to the global command handler instance.
         """
+
         return self._mud_service.command_handler
 
     def get_location(self):
@@ -102,6 +105,7 @@ class BaseObject(object):
             return self._object_store.get_object(self.location_id)
         else:
             return None
+
     def set_location(self, obj_or_id):
         """
         Sets this object's location.
@@ -133,6 +137,7 @@ class BaseObject(object):
         """
 
         return self._attributes
+
     def set_attributes(self, attrib_dict):
         """
         Sets this object's attribute dict.
@@ -205,6 +210,7 @@ class BaseObject(object):
 
         :rtype: str
         """
+
         raise NotImplementedError('Over-ride in sub-class.')
 
     #
@@ -246,6 +252,7 @@ class BaseObject(object):
 
         :param str command_string: The command to run.
         """
+
         # Input gets handed off to the command handler, where it is parsed
         # and routed through various command tables.
         if not self._command_handler.handle_input(self, command_string):
@@ -276,6 +283,7 @@ class BaseObject(object):
         :keyword BaseObject exclude: A list of objects who are to be
             excluded from the emit list. These objects will not see the emit.
         """
+
         if not exclude:
             exclude = []
         else:
@@ -292,6 +300,7 @@ class BaseObject(object):
 
         :param BaseObject destination_obj: Where to move this object to.
         """
+
         old_location_obj = self.location
 
         #noinspection PyUnresolvedReferences
@@ -316,6 +325,7 @@ class BaseObject(object):
         :rtype: bool
         :returns: ``False``
         """
+
         return False
 
     def get_contents(self):
@@ -326,6 +336,7 @@ class BaseObject(object):
         :returns: A list of :class:`BaseObject` instances whose location is
             this object.
         """
+
         return self._object_store.get_object_contents(self)
 
     #noinspection PyUnusedLocal
@@ -436,6 +447,7 @@ class BaseObject(object):
         :rtype: str
         :returns: The object's appearance, from the outside or inside.
         """
+
         #noinspection PyUnresolvedReferences
         is_inside = invoker.location.id == self.id
 
@@ -457,6 +469,7 @@ class BaseObject(object):
             to attempt to match to.
         :param str desc: The string to match against.
         """
+
         ratio = 0
         result = None
         for obj in objects:
@@ -533,6 +546,7 @@ class BaseObject(object):
         :returns: An object that best matches the string provided. If no
             suitable match was found, returns ``None``.
         """
+
         desc = desc.strip()
         if not desc:
             # Probably an empty string, which we can't do much with.
@@ -584,6 +598,7 @@ class BaseObject(object):
             ``can_enter`` is a bool, and ``message`` is a string or ``None``,
             used to provide a reason for the object not being able to enter.
         """
+
         if obj.is_admin():
             # Admin can enter anything.
             return True, None
@@ -602,6 +617,7 @@ class BaseObject(object):
         :returns: The target location for the object to be moved to upon
             entering this object.
         """
+
         return self
 
     def can_object_leave(self, obj):
@@ -614,6 +630,7 @@ class BaseObject(object):
             ``can_leave`` is a bool, and ``message`` is a string or ``None``,
             used to provide a reason for the object not being able to leave.
         """
+
         if not obj.location:
             return False, "You can't find a way out."
 
@@ -632,6 +649,7 @@ class BaseObject(object):
         :returns: The target location for the object to be moved to upon
             leaving this object.
         """
+
         return self.location
 
     #
@@ -649,6 +667,7 @@ class BaseObject(object):
         want players to see connects/disconnects when admins are controlling
         NPCs.
         """
+
         pass
 
     def after_session_disconnect_event(self):
@@ -662,6 +681,7 @@ class BaseObject(object):
         want players to see connects/disconnects when admins are controlling
         NPCs.
         """
+
         pass
 
     #noinspection PyUnusedLocal
@@ -671,6 +691,7 @@ class BaseObject(object):
 
         :param BaseObject actor: The object doing the leaving.
         """
+
         pass
 
     #noinspection PyUnusedLocal
@@ -680,6 +701,7 @@ class BaseObject(object):
 
         :param BaseObject actor: The object doing the leaving.
         """
+
         for obj in self.get_contents():
             # Can't use self.emit_to_contents because we need to determine
             # appearance on a per-object basis.
@@ -692,6 +714,7 @@ class BaseObject(object):
 
         :param BaseObject actor: The object doing the entering.
         """
+
         for obj in self.get_contents():
             # Can't use self.emit_to_contents because we need to determine
             # appearance on a per-object basis.
@@ -704,4 +727,5 @@ class BaseObject(object):
 
         :param BaseObject actor: The object doing the entering.
         """
+
         pass
