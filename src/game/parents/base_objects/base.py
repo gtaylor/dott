@@ -395,7 +395,6 @@ class BaseObject(object):
         :returns: The contents/exits display.
         """
 
-        # TODO: This should probably get moved to examine.
         exits_str = ''
         things_str = ''
 

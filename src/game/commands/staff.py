@@ -8,6 +8,7 @@ from src.daemons.server.commands.command import BaseCommand
 from src.daemons.server.commands.exceptions import CommandError
 from src.daemons.server.objects.exceptions import InvalidObjectId
 from src.daemons.server.objects.parent_loader.exceptions import InvalidParent
+from src.utils import logger
 from src.game.parents.base_objects.exit import ExitObject
 from src.game.parents.base_objects.room import RoomObject
 
@@ -619,3 +620,58 @@ class CmdLink(BaseCommand):
         )
         obj_to_link.destination = destination_obj
         obj_to_link.save()
+
+
+class CmdSet(BaseCommand):
+    """
+    Sets an attribute on an object.
+    """
+
+    name = '@set'
+
+    @inlineCallbacks
+    def func(self, invoker, parsed_cmd):
+
+        if not parsed_cmd.arguments:
+            raise CommandError('Which object do you wish to set?')
+
+
+        # Join all arguments together into one single string so we can
+        # split be equal sign.
+        full_arg_str = ' '.join(parsed_cmd.arguments)
+        # End up with a list of one or two members. Splits around the
+        # first equal sign found.
+        equal_sign_split = full_arg_str.split('=', 1)
+
+        if len(equal_sign_split) <= 1:
+            raise CommandError('You must specify a target and a value.')
+
+        target_obj_str = equal_sign_split[0]
+        try:
+            target_obj = invoker.contextual_object_search(target_obj_str)
+        except InvalidObjectId:
+            target_obj = None
+        if not target_obj:
+            raise CommandError('Unable to find target object: %s' % target_obj_str)
+
+        set_value = equal_sign_split[1]
+
+        if ':' not in set_value:
+            raise CommandError(
+                'Attribute values must be in the form of '
+                'ATTRIBNAME:VALUE'
+            )
+
+        attr_name, attr_value = set_value.split(':', 1)
+        attr_name = attr_name.upper()
+
+        target_obj.attributes[attr_name] = attr_value
+        yield target_obj.save()
+
+        invoker.emit_to(
+            'Set %s on %s: %s' % (
+                attr_name,
+                target_obj.get_appearance_name(invoker),
+                attr_value,
+            )
+        )
