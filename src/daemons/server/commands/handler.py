@@ -1,3 +1,6 @@
+from twisted.internet.defer import maybeDeferred
+from twisted.python import log
+from src.utils import logger
 from src.daemons.server.commands.parser import CommandParser
 from src.daemons.server.commands.exceptions import CommandError
 
@@ -111,22 +114,43 @@ class CommandHandler(object):
             parsed_command.arguments = ['#%s' % exit_match.id]
 
         cmd_match = self._match_user_input_to_command(invoker, parsed_command)
-        if cmd_match:
-            # We found a command match, try to run it.
-            try:
-                cmd_match.func(invoker, parsed_command)
-            except CommandError, exc:
-                # An PEBKAC type error occured within the command.
-                invoker.emit_to(exc.message)
-            except:
-                # Something bad happened. We'll want to handle this more
-                # gracefully in the future.
-                # TODO: Handle this more gracefully.
-                invoker.emit_to('ERROR: A critical error has occured.')
-                raise
+        if not cmd_match:
+            # No matches, show the "Huh?" message.
+            return None
 
-            # Everything went better than expected.
-            return cmd_match
+        # We found a command match, try to run it.
+        d = maybeDeferred(cmd_match.func, invoker, parsed_command)
+        d.addErrback(self._handle_command_error, invoker)
+        d.addErrback(self._handle_other_errors, invoker)
+        # Make sure this ends up in the console, too.
+        d.addErrback(log.err)
 
-        # No matches, show the "Huh?".
-        return None
+        # Everything went better than expected.
+        return cmd_match
+
+    def _handle_command_error(self, failure, invoker):
+        """
+        This handles the standard CommandError exception that is raised
+        by commands to show general error messages.
+        """
+
+        failure.trap(CommandError)
+        invoker.emit_to(failure.value.message)
+
+    def _handle_other_errors(self, failure, invoker):
+        """
+        If execution reaches this point, we're probably dealing with an
+        actual code issue. We'll print the traceback out for the user,
+        then fall through to the logging error handler.
+        """
+
+        invoker.emit_to(
+            'ERROR: A critical error has occurred. Please notify the staff.'
+        )
+        invoker.emit_to(failure.getTraceback())
+        logger.error('Command handler encountered an error')
+        logger.error('Invoker: %s' % invoker.get_appearance_name(None, force_admin_view=True))
+
+        # Fall through to the last (and final) logging error handler so the
+        # console can get a copy of the traceback.
+        failure.trap()

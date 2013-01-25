@@ -3,6 +3,7 @@ from src.daemons.server.commands.cmdtable import CommandTable
 from src.game.commands import general as general_cmds
 from src.game.commands import staff as staff_cmds
 
+
 class GlobalCommandTable(CommandTable):
     """
     The standard, global command table.
@@ -37,6 +38,7 @@ class GlobalAdminCommandTable(CommandTable):
         staff_cmds.CmdName(),
         staff_cmds.CmdOpen(),
         staff_cmds.CmdParent(),
+        staff_cmds.CmdSet(),
         staff_cmds.CmdUnlink(),
         staff_cmds.CmdLink(),
         staff_cmds.CmdZone(),
