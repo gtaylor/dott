@@ -1,7 +1,7 @@
 from twisted.internet.defer import inlineCallbacks, returnValue
 from fuzzywuzzy import fuzz
 
-from src.utils import logger
+#from src.utils import logger
 from src.daemons.server.protocols.proxyamp import EmitToObjectCmd
 
 
@@ -344,11 +344,15 @@ class BaseObject(object):
 
         return self.description
 
-    def get_appearance_name(self, invoker):
+    def get_appearance_name(self, invoker, force_admin_view=False):
         """
         Returns the 'pretty' form of the name for the object's appearance.
 
-        :param BaseObject invoker: The object asking for the appearance.
+        :param invoker: The object asking for the appearance. If None is
+            provided, provide the non-admin view.
+        :type invoker: BaseObject or None
+        :param bool force_admin_view: If this is True, force the adin view,
+            even if the invoker is not an admin (or no invoker is given).
         :rtype: str
         :returns: The object's 'pretty' name.
         """
@@ -356,7 +360,7 @@ class BaseObject(object):
         ansi_hilight = "\033[1m"
         ansi_normal = "\033[0m"
 
-        if invoker.is_admin():
+        if (invoker and invoker.is_admin()) or force_admin_view:
             # Used to show a single-character type identifier next to object id.
             if self.base_type == 'room':
                 type_str = 'R'
@@ -390,6 +394,8 @@ class BaseObject(object):
         :rtype: str
         :returns: The contents/exits display.
         """
+
+        # TODO: This should probably get moved to examine.
         exits_str = ''
         things_str = ''
 
