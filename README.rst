@@ -57,7 +57,7 @@ Documentation
 =============
 
 Read the documentation_ for more details on installation, development,
-and etc.
+and etc. This may or may not be up to date.
 
 .. _documentation: http://dott.rtfd.org/
 
