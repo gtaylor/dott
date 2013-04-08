@@ -3,11 +3,13 @@ from src.game.parents.space.ships import defines as ship_defines
 from src.game.parents.space.ships.interior.bridge import SpaceShipBridgeObject
 from src.game.parents.space.solar_system import InSpaceObject
 
+
 class ShipError(BaseException):
     """
     Raise this when something unexpected ship-related happens.
     """
     pass
+
 
 class BaseSpaceShipObject(InSpaceObject):
     """
@@ -20,6 +22,7 @@ class BaseSpaceShipObject(InSpaceObject):
     BaseSpaceShipObject things. Ships are controlled from a
     :py:class:`SpaceShipBridgeObject`.
     """
+
     # This is the ship type that is displayed in contacts and messages.
     ship_type_name = 'Unknown'
     # Ship size class. IE: Shuttle, frigate, cruiser, etc.
@@ -40,6 +43,7 @@ class BaseSpaceShipObject(InSpaceObject):
             ``can_enter`` is a bool, and ``message`` is a string or ``None``,
             used to provide a reason for the object not being able to enter.
         """
+
         # Everyone can enter everything, for now.
         return True, None
 
@@ -52,6 +56,7 @@ class BaseSpaceShipObject(InSpaceObject):
         :rtype: SpaceShipBridgeObject
         :returns: The ship's bridge.
         """
+
         return self.get_bridge_obj()
 
     def is_ship_landed(self):
@@ -61,6 +66,7 @@ class BaseSpaceShipObject(InSpaceObject):
         :rtype: bool
         :returns: True if the ship is landed, False if not.
         """
+
         # If the ship is in a hangar, it's landed/docked.
         return isinstance(self.location, HangarMixin)
 
@@ -72,6 +78,7 @@ class BaseSpaceShipObject(InSpaceObject):
         :returns: The bridge that controls the ship.
         :raises: ShipError if no bridge was found.
         """
+
         contents = self.get_contents()
         for obj in contents:
             if isinstance(obj, SpaceShipBridgeObject):
@@ -86,6 +93,7 @@ class BaseSpaceShipObject(InSpaceObject):
 
         :param str message: The message to emit to the interior of the ship.
         """
+
         contents = self.get_contents()
         for obj in contents:
             obj.emit_to_contents(message)
@@ -94,6 +102,7 @@ class BaseSpaceShipObject(InSpaceObject):
         """
         Starts the launching sequence from within a hangar.
         """
+
         bridge = self.get_bridge_obj()
         hangar = self.location
 
@@ -116,5 +125,6 @@ class BaseSpaceShipObject(InSpaceObject):
         :returns: The solar system the ship is in, or ``None`` if we can't
             figure it out.
         """
+
         if self.location and hasattr(self.location, 'get_solar_system_obj'):
             return self.location.get_solar_system_obj()

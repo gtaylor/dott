@@ -2,10 +2,12 @@ from src.game.parents.base_objects.room import RoomObject
 from src.game.parents.base_objects.thing import ThingObject
 from src.game.parents.space.solar_system import SolarSystemPlaceObject
 
+
 class HangarMixin(object):
     """
     Contains hangar-specific stuff.
     """
+
     def get_inspace_obj(self):
         """
         Returns the object that this hangar is attached to in space. This will
@@ -15,6 +17,7 @@ class HangarMixin(object):
         :rtype: SolarSystemPlaceObject (planet) or InSpaceObject (ship/station)
         :returns: The object that this hangar is attached to in space.
         """
+
         return self.zone
 
     def get_launchto_location(self):
@@ -52,14 +55,22 @@ class HangarMixin(object):
         if launch_to:
             return launch_to.get_solar_system_obj()
 
+
 class RoomHangarObject(RoomObject, HangarMixin):
     """
-    A room-based hangar.
+    A room-based hangar. Typically used on planets.
+
+    src.game.parents.space.hangar.RoomHangarObject
     """
+
     pass
+
 
 class ThingHangarObject(ThingObject, HangarMixin):
     """
     Thing-based hangar. More common within ships and space stations.
+
+    src.game.parents.space.hangar.ThingHangarObject
     """
+
     pass

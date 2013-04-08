@@ -2,10 +2,10 @@
 
 .. include:: global.txt
 
-Building
-========
+Basic Building
+==============
 
-.. note:: This is all preliminary, and not even partially implemented. What
+.. note:: This is all preliminary, and only partially implemented. What
     follows is best described as a scratch pad, that may eventually become
     a building guide.
 

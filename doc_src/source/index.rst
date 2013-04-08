@@ -34,6 +34,7 @@ Administrator Documentation
    :maxdepth: 2
 
    building
+   space_building
 
 Scratch Pad
 -----------

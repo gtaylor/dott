@@ -6,10 +6,12 @@ from src.game.parents.space.ships.interior.base import SpaceShipInteriorObject
 from src.daemons.server.commands.exceptions import CommandError
 from src.daemons.server.objects.exceptions import InvalidObjectId
 
+
 class CmdLaunch(BaseCommand):
     """
     Launches the ship into space from a hangar.
     """
+
     name = 'launch'
     aliases = ['takeoff']
 
@@ -35,6 +37,7 @@ class CmdDock(BaseCommand):
     Either displays a list of dockable places, or docks if a destination is
     specified.
     """
+
     name = 'dock'
     aliases = ['land']
 
@@ -57,38 +60,46 @@ class CmdDock(BaseCommand):
             # User provided input. Warping somewhere.
             self.do_dock(invoker, parsed_cmd)
 
+    # noinspection PyUnusedLocal
     def do_list_docks(self, invoker, parsed_cmd):
         """
         The 'dock' command was invoked without arguments. This method
         renders the dockable locations list for the current location.
         """
+
         dockables = self.current_place.get_dockable_obj_list(self.ship)
 
-        buffer = "Dockable Locations -- %s\n" % (
+        buf = "Dockable Locations -- %s\n" % (
             self.solar_system.get_appearance_name(invoker),
         )
-        buffer += '-' * 78
+        buf += '-' * 78
         for place in dockables:
-            buffer += "\n %s] %s" % (
-                place.id.rjust(8),
-                place.get_appearance_name(invoker),
+            buf += "\n {id:>8}] {name}".format(
+                id=place.id,
+                name=place.get_appearance_name(invoker),
             )
-        buffer += '\n'
-        buffer += '-' * 78
-        invoker.emit_to(buffer)
+        buf += '\n'
+        buf += '-' * 78
+        invoker.emit_to(buf)
 
     def do_dock(self, invoker, parsed_cmd):
         """
         An argument was provided with dock, meaning that the user wishes to
         dock.
         """
+
         service = invoker._mud_service
         # Join all arguments together into one single string so we can
         # do a contextual search for the whole thing.
         full_arg_str = ' '.join(parsed_cmd.arguments)
 
         try:
-            dock_obj = service.object_store.get_object(full_arg_str)
+            dock_id = int(full_arg_str)
+        except (TypeError, ValueError):
+            raise CommandError('Invalid docking location ID.')
+
+        try:
+            dock_obj = service.object_store.get_object(dock_id)
         except InvalidObjectId:
             raise CommandError('No dock with that ID found.')
 
@@ -104,24 +115,28 @@ class CmdDock(BaseCommand):
         invoker.emit_to('Docking in %s' % (
             dock_obj.get_appearance_name(invoker),
         ))
+        # TODO: Emit to others in system that ship is beginning to land/dock.
         self.ship.emit_to_interior(
             'A docking tone sounds as the ship begins its approach.'
         )
         # TODO: A CallLater based on ship manueverabiliy.
+        # TODO: Emit to others in system that ship has landed.
         self.ship.move_to(dock_obj)
         self.ship.emit_to_interior(
-            'A loud CLANG resonates through the hull as a docking collar '\
+            'A loud CLANG resonates through the hull as a docking collar '
             'is slapped on from outside.'
         )
         invoker.emit_to('You have docked in %s' % (
             dock_obj.get_appearance_name(invoker),
         ))
+        # TODO: Emit to the place being docked in.
 
 
 class CmdStatus(BaseCommand):
     """
     Shows a basic ship status display.
     """
+
     name = 'status'
 
     #noinspection PyUnusedLocal
@@ -135,16 +150,18 @@ class CmdStatus(BaseCommand):
         ship_location = solar_system.get_appearance_name(invoker)
         ship_id = '[%s]' % ship.id
 
-        retval = "Ship Name: {ship_name} ID: {ship_id} Ship Type: {ship_type} ({ship_class})\n" \
-                 "State: {ship_status} Ship Location: {ship_location}\n\n" \
-                 "  Armor: [=================     ] 80%\n" \
-                 " Shield: [======================] 100%\n" \
-                 "   Hull: [======================] 100%\n".format(
-            ship_name='Implement me!'.ljust(30),
-            ship_id = ship_id.ljust(10),
+        retval = (
+            "Ship Name: {ship_name:>30} ID: {ship_id:>10} Ship Type: {ship_type} ({ship_class})\n"
+            "State: {ship_status:>15} Ship Location: {ship_location}\n\n"
+            "  Armor: [=================     ] 80%\n"
+            " Shield: [======================] 100%\n"
+            "   Hull: [======================] 100%\n"
+        ).format(
+            ship_name='Implement me!',
+            ship_id=ship_id,
             ship_type=ship.ship_type_name,
             ship_class=ship.ship_class,
-            ship_status=ship_status.ljust(15),
+            ship_status=ship_status,
             ship_location=ship_location,
         )
 
@@ -156,6 +173,7 @@ class CmdWarp(BaseCommand):
     Either displays a list of warpable places, or warps to a place if a
     destination is specified.
     """
+
     name = 'warp'
 
     #noinspection PyUnusedLocal
@@ -177,39 +195,47 @@ class CmdWarp(BaseCommand):
             # User provided input. Warping somewhere.
             self.do_warp_to(invoker, parsed_cmd)
 
+    # noinspection PyUnusedLocal
     def do_list_places(self, invoker, parsed_cmd):
         """
         The 'warp' command was invoked without arguments. This method
         renders the warpable locations list for the system.
         """
+
         places = self.solar_system.get_places_obj_list()
 
-        buffer = "Warpable Locations -- %s\n" % (
+        buf = "Warpable Locations -- %s\n" % (
             self.solar_system.get_appearance_name(invoker),
         )
-        buffer += '-' * 78
+        buf += '-' * 78
         for place in places:
-            buffer += "\n %s %s] %s" % (
-                '>>' if self.current_place.id == place.id else '  ',
-                place.id.rjust(5),
-                place.get_appearance_name(invoker),
+            buf += "\n {marker} {id:>5}] {name}".format(
+                marker='>>' if self.current_place.id == place.id else '  ',
+                id=place.id,
+                name=place.get_appearance_name(invoker),
             )
-        buffer += '\n'
-        buffer += '-' * 78
-        invoker.emit_to(buffer)
+        buf += '\n'
+        buf += '-' * 78
+        invoker.emit_to(buf)
 
     def do_warp_to(self, invoker, parsed_cmd):
         """
         An argument was provided with warp, meaning that the user wishes to
         warp to a place.
         """
+
         service = invoker._mud_service
         # Join all arguments together into one single string so we can
         # do a contextual search for the whole thing.
         full_arg_str = ' '.join(parsed_cmd.arguments)
 
         try:
-            place_obj = service.object_store.get_object(full_arg_str)
+            warp_id = int(full_arg_str)
+        except (TypeError, ValueError):
+            raise CommandError('Invalid warp destination ID.')
+
+        try:
+            place_obj = service.object_store.get_object(warp_id)
         except InvalidObjectId:
             raise CommandError('No warp destination with that ID found.')
 
@@ -229,10 +255,10 @@ class CmdWarp(BaseCommand):
             self.solar_system.get_appearance_name(invoker),
         ))
         self.ship.emit_to_interior(
-            'The hull begins to vibrate, and the whine of the charging warp' \
+            'The hull begins to vibrate, and the whine of the charging warp '
             'drives becomes deafening.'
         )
-        # TODO: A CallLater based on ship manueverabiliy.
+        # TODO: A CallLater based on ship maneuverability.
         self.ship.emit_to_interior(
             'The ship groans audibly as it flings itself into warp.'
         )
@@ -262,6 +288,7 @@ class SpaceShipBridgeObject(SpaceShipInteriorObject):
     Ships are controlled from the bridge, regardless of size. Smaller ships
     call this a cockpit.
     """
+
     local_command_table = ShipBridgeCommandTable()
 
     def can_object_leave(self, obj):
@@ -274,6 +301,7 @@ class SpaceShipBridgeObject(SpaceShipInteriorObject):
             ``can_leave`` is a bool, and ``message`` is a string or ``None``,
             used to provide a reason for the object not being able to leave.
         """
+
         ship = self.get_ship_obj()
         ship_loc = ship.location
         is_landed = ship.is_ship_landed()
@@ -296,5 +324,6 @@ class SpaceShipBridgeObject(SpaceShipInteriorObject):
         :returns: The target location for the object to be moved to upon
             leaving this object.
         """
+
         ship = self.get_ship_obj()
         return ship.location
