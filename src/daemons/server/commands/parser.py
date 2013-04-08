@@ -29,6 +29,7 @@ class CommandParser(object):
         :param str raw_input: The raw input string to parse.
         :rtype: :class:`ParsedCommand`
         """
+
         if raw_input[0] == ':':
             raw_input = raw_input.replace(':', 'emote ', 1)
         elif raw_input[0] == ';':
