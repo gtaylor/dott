@@ -127,7 +127,8 @@ class DBManager(object):
         :returns: The newly loaded object.
         """
 
-        row['attributes'] = json.loads(row['attributes'])
+        # pscopg2 handles the JSON de-serializing.
+        row['attributes'] = row['attributes'] or {}
 
         # Loads the parent class so we can instantiate the object.
         try:
