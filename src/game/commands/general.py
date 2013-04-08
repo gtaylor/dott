@@ -67,7 +67,7 @@ class CmdExamine(BaseCommand):
             attributes_str += ' Aliases: %s\n' % ', '.join(self.aliases)
 
         if obj.location:
-            attributes_str += ' Location: %s\n' % obj.get_appearance_name(invoker)
+            attributes_str += ' Location: %s\n' % obj.location.get_appearance_name(invoker)
 
         if obj.zone:
             attributes_str += ' Zone: %s\n' % obj.zone.get_appearance_name(invoker)
