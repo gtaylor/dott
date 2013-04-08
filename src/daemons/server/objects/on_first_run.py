@@ -24,6 +24,7 @@ def setup_db(conn):
           controlled_by_account_id integer,
           description character varying,
           internal_description character varying,
+          aliases character varying[],
           zone_id integer,
           destination_id integer,
           attributes json,
