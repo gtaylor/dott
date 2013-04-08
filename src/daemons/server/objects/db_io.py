@@ -3,7 +3,7 @@ This module manages all I/O from the DB, and handles the population of the
 InMemoryObjectStore.
 """
 
-import json
+from psycopg2.extras import Json
 
 from twisted.internet.defer import inlineCallbacks, returnValue
 
@@ -127,7 +127,7 @@ class DBManager(object):
         :returns: The newly loaded object.
         """
 
-        # pscopg2 handles the JSON de-serializing.
+        # psycopg2 handles the JSON adaptation.
         row['attributes'] = row['attributes'] or {}
 
         # Loads the parent class so we can instantiate the object.
@@ -180,7 +180,7 @@ class DBManager(object):
                     obj.aliases,
                     obj.destination_id,
                     obj.internal_description,
-                    json.dumps(attributes),
+                    Json(attributes),
                 )
             )
             inserted_id = result[0][0]
@@ -213,7 +213,7 @@ class DBManager(object):
                     obj.aliases,
                     obj.destination_id,
                     obj.internal_description,
-                    json.dumps(attributes),
+                    Json(attributes),
                     obj.id
                 )
             )
@@ -222,7 +222,7 @@ class DBManager(object):
     @inlineCallbacks
     def destroy_object(self, obj):
         """
-        Destroys an object by yanking it from :py:attr:`_objects` and the DB.
+        Deletes an object from the DB.
         """
 
         yield self._db.runOperation(
