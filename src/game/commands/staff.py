@@ -106,6 +106,9 @@ class CmdDig(BaseCommand):
             new_room.get_appearance_name(invoker),
         ))
 
+        if 'teleport' in parsed_cmd.switches:
+            invoker.move_to(new_room)
+
 
 class CmdCreate(BaseCommand):
     """
@@ -331,6 +334,7 @@ class CmdParent(BaseCommand):
 
     name = '@parent'
 
+    @inlineCallbacks
     def func(self, invoker, parsed_cmd):
         if not parsed_cmd.arguments:
             raise CommandError('Re-parent what?')
@@ -369,7 +373,7 @@ class CmdParent(BaseCommand):
         obj_to_parent.parent = parent_str
         obj_to_parent.save()
 
-        obj_to_parent = mud_service.object_store.reload_object(obj_to_parent)
+        obj_to_parent = yield mud_service.object_store.reload_object(obj_to_parent)
 
         invoker.emit_to('You re-parent %s' % (
             obj_to_parent.get_appearance_name(invoker),
