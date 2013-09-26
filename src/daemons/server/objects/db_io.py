@@ -223,12 +223,13 @@ class DBManager(object):
     def destroy_object(self, obj):
         """
         Deletes an object from the DB.
+
+        :param BaseObject obj: The object to delete in the DB.
         """
 
         yield self._db.runOperation(
             "DELETE FROM dott_objects WHERE id=%s", (obj.id,)
         )
-
 
     @inlineCallbacks
     def reload_object(self, obj):
