@@ -18,6 +18,7 @@ from src.game.commands.global_cmdtable import GlobalCommandTable, GlobalAdminCom
 from src.daemons.server.commands.handler import CommandHandler
 from src.daemons.server.objects.object_store import ObjectStore
 
+
 class MudService(service.Service):
     """
     The main server service task.
@@ -59,12 +60,13 @@ class MudService(service.Service):
         print(' Starting %s MUD server' % settings.GAME_NAME)
         print(' Version: %s' % settings.VERSION)
         print(' Listening for AMP connections on port: %s' % settings.SERVER_AMP_PORT)
-        print('-'*50)
+        print('-' * 50)
 
     def start_services(self, app_to_start):
         """
         Starts all of the TCP services.
         """
+
         self.service_collection = service.IServiceCollection(app_to_start)
 
         amp_factory = AmpServerFactory(self)
@@ -78,6 +80,7 @@ class MudService(service.Service):
         """
         Gracefully shuts down the service.
         """
+
         reactor.callLater(0, reactor.stop)
 
 # Putting it all together

@@ -9,7 +9,6 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 
 import settings
 from src.utils import logger
-from src.daemons.server.objects import on_first_run
 from src.daemons.server.objects.parent_loader.exceptions import InvalidParent
 from src.utils.db import txPGDictConnection
 
@@ -57,12 +56,7 @@ class DBManager(object):
     @inlineCallbacks
     def prepare_and_load(self):
         """
-        Checks to make sure that the dott_objects table exists. If it doesn't,
-        it creates it.
-
-        :rtype: bool
-        :returns: True if we had to create the dott_objects table, False if
-            it already existed.
+        Gets a connection set up.
         """
 
         # Instantiate the connection to Postgres.
@@ -71,34 +65,6 @@ class DBManager(object):
             user=settings.DATABASE_USERNAME,
             database=self._db_name
         )
-
-        # The first time the game is started, the objects table won't be
-        # present. Determine whether it exists.
-        is_objects_table_present = yield self.is_objects_table_present()
-        if not is_objects_table_present:
-            # Table is not present, create it.
-            on_first_run.setup_db(self._db)
-            returnValue(True)
-        else:
-            returnValue(False)
-
-    @inlineCallbacks
-    def is_objects_table_present(self):
-        """
-        Sets the :attr:`_db` reference. Does some basic DB population if
-        need be.
-
-        :rtype: bool
-        :returns: True if the dott_objects table is present, False if not.
-        """
-
-        # See if the dott_objects table already exists. If not, create it.
-        results = yield self._db.runQuery(
-            "SELECT table_name FROM information_schema.tables"
-            "  WHERE table_schema='public' AND table_name='dott_objects'"
-        )
-
-        returnValue(bool(results))
 
     @inlineCallbacks
     def load_objects_into_store(self, loader_func):

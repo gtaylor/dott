@@ -7,8 +7,6 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 
 import settings
 from src.accounts.account import PlayerAccount
-#from src.utils import logger
-from src.accounts import on_first_run
 from src.utils.db import txPGDictConnection
 
 
@@ -62,30 +60,6 @@ class DBManager(object):
             user=settings.DATABASE_USERNAME,
             database=self._db_name
         )
-
-        # The first time the game is started, the objects table won't be
-        # present. Determine whether it exists.
-        is_accounts_table_present = yield self.is_accounts_table_present()
-        if not is_accounts_table_present:
-            on_first_run.setup_db(self._db)
-
-    @inlineCallbacks
-    def is_accounts_table_present(self):
-        """
-        Sets the :attr:`_db` reference. Does some basic DB population if
-        need be.
-
-        :rtype: bool
-        :returns: True if the dott_accounts table is present, False if not.
-        """
-
-        # See if the dott_accounts table already exists. If not, create it.
-        results = yield self._db.runQuery(
-            "SELECT table_name FROM information_schema.tables"
-            "  WHERE table_schema='public' AND table_name='dott_accounts'"
-        )
-
-        returnValue(bool(results))
 
     @inlineCallbacks
     def get_account_count(self):
