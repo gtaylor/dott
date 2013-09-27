@@ -1,11 +1,16 @@
+"""
+Assorted utilities for unit testing.
+"""
+
 import unittest
 from src.game.commands.global_cmdtable import GlobalCommandTable, GlobalAdminCommandTable
 from src.daemons.server.commands.handler import CommandHandler
 from src.daemons.server.objects.object_store import ObjectStore
-from src.daemons.server.objects.parent_loader.loader import ParentLoader
 from src.accounts.account_store import AccountStore
 from src.daemons.proxy.sessions.session_manager import SessionManager
 
+
+#noinspection PyDocstring,PyPep8Naming
 class FakeProxyAMP(object):
     """
     Fake AMP protocol instance.
@@ -20,6 +25,7 @@ class MockMudService(object):
     Mocks up the MudService class found in dott.tac.
     """
 
+    #noinspection PyTypeChecker
     def __init__(self):
         self.global_cmd_table = GlobalCommandTable()
         self.global_admin_cmd_table = GlobalAdminCommandTable()
@@ -32,6 +38,7 @@ class MockMudService(object):
         self.object_store._prepare_at_load()
 
 
+#noinspection PyPep8Naming
 class DottTestCase(unittest.TestCase):
     """
     Some helpers for unit testing.
