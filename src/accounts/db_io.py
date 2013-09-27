@@ -88,6 +88,16 @@ class DBManager(object):
         returnValue(bool(results))
 
     @inlineCallbacks
+    def get_account_count(self):
+        """
+        :rtype: int
+        :returns: A total count of active accounts.
+        """
+
+        results = yield self._db.runQuery("SELECT count(*) as count FROM dott_accounts")
+        returnValue(results["count"])
+
+    @inlineCallbacks
     def get_account_by_id(self, account_id):
         """
         Given an account's ID, return a matching PlayerAccount instance.

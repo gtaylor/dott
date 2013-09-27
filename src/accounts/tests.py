@@ -1,23 +1,28 @@
+from twisted.internet.defer import inlineCallbacks
+
 from src.utils.test_utils import DottTestCase
 from src.accounts.exceptions import UsernameTakenException
 from src.accounts.validators import is_email_valid, is_username_valid
 
+
 class DBAccountStoreTests(DottTestCase):
+
+    @inlineCallbacks
     def test_empty_db_creation(self):
         """
         Makes sure the default DB is created.
         """
-        num_objects = len(self.account_store._db)
+        num_objects = yield self.account_store.get_account_count()
         # The DB should be reachable, but empty.
         self.assertEqual(num_objects, 0)
 
-    def test_create_account(self):
+    def _test_create_account(self):
         """
         Tests the creation and querying of an account.
 
         TODO: RESTORE THIS TEST TO WORKING CONDITION
         """
-        return
+        self.skipTest()
         account = self.account_store.create_account('TestGuy', 'yay', 'some@guy.com')
 
         # These two values should be the same. username is just a property

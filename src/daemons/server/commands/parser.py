@@ -1,3 +1,9 @@
+"""
+Command parsing. :py:class:`CommandParser` breaks up the input, and tosses out
+:py:class:`ParsedCommand` instance.
+"""
+
+
 class ParsedCommand(object):
     """
     A parsed command, broken up into something the command handler can
@@ -11,8 +17,8 @@ class ParsedCommand(object):
 
     def __init__(self, command_str, switches, arguments):
         self.command_str = command_str
-        self.switches = switches
-        self.arguments = arguments
+        self.switches = set(switches)
+        self.arguments = set(arguments)
 
 
 class CommandParser(object):
@@ -21,6 +27,7 @@ class CommandParser(object):
     look through to figure out what gets done.
     """
 
+    #noinspection PyShadowingBuiltins
     def parse(self, raw_input):
         """
         Do the magic. Returns the parsed command in a convenient container
@@ -42,7 +49,7 @@ class CommandParser(object):
         command_str_split = command_str.split('/')
         # First element (0) is the command string, everything after that
         # is a switch.
-        switches = set(command_str_split[1:])
+        switches = command_str_split[1:]
         # Go back and re-set this to exclude any switches that were in the
         # original command_str.
         command_str = command_str_split[0]

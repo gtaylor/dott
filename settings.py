@@ -31,7 +31,12 @@ GIT_COMMIT_HASH_FILE = os.path.join(
     'ORIG_HEAD'
 )
 # The current version is a git hash.
-VERSION = open(GIT_COMMIT_HASH_FILE, 'r').read().strip()
+VERSION = open(GIT_COMMIT_HASH_FILE).read().strip()
+
+ROOM_PARENT = 'src.game.parents.base_objects.room.RoomObject'
+EXIT_PARENT = 'src.game.parents.base_objects.exit.ExitObject'
+THING_PARENT = 'src.game.parents.base_objects.thing.ThingObject'
+BASE_PARENT = 'src.game.parents.base_objects.base.BaseObject'
 
 try:
     from local_settings import *

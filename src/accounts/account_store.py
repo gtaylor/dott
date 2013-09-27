@@ -1,3 +1,7 @@
+"""
+Lower level account management.
+"""
+
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from src.accounts.db_io import DBManager
@@ -34,6 +38,7 @@ class AccountStore(object):
 
         :param str username: The username of the account to create.
         :param str password: The raw (un-encrypted) password.
+        :param str email: The player's email address.
         :rtype: :class:`PlayerAccount`
         :returns: The newly created account.
         :raises: :class:`UsernameTakenException` if someone attempts to create
@@ -74,9 +79,20 @@ class AccountStore(object):
     def destroy_account(self, account):
         """
         Destroys an account by dropping it from the DB.
+
+        :param PlayerAccount account: The account to drop.
         """
 
         yield self.db_manager.destroy_account(account)
+
+    @inlineCallbacks
+    def get_account_count(self):
+        """
+        :rtype: int
+        :returns: A total count of active accounts.
+        """
+
+        yield self.db_manager.get_account_count()
 
     @inlineCallbacks
     def get_account_by_id(self, account_id):

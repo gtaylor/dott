@@ -2,7 +2,8 @@
 Assorted utilities for unit testing.
 """
 
-import unittest
+from twisted.trial import unittest
+from twisted.internet.defer import inlineCallbacks
 from src.game.commands.global_cmdtable import GlobalCommandTable, GlobalAdminCommandTable
 from src.daemons.server.commands.handler import CommandHandler
 from src.daemons.server.objects.object_store import ObjectStore
@@ -35,7 +36,10 @@ class MockMudService(object):
         self.account_store = AccountStore(db_name='dott_test')
         self.proxyamp = FakeProxyAMP()
 
-        self.object_store._prepare_at_load()
+    @inlineCallbacks
+    def prep_and_load(self):
+        yield self.object_store.prep_and_load()
+        yield self.account_store.prep_and_load()
 
 
 #noinspection PyPep8Naming
@@ -44,18 +48,13 @@ class DottTestCase(unittest.TestCase):
     Some helpers for unit testing.
     """
 
-    # Here for convenient reference.
-    ROOM_PARENT = 'src.game.parents.base_objects.room.RoomObject'
-    EXIT_PARENT = 'src.game.parents.base_objects.exit.ExitObject'
-    THING_PARENT = 'src.game.parents.base_objects.thing.ThingObject'
-    BASE_PARENT = 'src.game.parents.base_objects.base.BaseObject'
-
+    @inlineCallbacks
     def setUp(self):
         """
         By default, create a bare minimal set of data stores.
         """
 
-        self.create_clean_game_env()
+        yield self.create_clean_game_env()
 
     def tearDown(self):
         """
@@ -64,12 +63,14 @@ class DottTestCase(unittest.TestCase):
 
         self.cleanup_game_env()
 
+    @inlineCallbacks
     def create_clean_game_env(self):
         """
         Creates a fresh set of stores, DBs, and etc.
         """
 
         self.mud_service = MockMudService()
+        yield self.mud_service.prep_and_load()
         self.global_cmd_table = self.mud_service.global_cmd_table
         self.command_handler = self.mud_service.command_handler
         self.session_manager = self.mud_service.session_manager
@@ -81,5 +82,6 @@ class DottTestCase(unittest.TestCase):
         Cleans up the created environment.
         """
 
-        del self.object_store._server['dott_objects_test']
-        del self.account_store._server['dott_accounts_test']
+        pass
+        #del self.object_store._server['dott_objects_test']
+        #del self.account_store._server['dott_accounts_test']

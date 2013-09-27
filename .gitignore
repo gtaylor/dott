@@ -15,3 +15,4 @@ cover_html
 docs/
 couchdb
 *.db3
+_trial_temp

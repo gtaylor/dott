@@ -3,6 +3,7 @@ from src.daemons.server.commands.parser import CommandParser, ParsedCommand
 from src.daemons.server.commands.cmdtable import CommandTable, DuplicateCommandException
 from src.daemons.server.commands.command import BaseCommand
 
+
 class CommandTableTests(DottTestCase):
     def setUp(self):
         super(CommandTableTests, self).setUp()
@@ -87,8 +88,8 @@ class CommandParserTests(DottTestCase):
         parsed = self.parser.parse('look')
         self.assertIsInstance(parsed, ParsedCommand)
         self.assertEquals(parsed.command_str, 'look')
-        self.assertEquals(parsed.arguments, [])
-        self.assertEquals(parsed.switches, [])
+        self.assertEquals(parsed.arguments, set([]))
+        self.assertEquals(parsed.switches, set([]))
 
     def test_command_with_arguments(self):
         """
@@ -96,11 +97,11 @@ class CommandParserTests(DottTestCase):
         """
         parsed = self.parser.parse('look ship')
         self.assertEquals(parsed.command_str, 'look')
-        self.assertEquals(parsed.arguments, ['ship'])
-        self.assertEquals(parsed.switches, [])
+        self.assertEquals(parsed.arguments, {'ship'})
+        self.assertEquals(parsed.switches, set([]))
 
         parsed = self.parser.parse('look ship hi')
-        self.assertEquals(parsed.arguments, ['ship', 'hi'])
+        self.assertEquals(parsed.arguments, {'ship', 'hi'})
 
     def test_command_with_switches_and_arguments(self):
         """
@@ -108,8 +109,8 @@ class CommandParserTests(DottTestCase):
         """
         parsed = self.parser.parse('look/quiet ship')
         self.assertEquals(parsed.command_str, 'look')
-        self.assertEquals(parsed.arguments, ['ship'])
-        self.assertEquals(parsed.switches, ['quiet'])
+        self.assertEquals(parsed.arguments, {'ship'})
+        self.assertEquals(parsed.switches, {'quiet'})
 
     def test_poses(self):
         """
@@ -118,10 +119,10 @@ class CommandParserTests(DottTestCase):
         """
         parsed = self.parser.parse(':taunts you.')
         self.assertEquals(parsed.command_str, 'emote')
-        self.assertEquals(parsed.arguments, ['taunts', 'you.'])
-        self.assertEquals(parsed.switches, [])
+        self.assertEquals(parsed.arguments, {'taunts', 'you.'})
+        self.assertEquals(parsed.switches, set([]))
 
         parsed = self.parser.parse(";'s face is weird.")
         self.assertEquals(parsed.command_str, 'emote')
-        self.assertEquals(parsed.arguments, ["'s", 'face', 'is', 'weird.'])
-        self.assertEquals(parsed.switches, ['nospace'])
+        self.assertEquals(parsed.arguments, {"'s", 'face', 'is', 'weird.'})
+        self.assertEquals(parsed.switches, {'nospace'})
