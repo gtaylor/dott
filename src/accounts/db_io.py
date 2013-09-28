@@ -69,7 +69,7 @@ class DBManager(object):
         """
 
         results = yield self._db.runQuery("SELECT count(*) as count FROM dott_accounts")
-        returnValue(results["count"])
+        returnValue(results[0][0])
 
     @inlineCallbacks
     def get_account_by_id(self, account_id):
@@ -99,7 +99,7 @@ class DBManager(object):
         :rtype: PlayerAccount
         """
 
-        modified_query = "{base_query} WHERE username=%s".format(
+        modified_query = "{base_query} WHERE username ILIKE %s".format(
             base_query=self.BASE_ACCOUNT_SELECT
         )
         results = yield self._db.runQuery(modified_query, (account_username,))

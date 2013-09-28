@@ -20,7 +20,8 @@ class txPGDictConnection(txpostgres.Connection):
     @staticmethod
     def dict_connect(*args, **kwargs):
         kwargs['connection_factory'] = psycopg2.extras.DictConnection
-        return psycopg2.connect(*args, **kwargs)
+        conn = psycopg2.connect(*args, **kwargs)
+        return conn
 
     # Overriding the default connection factory.
     connectionFactory = dict_connect

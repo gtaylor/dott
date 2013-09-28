@@ -1,3 +1,7 @@
+"""
+Account store tests.
+"""
+
 from twisted.internet.defer import inlineCallbacks
 
 from src.utils.test_utils import DottTestCase
@@ -8,38 +12,18 @@ from src.accounts.validators import is_email_valid, is_username_valid
 class DBAccountStoreTests(DottTestCase):
 
     @inlineCallbacks
-    def test_empty_db_creation(self):
-        """
-        Makes sure the default DB is created.
-        """
-        num_objects = yield self.account_store.get_account_count()
-        # The DB should be reachable, but empty.
-        self.assertEqual(num_objects, 0)
-
-    def _test_create_account(self):
+    def test_create_account(self):
         """
         Tests the creation and querying of an account.
 
         TODO: RESTORE THIS TEST TO WORKING CONDITION
         """
-        self.skipTest()
-        account = self.account_store.create_account('TestGuy', 'yay', 'some@guy.com')
+
+        account = yield self.account_store.create_account('TestGuy', 'yay', 'some@guy.com')
 
         # These two values should be the same. username is just a property
         # that maps to _id.
-        self.assertEqual('TestGuy', account.username)
-
-        # This should be the ID of the object this account is
-        # currently controlling.
-        self.assertIsInstance(account.currently_controlling.id, basestring)
-        # The object the account is controlling.
-        obj = account.currently_controlling
-        # If this returns a BaseObject, we should have an ID attribute.
-        self.assertIsInstance(obj.id, basestring)
-        # This should equal the username.
-        self.assertEqual(obj.name, account.username)
-        # This should return the account we created.
-        self.assertIs(obj.controlled_by, account)
+        self.assertEqual(account.username, 'TestGuy')
 
         # Make sure the password given at creation is valid.
         self.assertEqual(account.check_password('yay'), True)
@@ -50,17 +34,20 @@ class DBAccountStoreTests(DottTestCase):
         # Try the old original value and make sure it doesn't match.
         self.assertEqual(account.check_password('yay'), False)
 
-        num_accounts = len(self.account_store._db)
+        num_accounts = yield self.account_store.get_account_count()
         self.assertEqual(num_accounts, 1)
 
         # Just make sure it works.
-        self.account_store.get_account('TestGuy')
+        q_account = yield self.account_store.get_account_by_username('TestGuy')
+        self.assertEqual(q_account.username, 'TestGuy')
 
         # Trying to create an account with a username that is already
         # in use.
-        self.assertRaises(UsernameTakenException,
-                          self.account_store.create_account,
-                          'TestGuy', 'yay', 'some@guy.com')
+        try:
+            yield self.account_store.create_account('TestGuy', 'yay', 'some@guy.com')
+            self.fail("This should have failed due to duplication.")
+        except UsernameTakenException:
+            pass
 
 
 class ValidatorTests(DottTestCase):

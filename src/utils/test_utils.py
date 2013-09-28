@@ -2,8 +2,12 @@
 Assorted utilities for unit testing.
 """
 
+import os
+import psycopg2
 from twisted.trial import unittest
 from twisted.internet.defer import inlineCallbacks
+
+import settings
 from src.game.commands.global_cmdtable import GlobalCommandTable, GlobalAdminCommandTable
 from src.daemons.server.commands.handler import CommandHandler
 from src.daemons.server.objects.object_store import ObjectStore
@@ -41,6 +45,11 @@ class MockMudService(object):
         yield self.object_store.prep_and_load()
         yield self.account_store.prep_and_load()
 
+    #noinspection PyProtectedMember
+    def unload(self):
+        self.object_store.db_manager._db.close()
+        self.account_store.db_manager._db.close()
+
 
 #noinspection PyPep8Naming
 class DottTestCase(unittest.TestCase):
@@ -69,6 +78,26 @@ class DottTestCase(unittest.TestCase):
         Creates a fresh set of stores, DBs, and etc.
         """
 
+        conn = psycopg2.connect(user=settings.DATABASE_USERNAME)
+        conn.set_session(autocommit=True)
+        cur = conn.cursor()
+        cur.execute("DROP DATABASE IF EXISTS %s;" % settings.TEST_DATABASE_NAME)
+        cur.execute("CREATE DATABASE %s WITH OWNER=%s;" % (
+            settings.TEST_DATABASE_NAME, settings.TEST_DATABASE_USERNAME
+        ))
+        cur.close()
+        conn.close()
+
+        conn = psycopg2.connect(
+            user=settings.DATABASE_USERNAME, database=settings.TEST_DATABASE_NAME)
+        conn.set_session(autocommit=True)
+        cur = conn.cursor()
+        schema_file = os.path.join(settings.BASE_PATH, 'misc', 'dott-schema.sql')
+        schema = open(schema_file).read()
+        cur.execute(schema)
+        cur.close()
+        conn.close()
+
         self.mud_service = MockMudService()
         yield self.mud_service.prep_and_load()
         self.global_cmd_table = self.mud_service.global_cmd_table
@@ -82,6 +111,4 @@ class DottTestCase(unittest.TestCase):
         Cleans up the created environment.
         """
 
-        pass
-        #del self.object_store._server['dott_objects_test']
-        #del self.account_store._server['dott_accounts_test']
+        self.mud_service.unload()

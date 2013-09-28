@@ -5,7 +5,7 @@ Lower level account management.
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from src.accounts.db_io import DBManager
-from src.accounts.exceptions import AccountNotFoundException
+from src.accounts.exceptions import AccountNotFoundException, UsernameTakenException
 from src.accounts.account import PlayerAccount
 
 
@@ -44,6 +44,13 @@ class AccountStore(object):
         :raises: :class:`UsernameTakenException` if someone attempts to create
             a duplicate account.
         """
+
+        try:
+            yield self.get_account_by_username(username)
+            raise UsernameTakenException(
+                "User with that username already exists.")
+        except AccountNotFoundException:
+            pass
 
         # Create the PlayerAccount, pointed at the PlayerObject's _id.
         #noinspection PyTypeChecker
@@ -92,7 +99,8 @@ class AccountStore(object):
         :returns: A total count of active accounts.
         """
 
-        yield self.db_manager.get_account_count()
+        num_accounts = yield self.db_manager.get_account_count()
+        returnValue(num_accounts)
 
     @inlineCallbacks
     def get_account_by_id(self, account_id):
@@ -106,6 +114,7 @@ class AccountStore(object):
             ID exists.
         """
 
+        account_id = int(account_id)
         account = yield self.db_manager.get_account_by_id(account_id)
         if not account:
             raise AccountNotFoundException(
@@ -131,6 +140,6 @@ class AccountStore(object):
         account = yield self.db_manager.get_account_by_username(lowered_username)
         if not account:
             raise AccountNotFoundException(
-                'Invalid account username requested: %s' % lowered_username)
+                'No account with username "%s" exists.' % lowered_username)
         else:
             returnValue(account)

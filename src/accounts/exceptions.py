@@ -1,4 +1,9 @@
+"""
+Account related exceptions.
+"""
+
 from src.utils.exceptions import BaseException
+
 
 class AccountNotFoundException(BaseException):
     """
@@ -6,6 +11,7 @@ class AccountNotFoundException(BaseException):
     """
 
     pass
+
 
 class UsernameTakenException(BaseException):
     """
