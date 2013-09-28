@@ -3,7 +3,7 @@ Contains base level parents that aren't to be used directly.
 """
 
 from twisted.internet.defer import inlineCallbacks, returnValue
-from fuzzywuzzy.process import WRatio
+from fuzzywuzzy.process import QRatio
 from fuzzywuzzy import utils as fuzz_utils
 
 #from src.utils import logger
@@ -493,7 +493,7 @@ class BaseObject(object):
                 return obj
 
         processor = lambda x: fuzz_utils.full_process(x)
-        scorer = WRatio
+        scorer = QRatio
         results = list()
 
         for choice in objects:
