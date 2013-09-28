@@ -55,12 +55,7 @@ class ValidatorTests(DottTestCase):
     Tests some account-related validators. These mostly come into play
     during registration and login, but they are of general use.
     """
-    def setUp(self):
-        pass
 
-    def tearDown(self):
-        pass
-    
     def test_email_validator(self):
         """
         Tests the email validation function.

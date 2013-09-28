@@ -1,13 +1,10 @@
-import unittest
-from src.daemons.server.objects.parent_loader.loader import ParentLoader
+from src.utils.test_utils import DottTestCase
 
-class ParentLoaderTests(unittest.TestCase):
-    def setUp(self):
-        self.loader = ParentLoader()
 
-    def tearDown(self):
-        del self.loader
+class ParentLoaderTests(DottTestCase):
 
     def test_simple_load(self):
-        parent = self.loader.load_parent('src.game.parents.base_objects.room.RoomObject')
+        loader = self.object_store.parent_loader
+
+        parent = loader.load_parent('src.game.parents.base_objects.room.RoomObject')
         self.assertEqual(parent.__name__, 'RoomObject')

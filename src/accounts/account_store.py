@@ -1,3 +1,4 @@
+# -*- test-case-name: src.accounts.tests -*-
 """
 Lower level account management.
 """

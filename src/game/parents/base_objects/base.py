@@ -1,10 +1,16 @@
+"""
+Contains base level parents that aren't to be used directly.
+"""
+
 from twisted.internet.defer import inlineCallbacks, returnValue
-from fuzzywuzzy import fuzz
+from fuzzywuzzy.process import WRatio
+from fuzzywuzzy import utils as fuzz_utils
 
 #from src.utils import logger
 from src.daemons.server.protocols.proxyamp import EmitToObjectCmd
 
 
+#noinspection PyShadowingBuiltins
 class BaseObject(object):
     """
     This is the base parent for every in-game "object". Rooms, Players, and
@@ -65,6 +71,12 @@ class BaseObject(object):
 
         assert isinstance(self._attributes, dict)
 
+    def __str__(self):
+        return "<%s: %s (#%d)>" % (self.__class__.__name__, self.name, self.id)
+
+    def __repr__(self):
+        return self.__str__()
+
     #
     ## Begin properties.
     #
@@ -122,7 +134,6 @@ class BaseObject(object):
             # Already an int, assume this is an object ID.
             self.location_id = obj_or_id
         elif isinstance(obj_or_id, basestring):
-            # TODO: This should be removable in the future.
             raise Exception("BaseObject.set_location() can't accept strings: %s" % obj_or_id)
         else:
             # Looks like a BaseObject sub-class. Grab the object ID.
@@ -148,11 +159,10 @@ class BaseObject(object):
         if not isinstance(attrib_dict, dict):
             raise Exception(
                 "BaseObject.set_attributes() passed an invalid type: %s (%s)" % (
-                    attrib_dict, type(attrib_dict)
-            ))
+                    attrib_dict, type(attrib_dict)))
         else:
             # Looks like a BaseObject sub-class. Grab the object ID.
-            self.attributes = attrib_dict
+            self._attributes = attrib_dict
     attributes = property(get_attributes, set_attributes)
 
     def get_zone(self):
@@ -168,6 +178,7 @@ class BaseObject(object):
             return self._object_store.get_object(self.zone_id)
         else:
             return None
+
     def set_zone(self, obj_or_id):
         """
         Sets this object's zone.
@@ -181,7 +192,6 @@ class BaseObject(object):
             # Already an int, assume this is an object ID.
             self.zone_id = obj_or_id
         elif isinstance(obj_or_id, basestring):
-            # TODO: This should be removable in the future.
             raise Exception("BaseObject.set_zone() can't accept strings: %s" % obj_or_id)
         elif obj_or_id is None:
             self.zone_id = None
@@ -280,7 +290,7 @@ class BaseObject(object):
 
         :param str message: The message to emit to any object within
             this one.
-        :keyword BaseObject exclude: A list of objects who are to be
+        :param BaseObject exclude: A list of objects who are to be
             excluded from the emit list. These objects will not see the emit.
         """
 
@@ -299,6 +309,8 @@ class BaseObject(object):
         Moves this object to the given destination.
 
         :param BaseObject destination_obj: Where to move this object to.
+        :param bool force_look: If True, the object will run the "look"
+            command between movements.
         """
 
         old_location_obj = self.location
@@ -345,7 +357,7 @@ class BaseObject(object):
         Returns the description of this object.
 
         :param BaseObject invoker: The object asking for the description.
-        :keyword bool from_inside: If True, use an internal description instead
+        :param bool from_inside: If True, use an internal description instead
             of the normal description, if available. For example, the inside
             of a vehicle should have a different description than the outside.
         """
@@ -400,7 +412,7 @@ class BaseObject(object):
         Returns the contents and exits display for the object.
 
         :param BaseObject invoker: The object asking for the appearance.
-        :keyword bool from_inside: Show the contents/exits as if the invoker
+        :param bool from_inside: Show the contents/exits as if the invoker
             was inside this object.
         :rtype: str
         :returns: The contents/exits display.
@@ -460,33 +472,42 @@ class BaseObject(object):
 
         return "%s\n%s\n%s" % (name, desc, contents)
 
-    def _find_name_or_alias_match(self, objects, desc):
+    def _find_name_or_alias_match(self, objects, query):
         """
         Performs name and alias matches on a list of objects. Returns the
         best match, or ``None`` if nothing was found.
 
         :param iterable objects: A list of ``BaseObject`` sub-class instances
             to attempt to match to.
-        :param str desc: The string to match against.
+        :param str query: The string to match against.
         """
 
-        ratio = 0
-        result = None
+        if not objects:
+            return None
+
         for obj in objects:
             # Start by checking all objects for an alias match.
             aliases = [alias.lower() for alias in obj.aliases]
-            if desc.lower() in aliases:
+            if query.lower() in aliases:
                 # If a match is found, return immediately on said match.
                 return obj
 
-            # No alias match found, so now we fuzzy match
-            r = fuzz.partial_ratio(desc, obj.name)
-            #noinspection PyChainedComparisons
-            if r > 50 and r > ratio:
-                ratio = r
-                result = obj
+        processor = lambda x: fuzz_utils.full_process(x)
+        scorer = WRatio
+        results = list()
 
-        return result
+        for choice in objects:
+            processed = processor(choice.name)
+            score = scorer(query, processed)
+            result = (choice, score)
+            if score > 0:
+                results.append(result)
+
+        if not results:
+            return None
+        else:
+            results.sort(key=lambda i: i[1], reverse=True)
+            return results[0][0]
 
     def _find_object_id_match(self, desc):
         """
@@ -518,13 +539,13 @@ class BaseObject(object):
                 # are in the same place.
                 #noinspection PyUnresolvedReferences
                 location_match = self.location.id == obj.location.id or \
-                                 self.location.id == obj.id
+                    self.location.id == obj.id
                 if location_match:
                     # Locations match. Good to go.
                     return obj
             elif obj.base_type == 'room':
                 #noinspection PyUnresolvedReferences
-                if  self.location and self.location.id == obj.id:
+                if self.location and self.location.id == obj.id:
                     # Non-admin is looking at their current location, which
                     # is a room.
                     return obj

@@ -1,3 +1,4 @@
+from twisted.internet.defer import inlineCallbacks
 from src.utils.test_utils import DottTestCase
 from src.daemons.server.commands.parser import CommandParser, ParsedCommand
 from src.daemons.server.commands.cmdtable import CommandTable, DuplicateCommandException
@@ -5,12 +6,17 @@ from src.daemons.server.commands.command import BaseCommand
 
 
 class CommandTableTests(DottTestCase):
+
+    @inlineCallbacks
     def setUp(self):
-        super(CommandTableTests, self).setUp()
+        yield super(CommandTableTests, self).setUp()
 
         self.table = CommandTable()
 
+    @inlineCallbacks
     def tearDown(self):
+        yield super(CommandTableTests, self).tearDown()
+
         del self.table
 
     def test_add_and_lookup(self):
@@ -75,10 +81,17 @@ class CommandTableTests(DottTestCase):
 
 
 class CommandParserTests(DottTestCase):
+
+    @inlineCallbacks
     def setUp(self):
+        yield super(CommandParserTests, self).setUp()
+
         self.parser = CommandParser()
 
+    @inlineCallbacks
     def tearDown(self):
+        yield super(CommandParserTests, self).tearDown()
+
         del self.parser
 
     def test_simple_command(self):

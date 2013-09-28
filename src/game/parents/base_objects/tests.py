@@ -35,11 +35,12 @@ class BaseObjectTests(DottTestCase):
         """
         Tests the objects' get_location function
         """
+
         obj1 = yield self.object_store.create_object(settings.ROOM_PARENT, name='obj1')
         self.assertEqual(obj1.get_location(), None)
 
         obj2 = yield self.object_store.create_object(
-            settings.BASE_PARENT,
+            settings.THING_PARENT,
             location_id=obj1.id,
             name='obj2')
         self.assertEqual(obj2.get_location(), obj1)

@@ -31,16 +31,18 @@ class DBManager(object):
         "  FROM dott_accounts"
     )
 
-    def __init__(self, store, db_name=None):
+    def __init__(self, store, db_name=None, db_user=None):
         """
         :keyword AccountStore store: The account store this instance manages.
         :keyword str db_name: Overrides the DB name for the object DB. Currently
             just used for unit testing.
+        :keyword str db_name: Overrides the DB user for the object DB. Currently
+            just used for unit testing.
         """
 
         self.store = store
-
         self._db_name = db_name or settings.DATABASE_NAME
+        self._db_user = db_user or settings.DATABASE_USERNAME
         # This eventually contains a txpostgres Connection object, which is
         # where we can query.
         self._db = None
@@ -56,10 +58,7 @@ class DBManager(object):
         self.store._accounts = {}
         # Instantiate the connection to Postgres.
         self._db = txPGDictConnection()
-        yield self._db.connect(
-            user=settings.DATABASE_USERNAME,
-            database=self._db_name
-        )
+        yield self._db.connect(user=self._db_user, database=self._db_name)
 
     @inlineCallbacks
     def get_account_count(self):
