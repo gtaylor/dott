@@ -15,13 +15,13 @@ class AccountStore(object):
     Serves as an in-memory store for all account values.
     """
 
-    def __init__(self, db_name=None):
+    def __init__(self, db_mode='production'):
         """
-        :keyword str db_name: Overrides the DB name for the account DB.
+        :keyword str mode: Either 'test' or 'production'.
         """
 
         # All DB operations happen through here.
-        self.db_manager = DBManager(self, db_name=db_name)
+        self.db_manager = DBManager(self, db_mode)
 
     @inlineCallbacks
     def prep_and_load(self):

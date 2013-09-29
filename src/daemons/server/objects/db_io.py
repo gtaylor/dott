@@ -7,10 +7,9 @@ from psycopg2.extras import Json
 
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-import settings
-from src.utils import logger
 from src.daemons.server.objects.parent_loader.exceptions import InvalidParent
-from src.utils.db import txPGDictConnection
+from src.utils import logger
+from src.utils.db import txPGDictConnection, get_db_connection_kwargs
 
 
 class DBManager(object):
@@ -38,15 +37,14 @@ class DBManager(object):
         "FROM dott_objects"
     )
 
-    def __init__(self, mud_service, parent_loader, db_name=None):
+    def __init__(self, mud_service, parent_loader, db_mode):
         """
         :param ParentLoader parent_loader: A reference to a ParentLoader instance.
         :param MudService mud_service: A reference to the top-level MudService.
-        :keyword str db_name: Overrides the DB name for the object DB. Currently
-            just used for unit testing.
+        :param str db_mode: Either 'test' or 'production'.
         """
 
-        self._db_name = db_name or settings.DATABASE_NAME
+        self._db_mode = db_mode
         # This eventually contains a txpostgres Connection object, which is
         # where we can query.
         self._db = None
@@ -61,10 +59,8 @@ class DBManager(object):
 
         # Instantiate the connection to Postgres.
         self._db = txPGDictConnection()
-        yield self._db.connect(
-            user=settings.DATABASE_USERNAME,
-            database=self._db_name
-        )
+        conn_info = get_db_connection_kwargs(db_mode=self._db_mode)
+        yield self._db.connect(**conn_info)
 
     @inlineCallbacks
     def load_objects_into_store(self, loader_func):

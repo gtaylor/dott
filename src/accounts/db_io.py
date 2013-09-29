@@ -5,9 +5,8 @@ AccountStore.
 
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-import settings
 from src.accounts.account import PlayerAccount
-from src.utils.db import txPGDictConnection
+from src.utils.db import txPGDictConnection, get_db_connection_kwargs
 
 
 class DBManager(object):
@@ -31,18 +30,14 @@ class DBManager(object):
         "  FROM dott_accounts"
     )
 
-    def __init__(self, store, db_name=None, db_user=None):
+    def __init__(self, store, db_mode='production'):
         """
         :keyword AccountStore store: The account store this instance manages.
-        :keyword str db_name: Overrides the DB name for the object DB. Currently
-            just used for unit testing.
-        :keyword str db_name: Overrides the DB user for the object DB. Currently
-            just used for unit testing.
+        :keyword str mode: Either 'test' or 'production'.
         """
 
         self.store = store
-        self._db_name = db_name or settings.DATABASE_NAME
-        self._db_user = db_user or settings.DATABASE_USERNAME
+        self._db_mode = db_mode
         # This eventually contains a txpostgres Connection object, which is
         # where we can query.
         self._db = None
@@ -58,7 +53,8 @@ class DBManager(object):
         self.store._accounts = {}
         # Instantiate the connection to Postgres.
         self._db = txPGDictConnection()
-        yield self._db.connect(user=self._db_user, database=self._db_name)
+        conn_info = get_db_connection_kwargs(db_mode=self._db_mode)
+        yield self._db.connect(**conn_info)
 
     @inlineCallbacks
     def get_account_count(self):

@@ -20,11 +20,10 @@ class ObjectStore(object):
         Make sure to keep any DB-related things out of here.
     """
 
-    def __init__(self, mud_service, db_name=None):
+    def __init__(self, mud_service, db_mode='production'):
         """
         :param MudService mud_service: The MudService class running the game.
-        :keyword str db_name: Overrides the DB name for the object DB. Currently
-            just used for unit testing.
+        :keyword str mode: Either 'test' or 'production'.
         """
 
         self._mud_service = mud_service
@@ -36,9 +35,7 @@ class ObjectStore(object):
         self._objects = {}
 
         # DB abstraction layer.
-        self.db_manager = DBManager(
-            mud_service, self.parent_loader, db_name=db_name
-        )
+        self.db_manager = DBManager(mud_service, self.parent_loader, db_mode)
 
     @inlineCallbacks
     def prep_and_load(self):

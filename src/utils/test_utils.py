@@ -19,6 +19,8 @@ from src.daemons.proxy.sessions.session_manager import SessionManager
 # I'm probably going to hell for this, but we use it to make sure that
 # we only create the test DB once, instead of between every test. Makes things
 # run a little faster.
+from src.utils.db import get_db_connection_kwargs
+
 DB_WAS_CREATED = False
 
 
@@ -43,8 +45,8 @@ class MockMudService(object):
         self.global_admin_cmd_table = GlobalAdminCommandTable()
         self.command_handler = CommandHandler(self)
         self.session_manager = SessionManager(self)
-        self.object_store = ObjectStore(self, db_name='dott_test')
-        self.account_store = AccountStore(db_name='dott_test')
+        self.object_store = ObjectStore(self, db_mode='test')
+        self.account_store = AccountStore(db_mode='test')
         self.proxyamp = FakeProxyAMP()
 
     @inlineCallbacks
@@ -110,20 +112,21 @@ class DottTestCase(unittest.TestCase):
         if not DB_WAS_CREATED:
             # We have to use psycopg2 directly since txpostgres can't
             # be used with autocommit=True.
-            conn = psycopg2.connect(user=settings.DATABASE_USERNAME)
+            conn_info = get_db_connection_kwargs(db_mode='test', include_db=False)
+            conn = psycopg2.connect(**conn_info)
             conn.set_session(autocommit=True)
             cur = conn.cursor()
             # Destroy and re-create the test DB to make sure the
             # schema is current.
-            cur.execute("DROP DATABASE IF EXISTS %s;" % settings.TEST_DATABASE_NAME)
+            cur.execute("DROP DATABASE IF EXISTS %s;" % settings.TEST_DATABASE['database'])
             cur.execute("CREATE DATABASE %s WITH OWNER=%s;" % (
-                settings.TEST_DATABASE_NAME, settings.TEST_DATABASE_USERNAME
+                settings.TEST_DATABASE['database'], conn_info['user']
             ))
             cur.close()
             conn.close()
 
-            conn = psycopg2.connect(
-                user=settings.DATABASE_USERNAME, database=settings.TEST_DATABASE_NAME)
+            conn_info = get_db_connection_kwargs(db_mode='test')
+            conn = psycopg2.connect(**conn_info)
             conn.set_session(autocommit=True)
             cur = conn.cursor()
             # Load the schema from the export.

@@ -13,10 +13,18 @@ LOG_DIR = os.path.join(BASE_PATH, 'log')
 
 SECRET_KEY = 'CHANGE-ME-AND-KEEP-SAFE'
 
-DATABASE_NAME = 'dott'
-DATABASE_USERNAME = 'dott'
-TEST_DATABASE_USERNAME = 'dott'
-TEST_DATABASE_NAME = 'dott_test'
+DATABASE = {
+    'database': 'dott',
+    'user': 'dott',
+    'host': None,
+    'port': None,
+}
+TEST_DATABASE = {
+    'database': 'dott_test',
+    'user': 'dott',
+    'host': None,
+    'port': None,
+}
 
 # Amazon Web Services credentials.
 AWS_ACCESS_KEY_ID = 'XXXXXXXXXXXXXXXXXXXXX'
