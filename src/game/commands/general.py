@@ -1,3 +1,5 @@
+import pprint
+import json
 import settings
 from src.daemons.server.commands.command import BaseCommand
 from src.daemons.server.commands.exceptions import CommandError
@@ -79,9 +81,7 @@ class CmdExamine(BaseCommand):
 
         if obj.attributes:
             attributes_str += '\n### ATTRIBUTES ###\n'
-
-            for key, value in obj.attributes.items():
-                attributes_str += ' %s: %s\n' % (key, value)
+            attributes_str += json.dumps(obj.attributes, indent=3)
 
         name = obj.get_appearance_name(invoker=invoker)
         return "%s\n%s" % (name, attributes_str)
@@ -97,12 +97,8 @@ class CmdGo(BaseCommand):
         if not parsed_cmd.arguments:
             raise CommandError('Go through which exit?')
 
-        # Join all arguments together into one single string so we can
-        # do a contextual search for the whole thing.
-        full_arg_str = ' '.join(parsed_cmd.arguments)
-
         try:
-            obj_to_traverse = invoker.contextual_object_search(full_arg_str)
+            obj_to_traverse = invoker.contextual_object_search(parsed_cmd.argument_string)
         except InvalidObjectId:
             obj_to_traverse = None
         if not obj_to_traverse:
@@ -124,12 +120,8 @@ class CmdEnter(BaseCommand):
         if not parsed_cmd.arguments:
             raise CommandError('Enter what?')
 
-        # Join all arguments together into one single string so we can
-        # do a contextual search for the whole thing.
-        full_arg_str = ' '.join(parsed_cmd.arguments)
-
         try:
-            obj_to_enter = invoker.contextual_object_search(full_arg_str)
+            obj_to_enter = invoker.contextual_object_search(parsed_cmd.argument_string)
         except InvalidObjectId:
             obj_to_enter = None
         if not obj_to_enter:
@@ -154,6 +146,7 @@ class CmdLeave(BaseCommand):
 
     name = 'leave'
 
+    #noinspection PyUnusedLocal
     def func(self, invoker, parsed_cmd):
         location = invoker.location
         can_leave, cant_leave_msg = location.can_object_leave(invoker)
@@ -176,6 +169,7 @@ class CmdCommands(BaseCommand):
 
     name = 'commands'
 
+    #noinspection PyUnusedLocal
     def func(self, invoker, parsed_cmd):
         service = invoker._mud_service
         # Buffer to send to user.

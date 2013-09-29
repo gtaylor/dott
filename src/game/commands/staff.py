@@ -2,13 +2,14 @@
 Staff commands.
 """
 
+import json
+
 from twisted.internet.defer import inlineCallbacks
 from src.daemons.server.protocols.proxyamp import ShutdownProxyCmd
 from src.daemons.server.commands.command import BaseCommand
 from src.daemons.server.commands.exceptions import CommandError
 from src.daemons.server.objects.exceptions import InvalidObjectId
 from src.daemons.server.objects.parent_loader.exceptions import InvalidParent
-from src.utils import logger
 from src.game.parents.base_objects.exit import ExitObject
 from src.game.parents.base_objects.room import RoomObject
 
@@ -148,12 +149,9 @@ class CmdTeleport(BaseCommand):
         if not parsed_cmd.arguments:
             raise CommandError('Teleport what to where?')
 
-        # Join all arguments together into one single string so we can
-        # split be equal sign.
-        full_arg_str = ' '.join(parsed_cmd.arguments)
         # End up with a list of one or two members. Splits around the
         # first equal sign found.
-        equal_sign_split = full_arg_str.split('=', 1)
+        equal_sign_split = parsed_cmd.argument_string.split('=', 1)
         # Start off assuming the first member is the object that is to
         # be teleported.
         obj_to_tel_str = equal_sign_split[0]
@@ -204,12 +202,9 @@ class CmdDescribe(BaseCommand):
         if not parsed_cmd.arguments:
             raise CommandError('Describe what?')
 
-        # Join all arguments together into one single string so we can
-        # split be equal sign.
-        full_arg_str = ' '.join(parsed_cmd.arguments)
         # End up with a list of one or two members. Splits around the
         # first equal sign found.
-        equal_sign_split = full_arg_str.split('=', 1)
+        equal_sign_split = parsed_cmd.argument_string.split('=', 1)
 
         if len(equal_sign_split) == 1:
             raise CommandError('No description provided.')
@@ -248,12 +243,9 @@ class CmdName(BaseCommand):
         if not parsed_cmd.arguments:
             raise CommandError('Name what?')
 
-        # Join all arguments together into one single string so we can
-        # split be equal sign.
-        full_arg_str = ' '.join(parsed_cmd.arguments)
         # End up with a list of one or two members. Splits around the
         # first equal sign found.
-        equal_sign_split = full_arg_str.split('=', 1)
+        equal_sign_split = parsed_cmd.argument_string.split('=', 1)
 
         if len(equal_sign_split) == 1:
             raise CommandError('No name provided.')
@@ -284,12 +276,9 @@ class CmdZone(BaseCommand):
         if not parsed_cmd.arguments:
             raise CommandError('Set the zone on what?')
 
-        # Join all arguments together into one single string so we can
-        # split be equal sign.
-        full_arg_str = ' '.join(parsed_cmd.arguments)
         # End up with a list of one or two members. Splits around the
         # first equal sign found.
-        equal_sign_split = full_arg_str.split('=', 1)
+        equal_sign_split = parsed_cmd.argument_string.split('=', 1)
 
         if len(equal_sign_split) == 1:
             raise CommandError('No zone provided.')
@@ -339,12 +328,9 @@ class CmdParent(BaseCommand):
         if not parsed_cmd.arguments:
             raise CommandError('Re-parent what?')
 
-        # Join all arguments together into one single string so we can
-        # split be equal sign.
-        full_arg_str = ' '.join(parsed_cmd.arguments)
         # End up with a list of one or two members. Splits around the
         # first equal sign found.
-        equal_sign_split = full_arg_str.split('=', 1)
+        equal_sign_split = parsed_cmd.argument_string.split('=', 1)
 
         if len(equal_sign_split) == 1:
             raise CommandError('No parent provided.')
@@ -411,12 +397,9 @@ class CmdAlias(BaseCommand):
         if not parsed_cmd.arguments:
             raise CommandError('Alias what?')
 
-        # Join all arguments together into one single string so we can
-        # split be equal sign.
-        full_arg_str = ' '.join(parsed_cmd.arguments)
         # End up with a list of one or two members. Splits around the
         # first equal sign found.
-        equal_sign_split = full_arg_str.split('=', 1)
+        equal_sign_split = parsed_cmd.argument_string.split('=', 1)
 
         if len(equal_sign_split) == 1:
             raise CommandError('No alias(es) provided.')
@@ -458,12 +441,8 @@ class CmdDestroy(BaseCommand):
         if not parsed_cmd.arguments:
             raise CommandError('Destroy what?')
 
-        # Join all arguments together into one single string so we can
-        # do a contextual search for the whole thing.
-        full_arg_str = ' '.join(parsed_cmd.arguments)
-
         try:
-            obj_to_destroy = invoker.contextual_object_search(full_arg_str)
+            obj_to_destroy = invoker.contextual_object_search(parsed_cmd.argument_string)
         except InvalidObjectId:
             obj_to_destroy = None
         if not obj_to_destroy:
@@ -551,12 +530,8 @@ class CmdUnlink(BaseCommand):
         if not parsed_cmd.arguments:
             raise CommandError('Unlink which exit?')
 
-        # Join all arguments together into one single string so we can
-        # do a contextual search for the whole thing.
-        full_arg_str = ' '.join(parsed_cmd.arguments)
-
         try:
-            obj_to_unlink = invoker.contextual_object_search(full_arg_str)
+            obj_to_unlink = invoker.contextual_object_search(parsed_cmd.argument_string)
         except InvalidObjectId:
             obj_to_unlink = None
         if not obj_to_unlink:
@@ -584,12 +559,9 @@ class CmdLink(BaseCommand):
         if not parsed_cmd.arguments:
             raise CommandError('Link which exit?')
 
-        # Join all arguments together into one single string so we can
-        # split be equal sign.
-        full_arg_str = ' '.join(parsed_cmd.arguments)
         # End up with a list of one or two members. Splits around the
         # first equal sign found.
-        equal_sign_split = full_arg_str.split('=', 1)
+        equal_sign_split = parsed_cmd.argument_string.split('=', 1)
 
         if len(equal_sign_split) == 1:
             raise CommandError('No destination provided.')
@@ -639,13 +611,9 @@ class CmdSet(BaseCommand):
         if not parsed_cmd.arguments:
             raise CommandError('Which object do you wish to set?')
 
-
-        # Join all arguments together into one single string so we can
-        # split be equal sign.
-        full_arg_str = ' '.join(parsed_cmd.arguments)
         # End up with a list of one or two members. Splits around the
         # first equal sign found.
-        equal_sign_split = full_arg_str.split('=', 1)
+        equal_sign_split = parsed_cmd.argument_string.split('=', 1)
 
         if len(equal_sign_split) <= 1:
             raise CommandError('You must specify a target and a value.')
@@ -667,9 +635,12 @@ class CmdSet(BaseCommand):
             )
 
         attr_name, attr_value = set_value.split(':', 1)
-        attr_name = attr_name.upper()
+        try:
+            json_value = json.loads(attr_value)
+        except ValueError:
+            raise CommandError('Invalid JSON value.')
 
-        target_obj.attributes[attr_name] = attr_value
+        target_obj.attributes[attr_name] = json_value
         yield target_obj.save()
 
         invoker.emit_to(

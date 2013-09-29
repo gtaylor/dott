@@ -18,7 +18,8 @@ class ParsedCommand(object):
     def __init__(self, command_str, switches, arguments):
         self.command_str = command_str
         self.switches = set(switches)
-        self.arguments = set(arguments)
+        self.arguments = arguments
+        self.argument_string = ' '.join(arguments)
 
 
 class CommandParser(object):

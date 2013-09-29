@@ -89,12 +89,9 @@ class CmdDock(BaseCommand):
         """
 
         service = invoker._mud_service
-        # Join all arguments together into one single string so we can
-        # do a contextual search for the whole thing.
-        full_arg_str = ' '.join(parsed_cmd.arguments)
 
         try:
-            dock_id = int(full_arg_str)
+            dock_id = int(parsed_cmd.argument_string)
         except (TypeError, ValueError):
             raise CommandError('Invalid docking location ID.')
 
@@ -225,12 +222,9 @@ class CmdWarp(BaseCommand):
         """
 
         service = invoker._mud_service
-        # Join all arguments together into one single string so we can
-        # do a contextual search for the whole thing.
-        full_arg_str = ' '.join(parsed_cmd.arguments)
 
         try:
-            warp_id = int(full_arg_str)
+            warp_id = int(parsed_cmd.argument_string)
         except (TypeError, ValueError):
             raise CommandError('Invalid warp destination ID.')
 

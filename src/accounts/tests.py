@@ -2,6 +2,8 @@
 Account store tests.
 """
 
+import datetime
+
 from twisted.internet.defer import inlineCallbacks
 
 from src.utils.test_utils import DottTestCase
@@ -20,6 +22,9 @@ class DBAccountStoreTests(DottTestCase):
         """
 
         account = yield self.account_store.create_account('TestGuy', 'yay', 'some@guy.com')
+        # These two should be populated by the INSERT ... RETURNING statement.
+        self.assertIsInstance(account.id, int)
+        self.assertIsInstance(account.created_time, datetime.datetime)
 
         # These two values should be the same. username is just a property
         # that maps to _id.

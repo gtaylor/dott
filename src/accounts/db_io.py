@@ -119,7 +119,7 @@ class DBManager(object):
         """
         Saves an account to the DB.
 
-        :param PlayerAccount account: The object to save to the DB.
+        :param PlayerAccount account: The account to save to the DB.
         """
 
         if not account.id:
@@ -127,7 +127,7 @@ class DBManager(object):
                 "INSERT INTO dott_accounts"
                 "  (username, currently_controlling_id, email, password)"
                 "  VALUES (%s, %s, %s, %s) "
-                " RETURNING id",
+                " RETURNING id, created_time",
                 (
                     account.username,
                     account.currently_controlling_id,
@@ -135,8 +135,10 @@ class DBManager(object):
                     account.password,
                 )
             )
-            inserted_id = str(result[0][0])
-            account.id = inserted_id
+            # Populate a few things that we can only get once the DB has
+            # created the row.
+            account.id = result[0][0]
+            account.created_time = result[0][1]
         else:
             yield self._db.runOperation(
                 "UPDATE dott_accounts SET"
@@ -159,6 +161,8 @@ class DBManager(object):
     def destroy_account(self, account):
         """
         Destroys an account.
+
+        :param PlayerAccount account: The account to save to delete in the DB.
         """
 
         yield self._db.runOperation(
