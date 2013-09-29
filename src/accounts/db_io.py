@@ -17,7 +17,6 @@ class DBManager(object):
     allowed to manipulate the self.store._objects dict.
     """
 
-    # TODO: Add a created_dtime column.
     # TODO: Add last_saved_dtime column.
     # TODO: Add last_login_dtime column.
 
@@ -26,7 +25,7 @@ class DBManager(object):
     # WHERE clause by string concatenation.
     BASE_ACCOUNT_SELECT = (
         "SELECT "
-        "  id, username, currently_controlling_id, email, password "
+        "  id, username, currently_controlling_id, email, password, created_time "
         "  FROM dott_accounts"
     )
 
