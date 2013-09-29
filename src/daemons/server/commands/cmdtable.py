@@ -1,10 +1,16 @@
+"""
+Command tables can appear globally or as part of an object.
+"""
+
 from src.utils.exceptions import BaseException
+
 
 class DuplicateCommandException(BaseException):
     """
     Raised when a command is added whose name or alias is already represented in
     the command table.
     """
+
     pass
 
 
@@ -14,8 +20,13 @@ class CommandTable(object):
     These store references to various Command instances, their names and
     aliases.
 
+    To use this, create a sub-class and override :py:attr:`commands` to contain
+    a list of :py:class:`BaseCommand` sub-classes.
+
     :attr list commands: A list of BaseCommand objects.
     """
+
+    # Override this in your sub-class.
     commands = []
 
     def __init__(self):
@@ -39,7 +50,8 @@ class CommandTable(object):
         :raises: :class:`DuplicateCommandException` when a duplicate command
             name or alias is encountered when trying to add this command.
         """
-        if self._commands.has_key(command.name):
+
+        if command.name in self._commands:
             msg = "Attempting to add command with name %s, but an entry in "\
                   "the table with this name already exists." % command.name
             raise DuplicateCommandException(msg)
@@ -47,7 +59,7 @@ class CommandTable(object):
         self._commands[command.name] = command
 
         for alias in command.aliases:
-            if self._aliases.has_key(alias):
+            if alias in self._aliases:
                 msg = "Attempting to add command with alias %s, but an entry "\
                       "in the table with this alias already exists." % alias
                 raise DuplicateCommandException(msg)
@@ -64,6 +76,7 @@ class CommandTable(object):
             to match against.
         :returns: A reference to a ``BaseCommand`` child instance, or ``None``.
         """
+
         name_match = self.match_name(parsed_command.command_str)
         if name_match:
             return name_match
@@ -72,7 +85,6 @@ class CommandTable(object):
         if alias_match:
             return alias_match
 
-        # No matches.
         return None
 
     def match_name(self, name):
@@ -80,8 +92,10 @@ class CommandTable(object):
         Given a name, return the matching ``BaseCommand`` reference, or
         ``None`` if no matches are found.
 
+        :param basestring name: The potential command name to match on the table.
         :returns: The matching command, or ``None``.
         """
+
         return self._commands.get(name)
 
     def match_alias(self, alias):
@@ -89,6 +103,8 @@ class CommandTable(object):
         Given a name, return the matching ``BaseCommand`` reference, or
         ``None`` if no matches are found.
 
+        :param basestring alias: The potential command name to match on the table.
         :returns: The matching command, or ``None``.
         """
+
         return self._aliases.get(alias)
