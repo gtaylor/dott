@@ -17,7 +17,6 @@ class DBManager(object):
     allowed to manipulate the self.store._objects dict.
     """
 
-    # TODO: Add last_saved_dtime column.
     # TODO: Add last_login_dtime column.
 
     # This is the base SELECT statement we'll use in a few methods for

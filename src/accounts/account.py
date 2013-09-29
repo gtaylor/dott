@@ -10,6 +10,7 @@ class PlayerAccount(object):
     AccountStore backend.
     """
 
+    #noinspection PyShadowingBuiltins
     def __init__(self, account_store, id, username, currently_controlling_id,
                  email, password, created_time):
         """

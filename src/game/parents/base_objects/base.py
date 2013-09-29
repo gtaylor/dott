@@ -27,7 +27,8 @@ class BaseObject(object):
                  internal_description=None,
                  location_id=None, destination_id=None, zone_id=None,
                  aliases=None, originally_controlled_by_account_id=None,
-                 controlled_by_account_id=None, attributes=None):
+                 controlled_by_account_id=None, attributes=None,
+                 created_time=None):
         """
         :param MudService mud_service: The MudService class running the game.
         :param int id: A unique ID for the object, or None if this is
@@ -48,6 +49,8 @@ class BaseObject(object):
         :keyword dict kwargs: All objects are instantiated with the values from
             the DB as kwargs. Since the DB representation of all of an
             objects attributes is just a dict, this works really well.
+        :keyword datetime.datetime created_time: The time the object was
+            created.
         """
 
         self._mud_service = mud_service
@@ -68,6 +71,7 @@ class BaseObject(object):
         # This stores all of the object's data. This includes core and
         # userspace attributes.
         self._attributes = attributes or {}
+        self.created_time = created_time
 
         assert isinstance(self._attributes, dict)
 

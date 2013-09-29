@@ -21,8 +21,6 @@ class DBManager(object):
     """
 
     # TODO: Add created_by_id column.
-    # TODO: Add a created_dtime column.
-    # TODO: Add last_saved_dtime column.
     # TODO: Add home_id column.
     # TODO: Add flags column?
 
@@ -33,7 +31,7 @@ class DBManager(object):
         "SELECT id, name, parent, location_id,"
         " originally_controlled_by_account_id, controlled_by_account_id,"
         " description, internal_description, zone_id, aliases, destination_id, "
-        " attributes "
+        " attributes, created_time "
         "FROM dott_objects"
     )
 
