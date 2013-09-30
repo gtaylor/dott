@@ -107,42 +107,45 @@ class BaseObject(object):
 
         return self._mud_service.command_handler
 
-    def get_location(self):
+    def _generic_id_to_baseobject_property_getter(self, attrib_name):
         """
-        Determines the object's location and returns the instance representing
-        this object's location.
+        A generic getter for attributes that store object IDs. Given an
+        object ID, retrieve it or None.
 
-        :returns: The ``BaseObject`` instance (sub-class) that this object
-            is currently in. Typically a ``RoomObject``, but can also be
-            other types.
+        :rtype: BaseObject or None
+        :returns: The ``BaseObject`` instance for the attribute, or None
+            if there is no value.
+        :raises: NoSuchObject if the stored object ID has no match in
+            the DB.
         """
 
-        if self.location_id:
-            return self._object_store.get_object(self.location_id)
+        obj_id = getattr(self, attrib_name)
+        if obj_id:
+            #noinspection PyTypeChecker
+            return self._object_store.get_object(obj_id)
         else:
             return None
 
-    def set_location(self, obj_or_id):
+    def _generic_baseobject_to_id_property_setter(self, attrib_name, obj_or_id):
         """
-        Sets this object's location.
+        Sets this object's zone.
 
         :param obj_or_id: The object or object ID to set as the
-            object's location.
-        :type obj_or_id: A ``BaseObject`` sub-class or a ``str``.
+            object's zone master.
+        :type obj_or_id: A ``BaseObject`` sub-class or an ``int``.
         """
 
-        if self.base_type == 'room':
-            # Rooms can't have locations.
-            return
-        elif isinstance(obj_or_id, int):
+        if isinstance(obj_or_id, int):
             # Already an int, assume this is an object ID.
-            self.location_id = obj_or_id
+            setattr(self, attrib_name, obj_or_id)
         elif isinstance(obj_or_id, basestring):
-            raise Exception("BaseObject.set_location() can't accept strings: %s" % obj_or_id)
+            raise Exception("BaseObject.set_%s() can't accept strings for object IDs: %s" % (
+                attrib_name, obj_or_id))
+        elif obj_or_id is None:
+            setattr(self, attrib_name, None)
         else:
             # Looks like a BaseObject sub-class. Grab the object ID.
-            self.location_id = obj_or_id.id
-    location = property(get_location, set_location)
+            setattr(self, attrib_name, obj_or_id.id)
 
     def get_attributes(self):
         """
@@ -169,19 +172,49 @@ class BaseObject(object):
             self._attributes = attrib_dict
     attributes = property(get_attributes, set_attributes)
 
+    def get_location(self):
+        """
+        Determines the object's location and returns the instance representing
+        this object's location.
+
+        :returns: The ``BaseObject`` instance (sub-class) that this object
+            is currently in. Typically a ``RoomObject``, but can also be
+            other types.
+        :raises: NoSuchObject if the stored object ID has no match in
+            the DB.
+        """
+
+        return self._generic_id_to_baseobject_property_getter('location_id')
+
+    def set_location(self, obj_or_id):
+        """
+        Sets this object's location.
+
+        :param obj_or_id: The object or object ID to set as the
+            object's location.
+        :type obj_or_id: A ``BaseObject`` sub-class or a ``str``.
+        """
+
+        if self.base_type == 'room':
+            # Rooms can't have locations.
+            return
+        self._generic_baseobject_to_id_property_setter('location_id', obj_or_id)
+
+    location = property(get_location, set_location)
+
     def get_zone(self):
         """
         Determines the object's zone and returns the instance representing
         this object's zone.
 
+        :rtype: BaseObject or None
         :returns: The ``BaseObject`` instance (sub-class) that is this object's
             zone master object.
+        :raises: NoSuchObject if the stored object ID has no match in
+            the DB.
         """
 
-        if self.zone_id:
-            return self._object_store.get_object(self.zone_id)
-        else:
-            return None
+        return self._generic_id_to_baseobject_property_getter('zone_id')
 
     def set_zone(self, obj_or_id):
         """
@@ -192,16 +225,8 @@ class BaseObject(object):
         :type obj_or_id: A ``BaseObject`` sub-class or an ``int``.
         """
 
-        if isinstance(obj_or_id, int):
-            # Already an int, assume this is an object ID.
-            self.zone_id = obj_or_id
-        elif isinstance(obj_or_id, basestring):
-            raise Exception("BaseObject.set_zone() can't accept strings: %s" % obj_or_id)
-        elif obj_or_id is None:
-            self.zone_id = None
-        else:
-            # Looks like a BaseObject sub-class. Grab the object ID.
-            self.zone_id = obj_or_id.id
+        self._generic_baseobject_to_id_property_setter('zone_id', obj_or_id)
+
     zone = property(get_zone, set_zone)
 
     #noinspection PyPropertyDefinition

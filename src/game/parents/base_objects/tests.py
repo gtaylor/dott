@@ -5,7 +5,7 @@ from twisted.internet.defer import inlineCallbacks
 
 import settings
 from src.game.parents.base_objects.thing import ThingObject
-from src.daemons.server.objects.exceptions import InvalidObjectId
+from src.daemons.server.objects.exceptions import NoSuchObject
 from src.utils.test_utils import DottTestCase
 
 
@@ -139,7 +139,7 @@ class BaseObjectTests(DottTestCase):
         # Query the object store for the destroyed exit. Should fail due to it
         # being deleted.
         self.assertRaises(
-            InvalidObjectId,
+            NoSuchObject,
             self.object_store.get_object, test_exit.id)
         # Double-check that the zone was set correctly.
         self.assertEqual(room3.zone.id, room1.id)

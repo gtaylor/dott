@@ -1,5 +1,6 @@
 from src.game.parents.base_objects.thing import ThingObject
 
+
 class PlayerObject(ThingObject):
     """
     All players inherit this parent class. It further extends ThingObject with
@@ -14,6 +15,7 @@ class PlayerObject(ThingObject):
         :rtype: str
         :returns: ``'player'``
         """
+
         return 'player'
 
     #
@@ -27,6 +29,7 @@ class PlayerObject(ThingObject):
         Session controlling this object is logged in. For example, logging in
         a second time with another client would not trigger this again.
         """
+
         if self.location:
             self.location.emit_to_contents(
                 "%s has connected." % self.name,
@@ -40,6 +43,7 @@ class PlayerObject(ThingObject):
         controlling the same object, this will not trigger until the last
         Session is closed.
         """
+
         if self.location:
             self.location.emit_to_contents(
                 "%s has disconnected." % self.name,
@@ -51,6 +55,7 @@ class AdminPlayerObject(PlayerObject):
     """
     Parent for admin players. Changes or overrides some behaviors.
     """
+
     def is_admin(self):
         """
         This always returns ``True``, since this is a AdminPlayerObject.
@@ -58,4 +63,5 @@ class AdminPlayerObject(PlayerObject):
         :rtype: bool
         :returns: ``True``
         """
+
         return True

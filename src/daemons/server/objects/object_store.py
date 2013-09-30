@@ -1,9 +1,13 @@
+"""
+The object store is an abstraction layer for managing in-game objects
+(rooms, things, exits, players, etc).
+"""
+
 from fuzzywuzzy import fuzz
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-#from src.utils import logger
 from src.daemons.server.objects.db_io import DBManager
-from src.daemons.server.objects.exceptions import InvalidObjectId
+from src.daemons.server.objects.exceptions import NoSuchObject
 from src.daemons.server.objects.parent_loader.loader import ParentLoader
 
 
@@ -70,7 +74,7 @@ class ObjectStore(object):
         :param str parent_path: The full Python path + class name for a parent.
             for example, src.game.parents.base_objects.room.RoomObject.
         :param str name: The name of the object.
-        :keyword dict kwargs: Additional attributes to set on the object.
+        :param dict kwargs: Additional attributes to set on the object.
         :rtype: BaseObject
         :returns: The newly created/instantiated/saved object.
         """
@@ -103,6 +107,8 @@ class ObjectStore(object):
     def destroy_object(self, obj):
         """
         Destroys an object by yanking it from :py:attr:`_objects` and the DB.
+
+        :param BaseObject obj: The object to destroy.
         """
 
         yield self.db_manager.destroy_object(obj)
@@ -132,7 +138,7 @@ class ObjectStore(object):
         :param int obj_id: The ID of the object to return.
         :returns: The requested object, which will be a :class:`BaseObject`
             sub-class of some sort.
-        :raises: :py:exc:`src.server.objects.exceptions.InvalidObjectId` if
+        :raises: :py:exc:`src.server.objects.exceptions.NoSuchObject` if
             no object with the requested ID exists.
         """
 
@@ -142,8 +148,8 @@ class ObjectStore(object):
         try:
             return self._objects[obj_id]
         except KeyError:
-            raise InvalidObjectId(
-                'Invalid object ID requested: %s' % str(obj_id)
+            raise NoSuchObject(
+                'No such object with ID: %s' % str(obj_id)
             )
 
     def get_object_contents(self, obj):
@@ -167,6 +173,7 @@ class ObjectStore(object):
         :returns: A generator of ``BaseObject`` matches.
         """
 
+        #noinspection PyShadowingBuiltins
         for id, obj in self._objects.iteritems():
             ratio = fuzz.partial_ratio(name, obj.name)
             if ratio > 50:
@@ -189,6 +196,7 @@ class ObjectStore(object):
         # and delete as we went, as this would change the size of self._objects
         # during the iteration (causing an exception). So store in list.
         linked_exits = []
+        #noinspection PyShadowingBuiltins
         for id, db_obj in self._objects.iteritems():
             if not db_obj.base_type == 'exit':
                 # Not an exit, not interested.
@@ -214,6 +222,7 @@ class ObjectStore(object):
         # and delete as we went, as this would change the size of self._objects
         # during the iteration (causing an exception). So store in list.
         zone_members = []
+        #noinspection PyShadowingBuiltins
         for id, db_obj in self._objects.iteritems():
             zone = db_obj.zone
             if zone and zone.id == obj.id:

@@ -4,7 +4,7 @@ from src.daemons.server.commands.cmdtable import CommandTable
 from src.daemons.server.commands.command import BaseCommand
 from src.game.parents.space.ships.interior.base import SpaceShipInteriorObject
 from src.daemons.server.commands.exceptions import CommandError
-from src.daemons.server.objects.exceptions import InvalidObjectId
+from src.daemons.server.objects.exceptions import NoSuchObject
 
 
 class CmdLaunch(BaseCommand):
@@ -97,7 +97,7 @@ class CmdDock(BaseCommand):
 
         try:
             dock_obj = service.object_store.get_object(dock_id)
-        except InvalidObjectId:
+        except NoSuchObject:
             raise CommandError('No dock with that ID found.')
 
         if not isinstance(dock_obj, HangarMixin):
@@ -230,7 +230,7 @@ class CmdWarp(BaseCommand):
 
         try:
             place_obj = service.object_store.get_object(warp_id)
-        except InvalidObjectId:
+        except NoSuchObject:
             raise CommandError('No warp destination with that ID found.')
 
         if place_obj.id == self.current_place.id:

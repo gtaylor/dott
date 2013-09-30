@@ -9,7 +9,7 @@ from src.utils.test_utils import DottTestCase
 
 
 #noinspection PyProtectedMember
-class InMemoryObjectStoreTests(DottTestCase):
+class GeneralObjectStoreTests(DottTestCase):
     """
     Testing of the ObjectStore storage backend.
     """
@@ -76,6 +76,12 @@ class InMemoryObjectStoreTests(DottTestCase):
         # The first (and only) member should be the test exit.
         self.assertEqual(exits[0].id, test_exit.id)
         self.assertEqual(len(exits), 1)
+
+
+class ZoneTests(DottTestCase):
+    """
+    Testing of the ObjectStore storage backend.
+    """
 
     @inlineCallbacks
     def test_find_objects_in_zone(self):

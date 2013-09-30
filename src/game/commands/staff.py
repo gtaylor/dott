@@ -8,7 +8,6 @@ from twisted.internet.defer import inlineCallbacks
 from src.daemons.server.protocols.proxyamp import ShutdownProxyCmd
 from src.daemons.server.commands.command import BaseCommand
 from src.daemons.server.commands.exceptions import CommandError
-from src.daemons.server.objects.exceptions import InvalidObjectId
 from src.daemons.server.objects.parent_loader.exceptions import InvalidParent
 from src.game.parents.base_objects.exit import ExitObject
 from src.game.parents.base_objects.room import RoomObject
@@ -166,17 +165,11 @@ class CmdTeleport(BaseCommand):
             # A destination was provided, so use it.
             destination_str = equal_sign_split[1]
 
-        try:
-            obj_to_tel = invoker.contextual_object_search(obj_to_tel_str)
-        except InvalidObjectId:
-            obj_to_tel = None
+        obj_to_tel = invoker.contextual_object_search(obj_to_tel_str)
         if not obj_to_tel:
             raise CommandError('Unable to find your target object to teleport.')
 
-        try:
-            destination = invoker.contextual_object_search(destination_str)
-        except InvalidObjectId:
-            destination = None
+        destination = invoker.contextual_object_search(destination_str)
         if not destination:
             raise CommandError('Unable to find your destination.')
 
@@ -212,10 +205,7 @@ class CmdDescribe(BaseCommand):
         obj_to_desc_str = equal_sign_split[0]
         description = equal_sign_split[1]
 
-        try:
-            obj_to_desc = invoker.contextual_object_search(obj_to_desc_str)
-        except InvalidObjectId:
-            obj_to_desc = None
+        obj_to_desc = invoker.contextual_object_search(obj_to_desc_str)
         if not obj_to_desc:
             raise CommandError('Unable to find your target object to describe.')
 
@@ -253,10 +243,7 @@ class CmdName(BaseCommand):
         obj_to_desc_str = equal_sign_split[0]
         name = equal_sign_split[1]
 
-        try:
-            obj_to_desc = invoker.contextual_object_search(obj_to_desc_str)
-        except InvalidObjectId:
-            obj_to_desc = None
+        obj_to_desc = invoker.contextual_object_search(obj_to_desc_str)
         if not obj_to_desc:
             raise CommandError('Unable to find your target object to name.')
 
@@ -284,10 +271,7 @@ class CmdZone(BaseCommand):
             raise CommandError('No zone provided.')
 
         obj_to_zone_str = equal_sign_split[0]
-        try:
-            obj_to_zone = invoker.contextual_object_search(obj_to_zone_str)
-        except InvalidObjectId:
-            obj_to_zone = None
+        obj_to_zone = invoker.contextual_object_search(obj_to_zone_str)
         if not obj_to_zone:
             raise CommandError('Unable to find your target object to zone.')
 
@@ -295,10 +279,7 @@ class CmdZone(BaseCommand):
         if not zone_obj_str:
             zone_obj = None
         else:
-            try:
-                zone_obj = invoker.contextual_object_search(zone_obj_str)
-            except InvalidObjectId:
-                zone_obj = None
+            zone_obj = invoker.contextual_object_search(zone_obj_str)
             if not zone_obj:
                 raise CommandError('Unable to find your zone master object.')
 
@@ -342,10 +323,7 @@ class CmdParent(BaseCommand):
         if not parent_str:
             raise CommandError('No parent provided.')
 
-        try:
-            obj_to_parent = invoker.contextual_object_search(obj_to_parent_str)
-        except InvalidObjectId:
-            obj_to_parent = None
+        obj_to_parent = invoker.contextual_object_search(obj_to_parent_str)
         if not obj_to_parent:
             raise CommandError('Unable to find your target object to re-parent.')
 
@@ -407,10 +385,7 @@ class CmdAlias(BaseCommand):
         obj_to_alias_str = equal_sign_split[0]
         aliases = equal_sign_split[1].split()
 
-        try:
-            obj_to_alias = invoker.contextual_object_search(obj_to_alias_str)
-        except InvalidObjectId:
-            obj_to_alias = None
+        obj_to_alias = invoker.contextual_object_search(obj_to_alias_str)
         if not obj_to_alias:
             raise CommandError('Unable to find your target object to alias.')
 
@@ -441,10 +416,7 @@ class CmdDestroy(BaseCommand):
         if not parsed_cmd.arguments:
             raise CommandError('Destroy what?')
 
-        try:
-            obj_to_destroy = invoker.contextual_object_search(parsed_cmd.argument_string)
-        except InvalidObjectId:
-            obj_to_destroy = None
+        obj_to_destroy = invoker.contextual_object_search(parsed_cmd.argument_string)
         if not obj_to_destroy:
             raise CommandError('Unable to find your target object to destroy.')
 
@@ -485,11 +457,10 @@ class CmdOpen(BaseCommand):
             dest_str = None
 
         if dest_str:
-            try:
-                destination = invoker.contextual_object_search(dest_str)
-                destination_id = destination.id
-            except InvalidObjectId:
+            destination = invoker.contextual_object_search(dest_str)
+            if not destination:
                 raise CommandError('Unable to find specified destination.')
+            destination_id = destination.id
         else:
             destination = None
             destination_id = None
@@ -530,10 +501,7 @@ class CmdUnlink(BaseCommand):
         if not parsed_cmd.arguments:
             raise CommandError('Unlink which exit?')
 
-        try:
-            obj_to_unlink = invoker.contextual_object_search(parsed_cmd.argument_string)
-        except InvalidObjectId:
-            obj_to_unlink = None
+        obj_to_unlink = invoker.contextual_object_search(parsed_cmd.argument_string)
         if not obj_to_unlink:
             raise CommandError('Unable to find your target exit to unlink.')
 
@@ -567,10 +535,7 @@ class CmdLink(BaseCommand):
             raise CommandError('No destination provided.')
 
         obj_to_link_str = equal_sign_split[0]
-        try:
-            obj_to_link = invoker.contextual_object_search(obj_to_link_str)
-        except InvalidObjectId:
-            obj_to_link = None
+        obj_to_link = invoker.contextual_object_search(obj_to_link_str)
         if not obj_to_link:
             raise CommandError('Unable to find your target exit to link.')
 
@@ -578,10 +543,7 @@ class CmdLink(BaseCommand):
             raise CommandError('You may only link exits.')
 
         destination_obj_str = equal_sign_split[1]
-        try:
-            destination_obj = invoker.contextual_object_search(destination_obj_str)
-        except InvalidObjectId:
-            destination_obj = None
+        destination_obj = invoker.contextual_object_search(destination_obj_str)
         if not destination_obj:
             raise CommandError('Unable to find the specified destination.')
 
@@ -619,10 +581,7 @@ class CmdSet(BaseCommand):
             raise CommandError('You must specify a target and a value.')
 
         target_obj_str = equal_sign_split[0]
-        try:
-            target_obj = invoker.contextual_object_search(target_obj_str)
-        except InvalidObjectId:
-            target_obj = None
+        target_obj = invoker.contextual_object_search(target_obj_str)
         if not target_obj:
             raise CommandError('Unable to find target object: %s' % target_obj_str)
 

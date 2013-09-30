@@ -1,5 +1,8 @@
+"""
+Contains exit-related stuff.
+"""
+
 from src.game.parents.base_objects.base import BaseObject
-from src.daemons.server.objects.exceptions import InvalidObjectId
 
 
 class ExitObject(BaseObject):
@@ -22,12 +25,10 @@ class ExitObject(BaseObject):
         :returns: A reference to the exit's destination BaseObject. If no
             destination is set, or the destination has been destroyed, this
             returns ``None``.
+        :raises: NoSuchObject if the ID can't be found in the DB.
         """
 
-        try:
-            return self._object_store.get_object(self.destination_id)
-        except InvalidObjectId:
-            return None
+        return self._object_store.get_object(self.destination_id)
 
     def set_destination(self, obj_or_id):
         """
@@ -38,18 +39,8 @@ class ExitObject(BaseObject):
             BaseObject instance form.
         """
 
-        if not obj_or_id:
-            # Clear the destination.
-            self.destination_id = None
-        elif isinstance(obj_or_id, int):
-            # Already an int, assume this is an object ID.
-            self.destination_id = obj_or_id
-        elif isinstance(obj_or_id, basestring):
-            # TODO: This should be removable in the future.
-            raise Exception("ExitObject.set_destination() can't accept strings: %s" % obj_or_id)
-        else:
-            # Looks like a BaseObject sub-class. Grab the object ID.
-            self.destination_id = obj_or_id.id
+        self._generic_baseobject_to_id_property_setter('destination_id', obj_or_id)
+
     destination = property(get_destination, set_destination)
 
     @property
@@ -82,4 +73,3 @@ class ExitObject(BaseObject):
 
         # Move the object on through to destination.
         obj.move_to(self.destination)
-

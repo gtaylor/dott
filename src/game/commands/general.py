@@ -1,9 +1,12 @@
-import pprint
+"""
+General commands that are available to everyone.
+"""
+
 import json
 import settings
+
 from src.daemons.server.commands.command import BaseCommand
 from src.daemons.server.commands.exceptions import CommandError
-from src.daemons.server.objects.exceptions import InvalidObjectId
 from src.daemons.server.protocols.proxyamp import WhoConnectedCmd, DisconnectSessionsOnObjectCmd
 
 
@@ -30,11 +33,7 @@ class CmdExamine(BaseCommand):
         if not user_query:
             raise CommandError('You must specify an object to examine')
 
-        try:
-            obj_match = invoker.contextual_object_search(user_query)
-        except InvalidObjectId:
-            obj_match = None
-
+        obj_match = invoker.contextual_object_search(user_query)
         if not obj_match:
             raise CommandError('No matching object found')
 
@@ -97,10 +96,7 @@ class CmdGo(BaseCommand):
         if not parsed_cmd.arguments:
             raise CommandError('Go through which exit?')
 
-        try:
-            obj_to_traverse = invoker.contextual_object_search(parsed_cmd.argument_string)
-        except InvalidObjectId:
-            obj_to_traverse = None
+        obj_to_traverse = invoker.contextual_object_search(parsed_cmd.argument_string)
         if not obj_to_traverse:
             raise CommandError("Destination unknown.")
 
@@ -120,10 +116,7 @@ class CmdEnter(BaseCommand):
         if not parsed_cmd.arguments:
             raise CommandError('Enter what?')
 
-        try:
-            obj_to_enter = invoker.contextual_object_search(parsed_cmd.argument_string)
-        except InvalidObjectId:
-            obj_to_enter = None
+        obj_to_enter = invoker.contextual_object_search(parsed_cmd.argument_string)
         if not obj_to_enter:
             raise CommandError("You look around, but can't find it.")
 

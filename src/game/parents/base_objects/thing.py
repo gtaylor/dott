@@ -1,5 +1,6 @@
 from src.game.parents.base_objects.base import BaseObject
 
+
 class ThingObject(BaseObject):
     """
     'Thing' is somewhat of a generic term, but I'm a loss for what else to
@@ -23,4 +24,5 @@ class ThingObject(BaseObject):
         :rtype: str
         :returns: ``'thing'``
         """
+
         return 'thing'
