@@ -5,9 +5,9 @@ Contains base level parents that aren't to be used directly.
 from twisted.internet.defer import inlineCallbacks, returnValue
 from fuzzywuzzy.process import QRatio
 from fuzzywuzzy import utils as fuzz_utils
-from src.daemons.server.ansi import ANSI_HILITE, ANSI_NORMAL
 
-from src.daemons.server.objects.exceptions import ObjectHasZoneMembers
+from src.daemons.server.ansi import ANSI_HILITE, ANSI_NORMAL
+from src.daemons.server.objects.exceptions import ObjectHasZoneMembers, NoSuchObject
 from src.daemons.server.protocols.proxyamp import EmitToObjectCmd
 
 
@@ -560,7 +560,10 @@ class BaseObject(object):
             return None
 
         # Absolute object identifier: lookup the id
-        obj = mud_service.object_store.get_object(obj_id)
+        try:
+            obj = mud_service.object_store.get_object(obj_id)
+        except NoSuchObject:
+            return None
 
         if not self.is_admin():
             # Non-admins can only find objects in their current location.

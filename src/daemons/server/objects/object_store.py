@@ -79,6 +79,7 @@ class ObjectStore(object):
         :returns: The newly created/instantiated/saved object.
         """
 
+        #noinspection PyPep8Naming
         NewObject = self.parent_loader.load_parent(parent_path)
         obj = NewObject(
             self._mud_service,
@@ -212,7 +213,7 @@ class ObjectStore(object):
     def find_objects_in_zone(self, obj):
         """
         Finds all objects whose zone master object is set to the given object.
-
+Savannah Hayes
         :param BaseObject obj: The object whose zone members to find.
         :rtype: list
         :return: A list of the object's zone members.
@@ -238,22 +239,31 @@ class ObjectStore(object):
         object. The end result will be a ZMO with no members.
 
         :param BaseObject obj: The ZMO whose members to un-set.
+        :rtype: list
+        :returns: The members that were removed from the zone.
         """
 
         members = self.find_objects_in_zone(obj)
         for member in members:
             member.zone = None
             yield member.save()
+        returnValue(members)
 
     @inlineCallbacks
     def raze_zone(self, obj):
         """
-        Given a ZMO, destroy all members and the ZMO itself. No surviors.
+        Given a ZMO, destroy all members and the ZMO itself. No survivors.
 
         :param BaseObject obj: The ZMO to completely eradicate.
+        :rtype: list
+        :returns: A list of IDs of the deleted objects (ZMO included).
         """
 
         members = self.find_objects_in_zone(obj)
+        deleted_ids = []
         for member in members:
+            deleted_ids.append(member.id)
             yield member.destroy()
+        deleted_ids.append(obj.id)
         yield obj.destroy()
+        returnValue(deleted_ids)

@@ -315,19 +315,56 @@ class CmdZmo(BaseCommand):
 
         if not parsed_cmd.switches:
             self.handle_zmo_summary(invoker, parsed_cmd, zmo)
+        elif 'empty' in parsed_cmd.switches:
+            self.handle_zmo_empty(invoker, parsed_cmd, zmo)
+        elif 'raze' in parsed_cmd.switches:
+            self.handle_zmo_raze(invoker, parsed_cmd, zmo)
+        else:
+            raise CommandError(
+                "Invalid @zmo switch. Must be one of: empty, raze")
 
     def handle_zmo_summary(self, invoker, parsed_cmd, zmo):
         """
         @zmo was called with no switches, go into summary mode.
         """
 
-        buf = self._get_header_str('ZMO Summary: %s' % zmo.get_appearance_name(invoker))
-        buf += self._get_subheader_str('Zone Members')
         members = invoker._object_store.find_objects_in_zone(zmo)
+        base_type_counter = {'room': 0, 'thing': 0, 'exit': 0, 'player': 0}
+        for member in members:
+            base_type_counter[member.base_type] += 1
+
+        buf = self._get_header_str('ZMO Summary: %s' % zmo.get_appearance_name(invoker))
+        if not members:
+            buf += 'No members in zone.'
+        else:
+            buf += '\n Member base types --'
+            for btype, btcount in base_type_counter.items():
+                buf += ' ' + btype + ': %d  ' % btcount
+        buf += self._get_subheader_str('Zone Members')
         for member in members:
             buf += '\n %s' % member.get_appearance_name(invoker)
         buf += self._get_footer_str()
         invoker.emit_to(buf)
+
+    @inlineCallbacks
+    def handle_zmo_empty(self, invoker, parsed_cmd, zmo):
+        """
+        Handles the emptying of members from a ZMO.
+        """
+
+        members = yield invoker._object_store.empty_out_zone(zmo)
+        invoker.emit_to('Cleared %d object(s) from ZMO %s.' % (
+            len(members), zmo.get_appearance_name(invoker)))
+
+    @inlineCallbacks
+    def handle_zmo_raze(self, invoker, parsed_cmd, zmo):
+        """
+        Handles the razing of a ZMO and all of its members.
+        """
+
+        members = yield invoker._object_store.raze_zone(zmo)
+        invoker.emit_to('Deleted ZMO %s and its %d member object(s).' % (
+            zmo.get_appearance_name(invoker), len(members) - 1))
 
 
 class CmdParent(BaseCommand):

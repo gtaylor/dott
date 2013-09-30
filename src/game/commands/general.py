@@ -31,11 +31,11 @@ class CmdExamine(BaseCommand):
             user_query = ' '.join(parsed_cmd.arguments)
 
         if not user_query:
-            raise CommandError('You must specify an object to examine')
+            raise CommandError('You must specify an object to examine.')
 
         obj_match = invoker.contextual_object_search(user_query)
         if not obj_match:
-            raise CommandError('No matching object found')
+            raise CommandError('No matching object found.')
 
         appearance = self.get_appearance(obj_match, invoker)
 
