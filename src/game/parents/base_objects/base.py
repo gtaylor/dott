@@ -54,7 +54,7 @@ class BaseObject(object):
             created.
         """
 
-        self._mud_service = mud_service
+        self.mud_service = mud_service
 
         # This mirrors the 'id' field in dott_objects. If this is set to None
         # and the instance is saved, an insert is done.
@@ -95,8 +95,7 @@ class BaseObject(object):
         :returns: Reference to the global object store instance.
         """
 
-        # TODO: Make this public.
-        return self._mud_service.object_store
+        return self.mud_service.object_store
 
     @property
     def _command_handler(self):
@@ -107,7 +106,7 @@ class BaseObject(object):
         :returns: Reference to the global command handler instance.
         """
 
-        return self._mud_service.command_handler
+        return self.mud_service.command_handler
 
     def _generic_id_to_baseobject_property_getter(self, attrib_name):
         """
@@ -311,7 +310,7 @@ class BaseObject(object):
 
         assert self.id is not None, "Attempting to emit to an object with no ID."
 
-        self._mud_service.proxyamp.callRemote(
+        self.mud_service.proxyamp.callRemote(
             EmitToObjectCmd,
             object_id=self.id,
             message=message
@@ -550,7 +549,7 @@ class BaseObject(object):
             suitable match was found, returns ``None``.
         """
 
-        mud_service = self._mud_service
+        mud_service = self.mud_service
 
         try:
             # Object IDs are int primary keys in the object store.

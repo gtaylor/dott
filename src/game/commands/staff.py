@@ -5,6 +5,7 @@ Staff commands.
 import json
 
 from twisted.internet.defer import inlineCallbacks
+
 from src.daemons.server.objects.exceptions import ObjectHasZoneMembers
 from src.daemons.server.protocols.proxyamp import ShutdownProxyCmd
 from src.daemons.server.commands.command import BaseCommand
@@ -35,7 +36,7 @@ class CmdRestart(BaseCommand):
 
     #noinspection PyUnusedLocal
     def func(self, invoker, parsed_cmd):
-        mud_service = invoker._mud_service
+        mud_service = invoker.mud_service
 
         if not parsed_cmd.arguments or 'mud' in parsed_cmd.arguments:
             invoker.emit_to("Restarting MUD server...")
@@ -55,7 +56,7 @@ class CmdFind(BaseCommand):
     name = '@find'
 
     def func(self, invoker, parsed_cmd):
-        mud_service = invoker._mud_service
+        mud_service = invoker.mud_service
 
         search_str = ' '.join(parsed_cmd.arguments)
 
@@ -91,7 +92,7 @@ class CmdDig(BaseCommand):
 
     @inlineCallbacks
     def func(self, invoker, parsed_cmd):
-        mud_service = invoker._mud_service
+        mud_service = invoker.mud_service
 
         name_str = ' '.join(parsed_cmd.arguments)
 
@@ -119,7 +120,7 @@ class CmdCreate(BaseCommand):
 
     @inlineCallbacks
     def func(self, invoker, parsed_cmd):
-        mud_service = invoker._mud_service
+        mud_service = invoker.mud_service
 
         name_str = ' '.join(parsed_cmd.arguments)
 
@@ -323,12 +324,13 @@ class CmdZmo(BaseCommand):
             raise CommandError(
                 "Invalid @zmo switch. Must be one of: empty, raze")
 
+    #noinspection PyUnusedLocal
     def handle_zmo_summary(self, invoker, parsed_cmd, zmo):
         """
         @zmo was called with no switches, go into summary mode.
         """
 
-        members = invoker._object_store.find_objects_in_zone(zmo)
+        members = invoker.mud_service.object_store.find_objects_in_zone(zmo)
         base_type_counter = {'room': 0, 'thing': 0, 'exit': 0, 'player': 0}
         for member in members:
             base_type_counter[member.base_type] += 1
@@ -346,23 +348,25 @@ class CmdZmo(BaseCommand):
         buf += self._get_footer_str()
         invoker.emit_to(buf)
 
+    #noinspection PyUnusedLocal
     @inlineCallbacks
     def handle_zmo_empty(self, invoker, parsed_cmd, zmo):
         """
         Handles the emptying of members from a ZMO.
         """
 
-        members = yield invoker._object_store.empty_out_zone(zmo)
+        members = yield invoker.mud_service.object_store.empty_out_zone(zmo)
         invoker.emit_to('Cleared %d object(s) from ZMO %s.' % (
             len(members), zmo.get_appearance_name(invoker)))
 
+    #noinspection PyUnusedLocal
     @inlineCallbacks
     def handle_zmo_raze(self, invoker, parsed_cmd, zmo):
         """
         Handles the razing of a ZMO and all of its members.
         """
 
-        members = yield invoker._object_store.raze_zone(zmo)
+        members = yield invoker.mud_service.object_store.raze_zone(zmo)
         invoker.emit_to('Deleted ZMO %s and its %d member object(s).' % (
             zmo.get_appearance_name(invoker), len(members) - 1))
 
@@ -397,7 +401,7 @@ class CmdParent(BaseCommand):
         if not obj_to_parent:
             raise CommandError('Unable to find your target object to re-parent.')
 
-        mud_service = invoker._mud_service
+        mud_service = invoker.mud_service
 
         try:
             mud_service.object_store.parent_loader.load_parent(parent_str)
@@ -462,14 +466,12 @@ class CmdAlias(BaseCommand):
         if not aliases:
             invoker.emit_to(
                 'You clear all aliases on %s.' % (
-                    obj_to_alias.get_appearance_name(invoker),
-            ))
+                    obj_to_alias.get_appearance_name(invoker)))
         else:
             invoker.emit_to(
                 'You alias %s to: %s' % (
                     obj_to_alias.get_appearance_name(invoker),
-                    ', '.join(aliases),
-            ))
+                    ', '.join(aliases)))
         obj_to_alias.aliases = aliases
         obj_to_alias.save()
 
@@ -539,7 +541,7 @@ class CmdOpen(BaseCommand):
             destination = None
             destination_id = None
 
-        mud_service = invoker._mud_service
+        mud_service = invoker.mud_service
         exit_parent = 'src.game.parents.base_objects.exit.ExitObject'
         new_exit = yield mud_service.object_store.create_object(
             exit_parent,

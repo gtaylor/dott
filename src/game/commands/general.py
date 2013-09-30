@@ -3,8 +3,8 @@ General commands that are available to everyone.
 """
 
 import json
-import settings
 
+import settings
 from src.daemons.server.commands.command import BaseCommand
 from src.daemons.server.commands.exceptions import CommandError
 from src.daemons.server.protocols.proxyamp import WhoConnectedCmd, DisconnectSessionsOnObjectCmd
@@ -164,36 +164,36 @@ class CmdCommands(BaseCommand):
 
     #noinspection PyUnusedLocal
     def func(self, invoker, parsed_cmd):
-        service = invoker._mud_service
+        service = invoker.mud_service
         # Buffer to send to user.
-        buffer = ''
+        buf = ''
 
         if invoker.is_admin():
-            buffer += '\nGlobal Admin Commands:'
-            buffer += self._buffer_command_table(
+            buf += '\nGlobal Admin Commands:'
+            buf += self._buffer_command_table(
                 service.global_admin_cmd_table
             )
 
-        buffer += '\nGlobal Commands:'
-        buffer += self._buffer_command_table(
+        buf += '\nGlobal Commands:'
+        buf += self._buffer_command_table(
             service.global_cmd_table
         )
 
         location = invoker.location
         if location:
             if invoker.is_admin() and location.local_admin_command_table:
-                buffer += '\nLocal Admin Commands:'
-                buffer += self._buffer_command_table(
+                buf += '\nLocal Admin Commands:'
+                buf += self._buffer_command_table(
                     location.local_admin_command_table
                 )
 
             if location.local_command_table:
-                buffer += '\nLocal Commands:'
-                buffer += self._buffer_command_table(
+                buf += '\nLocal Commands:'
+                buf += self._buffer_command_table(
                     location.local_command_table
                 )
 
-        invoker.emit_to(buffer)
+        invoker.emit_to(buf)
 
     def _buffer_command_table(self, table):
         """
@@ -205,10 +205,10 @@ class CmdCommands(BaseCommand):
         :returns: A string list of commands in the table.
         """
 
-        buffer = ''
+        buf = ''
         for cmd in table.commands:
-            buffer += ' %s' % cmd.name
-        return buffer
+            buf += ' %s' % cmd.name
+        return buf
 
 
 class CmdLook(CmdExamine):
@@ -239,13 +239,14 @@ class CmdWho(BaseCommand):
 
     name = 'who'
 
+    #noinspection PyUnusedLocal
     def func(self, invoker, parsed_cmd):
         """
         The proxy has all of the details on who is connected, so the mud server
         has to ask. This is handled through a deferred and a callback.
         """
 
-        service = invoker._mud_service
+        service = invoker.mud_service
         deferred = service.proxyamp.callRemote(WhoConnectedCmd)
         deferred.addCallback(self._wholist_callback, invoker)
 
@@ -287,7 +288,7 @@ class CmdSay(BaseCommand):
         # Presentational arrangement for other neighboring objects to see.
         speech_str = u"%s says '%s'" % (invoker.name, speech)
         # What the invoker sees.
-        self_str = u"You say '%s'" %  speech
+        self_str = u"You say '%s'" % speech
 
         invoker.location.emit_to_contents(speech_str, exclude=[invoker])
         invoker.emit_to(self_str)
@@ -300,10 +301,11 @@ class CmdQuit(BaseCommand):
 
     name = 'quit'
 
+    #noinspection PyUnusedLocal
     def func(self, invoker, parsed_cmd):
         invoker.emit_to("Quitting...")
 
-        service = invoker._mud_service
+        service = invoker.mud_service
         # This asks the proxy to disconnect any sessions that are currently
         # controlling this object.
         service.proxyamp.callRemote(
@@ -319,11 +321,12 @@ class CmdVersion(BaseCommand):
 
     name = 'version'
 
+    #noinspection PyUnusedLocal
     def func(self, invoker, parsed_cmd):
-        buffer = "-" * 78
-        buffer += "\n %s version %s\n" % (
+        buf = "-" * 78
+        buf += "\n %s version %s\n" % (
             settings.GAME_NAME,
             settings.VERSION
         )
-        buffer += "-" * 78
+        buf += "-" * 78
         invoker.emit_to(buffer)

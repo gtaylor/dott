@@ -50,7 +50,7 @@ class SolarSystemPlaceObject(ThingObject):
         :returns: A list of HangarMixin sub-classed instances that are dockable.
         """
 
-        zone_members = self._mud_service.object_store.find_objects_in_zone(self)
+        zone_members = self.mud_service.object_store.find_objects_in_zone(self)
         dockable_objs = []
         for obj in zone_members:
             if hasattr(obj, 'get_launchto_location'):

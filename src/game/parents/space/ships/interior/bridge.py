@@ -32,6 +32,7 @@ class CmdLaunch(BaseCommand):
         ship.start_launch_sequence()
 
 
+#noinspection PyAttributeOutsideInit
 class CmdDock(BaseCommand):
     """
     Either displays a list of dockable places, or docks if a destination is
@@ -88,7 +89,7 @@ class CmdDock(BaseCommand):
         dock.
         """
 
-        service = invoker._mud_service
+        service = invoker.mud_service
 
         try:
             dock_id = int(parsed_cmd.argument_string)
@@ -165,6 +166,7 @@ class CmdStatus(BaseCommand):
         invoker.emit_to(retval)
 
 
+#noinspection PyAttributeOutsideInit
 class CmdWarp(BaseCommand):
     """
     Either displays a list of warpable places, or warps to a place if a
@@ -221,7 +223,7 @@ class CmdWarp(BaseCommand):
         warp to a place.
         """
 
-        service = invoker._mud_service
+        service = invoker.mud_service
 
         try:
             warp_id = int(parsed_cmd.argument_string)

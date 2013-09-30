@@ -4,6 +4,7 @@ from src.utils import logger
 from src.daemons.server.commands.parser import CommandParser
 from src.daemons.server.commands.exceptions import CommandError
 
+
 class CommandHandler(object):
     """
     This class takes incoming user input, parses it, and figures out what to
@@ -15,10 +16,12 @@ class CommandHandler(object):
     :attr CommandParser command_parser: The command parser to use in order to
         break raw input into useful components.
     """
+
     def __init__(self, mud_service):
         """
         :param MudService mud_service: The MudService class running the game.
         """
+
         self._mud_service = mud_service
         self.parser = CommandParser()
         self.global_command_table = self._mud_service.global_cmd_table
@@ -31,6 +34,7 @@ class CommandHandler(object):
         :rtype: ``ExitObject`` or ``None``
         :returns: The first exit match, or ``None`` if there were no matches.
         """
+
         if not invoker.location:
             return None
 
@@ -38,16 +42,15 @@ class CommandHandler(object):
         exit_str = parsed_command.command_str.lower()
 
         # Contents of current location = neighbors.
-        exit_neighbors = [obj for obj in invoker.location.get_contents() \
-                             if obj.base_type == 'exit']
+        exit_neighbors = [obj for obj in invoker.location.get_contents() if obj.base_type == 'exit']
 
         # This is pretty inefficient.
-        for exit in exit_neighbors:
-            for alias in exit.aliases:
+        for n_exit in exit_neighbors:
+            for alias in n_exit.aliases:
                 alias = alias.lower()
                 if alias == exit_str:
                     # Match found.
-                    return exit
+                    return n_exit
 
         # No exit match.
         return None
@@ -60,6 +63,7 @@ class CommandHandler(object):
         :returns: The BaseCommand sub-class that matched the user's input,
             or ``None`` if no match was found.
         """
+
         # Default to no match.
         result = None
 
@@ -103,6 +107,7 @@ class CommandHandler(object):
         :returns: The BaseCommand instance that was executed, or ``None`` if
             there was no match.
         """
+
         parsed_command = self.parser.parse(command_string)
 
         exit_match = self._match_user_input_to_exit(invoker, parsed_command)
