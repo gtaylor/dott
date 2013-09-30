@@ -2,10 +2,11 @@
 Object store tests.
 """
 
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import inlineCallbacks, returnValue
 
 import settings
 from src.utils.test_utils import DottTestCase
+from src.daemons.server.objects.exceptions import ObjectHasZoneMembers, NoSuchObject
 
 
 #noinspection PyProtectedMember
@@ -84,18 +85,60 @@ class ZoneTests(DottTestCase):
     """
 
     @inlineCallbacks
+    def setUp(self):
+        yield super(ZoneTests, self).setUp()
+
+        self.zmo = yield self.object_store.create_object(settings.ROOM_PARENT, name='ZMO')
+        self.room2 = yield self.object_store.create_object(
+            settings.ROOM_PARENT,
+            name='Room 2',
+            zone_id=self.zmo.id,
+        )
+        self.room3 = yield self.object_store.create_object(
+            settings.ROOM_PARENT,
+            name='Room 3',
+            zone_id=self.zmo.id,
+        )
+
     def test_find_objects_in_zone(self):
         """
         Tests the find_objects_in_zone() method, which does what the name
         says.
         """
 
-        room1 = yield self.object_store.create_object(settings.ROOM_PARENT, name='Room 1')
-        room2 = yield self.object_store.create_object(
-            settings.ROOM_PARENT,
-            name='Room 2',
-            zone_id=room1.id,
-        )
-        members = self.object_store.find_objects_in_zone(room1)
-        self.assertEqual(members[0].id, room2.id)
-        self.assertEqual(len(members), 1)
+        members = self.object_store.find_objects_in_zone(self.zmo)
+        member_ids = [self.room2.id, self.room3.id]
+
+        self.assertEqual(len(members), 2)
+        for member in members:
+            self.assertTrue(member.id in member_ids)
+
+    @inlineCallbacks
+    def test_zmo_razing(self):
+        """
+        Makes sure that razing a ZMO destroys all members and the ZMO itself.
+        """
+
+        try:
+            yield self.zmo.destroy()
+            self.fail("Shouldn't be able to delete a ZMO with members.")
+        except ObjectHasZoneMembers:
+            pass
+        yield self.object_store.raze_zone(self.zmo)
+
+        # Make sure everything was actually destroyed.
+        self.assertRaises(NoSuchObject, self.object_store.get_object, self.zmo.id)
+        self.assertRaises(NoSuchObject, self.object_store.get_object, self.room2.id)
+        self.assertRaises(NoSuchObject, self.object_store.get_object, self.room3.id)
+
+    @inlineCallbacks
+    def test_zmo_emptying(self):
+        """
+        Tests the emptying of a ZMO's members.
+        """
+
+        yield self.object_store.empty_out_zone(self.zmo)
+        members = self.object_store.find_objects_in_zone(self.zmo)
+        self.assertEqual(len(members), 0)
+        # This shouldn't throw an exception now that all members are un-set.
+        yield self.zmo.destroy()

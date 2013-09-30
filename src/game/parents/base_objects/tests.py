@@ -141,12 +141,6 @@ class BaseObjectTests(DottTestCase):
         self.assertRaises(
             NoSuchObject,
             self.object_store.get_object, test_exit.id)
-        # Double-check that the zone was set correctly.
-        self.assertEqual(room3.zone.id, room1.id)
-        # This should wipe the zone on room3.
-        yield room1.destroy()
-        # Make sure room3's zone was wiped, since its zone master was destroyed.
-        self.assertEqual(room3.zone, None)
 
 
 class ThingObjectTests(DottTestCase):

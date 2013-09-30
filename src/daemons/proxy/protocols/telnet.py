@@ -8,25 +8,32 @@ from src.utils import logger
 from src.utils.general import to_unicode, to_str
 from src.daemons.proxy.sessions.session import Session
 
+
+#noinspection PyClassicStyleClass
 class MudTelnetServerFactory(protocol.ServerFactory):
     """
     This is used by twisted.internet.TCPServer to create TCP Servers for each
     port the proxy listens on.
     """
+
     def __init__(self, server):
         """
         :attr ProxyService server: Reference to the proxy server.
         :attr MudTelnetProtocol protocol: The protocol this factor spawns.
         """
+
         self.server = server
         self.protocol = MudTelnetProtocol
 
+
+#noinspection PyClassicStyleClass,PyClassHasNoInit,PyAttributeOutsideInit
 class MudTelnetProtocol(StatefulTelnetProtocol):
     """
     This protocol class serves as the lowest level pipe between the server
     and the player. There is no game or business logic here, just
     communication-related stuff.
     """
+
     def __str__(self):
         return "MudTelnetProtocol conn from %s" % self.getClientAddress()[0]
 
@@ -42,6 +49,7 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
         """
         What to do when we get a connection.
         """
+
         self.session = Session(self)
         logger.info('New connection: %s' % self)
         self._session_manager.add_session(self.session)
@@ -52,18 +60,23 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
         Returns the client's address and port in a tuple. For example
         ('127.0.0.1', 41917)
         """
+
         return self.transport.client
 
     def disconnectClient(self):
         """
         Ran when a client disconnects.
         """
+
         self.transport.loseConnection()
 
     def connectionLost(self, reason):
         """
         Execute this when a client abruplty loses their connection.
+
+        :param basestring reason: A short reason as to why they disconnected.
         """
+
         self.session.after_session_disconnect_event()
         logger.info('Disconnected: %s, %s' % (self, reason))
         self.disconnectClient()
@@ -75,6 +88,7 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
 
         :param str raw_string: The raw string received from the client.
         """
+
         try:
             raw_string = to_unicode(raw_string)
         except Exception, e:
@@ -90,6 +104,7 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
 
         :param str message: The message to send to the client.
         """
+
         try:
             message = to_str(message)
         except Exception, e:
@@ -97,4 +112,3 @@ class MudTelnetProtocol(StatefulTelnetProtocol):
             return
 
         self.sendLine(message)
-    

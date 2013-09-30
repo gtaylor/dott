@@ -5,6 +5,7 @@ Staff commands.
 import json
 
 from twisted.internet.defer import inlineCallbacks
+from src.daemons.server.objects.exceptions import ObjectHasZoneMembers
 from src.daemons.server.protocols.proxyamp import ShutdownProxyCmd
 from src.daemons.server.commands.command import BaseCommand
 from src.daemons.server.commands.exceptions import CommandError
@@ -297,6 +298,38 @@ class CmdZone(BaseCommand):
             ))
 
 
+class CmdZmo(BaseCommand):
+    """
+    Zone Master Object (ZMO) manipulation.
+    """
+
+    name = '@zmo'
+
+    def func(self, invoker, parsed_cmd):
+        if not parsed_cmd.arguments:
+            raise CommandError('You must specify a Zone Master Object (ZMO).')
+
+        zmo = invoker.contextual_object_search(parsed_cmd.argument_string)
+        if not zmo:
+            raise CommandError('Unable to find the given Zone Master Object (ZMO).')
+
+        if not parsed_cmd.switches:
+            self.handle_zmo_summary(invoker, parsed_cmd, zmo)
+
+    def handle_zmo_summary(self, invoker, parsed_cmd, zmo):
+        """
+        @zmo was called with no switches, go into summary mode.
+        """
+
+        buf = self._get_header_str('ZMO Summary: %s' % zmo.get_appearance_name(invoker))
+        buf += self._get_subheader_str('Zone Members')
+        members = invoker._object_store.find_objects_in_zone(zmo)
+        for member in members:
+            buf += '\n %s' % member.get_appearance_name(invoker)
+        buf += self._get_footer_str()
+        invoker.emit_to(buf)
+
+
 class CmdParent(BaseCommand):
     """
     Changes an object's parent.
@@ -421,7 +454,11 @@ class CmdDestroy(BaseCommand):
             raise CommandError('Unable to find your target object to destroy.')
 
         invoker.emit_to('You destroy %s' % obj_to_destroy.get_appearance_name(invoker))
-        obj_to_destroy.destroy()
+
+        try:
+            obj_to_destroy.destroy()
+        except ObjectHasZoneMembers, exc:
+            raise CommandError(exc.message)
 
 
 class CmdOpen(BaseCommand):

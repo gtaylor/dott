@@ -230,3 +230,30 @@ class ObjectStore(object):
                 zone_members.append(db_obj)
 
         return zone_members
+
+    @inlineCallbacks
+    def empty_out_zone(self, obj):
+        """
+        Given a ZMO, go through its member list and un-set the zone on each
+        object. The end result will be a ZMO with no members.
+
+        :param BaseObject obj: The ZMO whose members to un-set.
+        """
+
+        members = self.find_objects_in_zone(obj)
+        for member in members:
+            member.zone = None
+            yield member.save()
+
+    @inlineCallbacks
+    def raze_zone(self, obj):
+        """
+        Given a ZMO, destroy all members and the ZMO itself. No surviors.
+
+        :param BaseObject obj: The ZMO to completely eradicate.
+        """
+
+        members = self.find_objects_in_zone(obj)
+        for member in members:
+            yield member.destroy()
+        yield obj.destroy()

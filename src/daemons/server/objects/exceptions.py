@@ -12,3 +12,12 @@ class NoSuchObject(BaseException):
     """
 
     pass
+
+
+class ObjectHasZoneMembers(BaseException):
+    """
+    Raised when an object being deleted or moved to a different ID would
+    cause zone members to start freaking out.
+    """
+
+    pass

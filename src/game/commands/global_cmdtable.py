@@ -41,5 +41,6 @@ class GlobalAdminCommandTable(CommandTable):
         staff_cmds.CmdSet(),
         staff_cmds.CmdUnlink(),
         staff_cmds.CmdLink(),
+        staff_cmds.CmdZmo(),
         staff_cmds.CmdZone(),
     ]

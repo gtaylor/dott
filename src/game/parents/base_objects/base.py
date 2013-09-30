@@ -5,8 +5,9 @@ Contains base level parents that aren't to be used directly.
 from twisted.internet.defer import inlineCallbacks, returnValue
 from fuzzywuzzy.process import QRatio
 from fuzzywuzzy import utils as fuzz_utils
+from src.daemons.server.ansi import ANSI_HILITE, ANSI_NORMAL
 
-#from src.utils import logger
+from src.daemons.server.objects.exceptions import ObjectHasZoneMembers
 from src.daemons.server.protocols.proxyamp import EmitToObjectCmd
 
 
@@ -94,6 +95,7 @@ class BaseObject(object):
         :returns: Reference to the global object store instance.
         """
 
+        # TODO: Make this public.
         return self._mud_service.object_store
 
     @property
@@ -277,9 +279,11 @@ class BaseObject(object):
                 yield exit.destroy()
 
         # Un-set the zones on all objects who are members of this object.
-        for obj in self._object_store.find_objects_in_zone(self):
-            obj.zone = None
-            yield obj.save()
+        zone_members = self._object_store.find_objects_in_zone(self)
+        if zone_members:
+            raise ObjectHasZoneMembers(
+                "Object has zone members. @zmo/empty first, or use "
+                "@zmo/delete instead.")
 
         # Destroys this object, once all cleanup is done.
         yield self._object_store.destroy_object(self)
@@ -409,9 +413,6 @@ class BaseObject(object):
         :returns: The object's 'pretty' name.
         """
 
-        ansi_hilight = "\033[1m"
-        ansi_normal = "\033[0m"
-
         if (invoker and invoker.is_admin()) or force_admin_view:
             # Used to show a single-character type identifier next to object id.
             if self.base_type == 'room':
@@ -433,7 +434,7 @@ class BaseObject(object):
         else:
             extra_info = ''
 
-        return "%s%s%s%s" % (ansi_hilight, self.name, ansi_normal, extra_info)
+        return "%s%s%s%s" % (ANSI_HILITE, self.name, ANSI_NORMAL, extra_info)
 
     #noinspection PyUnusedLocal
     def get_appearance_contents_and_exits(self, invoker, from_inside=False):
