@@ -72,7 +72,7 @@ class PlanetObject(SolarSystemPlaceObject):
 class InSpaceObject(ThingObject):
     """
     All free-floating objects in a solar system. These differ from a Place
-    in that they may be fired upon, scanned, and interacted with.
+    in that they may be interacted with.
     """
 
-    pass
+    display_name = "InSpaceObject"

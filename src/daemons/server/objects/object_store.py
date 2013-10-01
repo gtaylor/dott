@@ -213,7 +213,7 @@ class ObjectStore(object):
     def find_objects_in_zone(self, obj):
         """
         Finds all objects whose zone master object is set to the given object.
-Savannah Hayes
+
         :param BaseObject obj: The object whose zone members to find.
         :rtype: list
         :return: A list of the object's zone members.

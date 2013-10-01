@@ -17,7 +17,7 @@ class BaseCommand(object):
     name = None
     aliases = []
 
-    def _get_header_str(self, header_text, header_text_color=ANSI_HI_WHITE,
+    def _get_header_str(self, header_text, header_text_color=ANSI_HI_YELLOW,
                         pad_char='=', pad_color=ANSI_HI_BLUE):
         """
         Forms and returns a standardized header string.
@@ -30,10 +30,9 @@ class BaseCommand(object):
         :rtype: str
         """
 
-        padded = len(header_text) + 2
         buf = '\n' + pad_color + (pad_char * 3) + ANSI_HI_WHITE
         buf += '[' + header_text_color + \
-               header_text.center(padded) + ANSI_HI_WHITE + \
+               header_text + ANSI_HI_WHITE + \
                ']' + pad_color
         remaining = 80 - len(remove_ansi_escape_seqs(buf))
         buf += pad_char * remaining

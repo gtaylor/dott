@@ -1,13 +1,12 @@
-from src.game.parents.space.ships import defines as ship_defines
-from src.game.parents.space.ships.base import BaseSpaceShipObject
 from src.game.parents.space.ships.interior.bridge import SpaceShipBridgeObject
+from src.game.parents.space.ships.ship_classes.shuttles.base import BaseShuttleSpaceShipObject
 
 
 class TraffickerSpaceShipBridgeObject(SpaceShipBridgeObject):
     """
     Customized bridge.
 
-    src.game.parents.space.ships.shuttles.trafficker.TraffickerSpaceShipBridgeObject
+    src.game.parents.space.ships.ship_classes.shuttles.trafficker.TraffickerSpaceShipBridgeObject
     """
 
     def get_description(self, *args, **kwargs):
@@ -24,14 +23,14 @@ class TraffickerSpaceShipBridgeObject(SpaceShipBridgeObject):
         )
 
     
-class TraffickerSpaceShipObject(BaseSpaceShipObject):
+class TraffickerSpaceShipObject(BaseShuttleSpaceShipObject):
     """
     A basic shuttle class ship.
 
-    src.game.parents.space.ships.shuttles.trafficker.TraffickerSpaceShipObject
+    src.game.parents.space.ships.ship_classes.shuttles.trafficker.TraffickerSpaceShipObject
     """
 
     ship_type_name = 'Trafficker'
-    ship_class = ship_defines.SHIP_CLASS_SHUTTLE
+    ship_reference = 'TFK-1A'
 
     bridge_parent = 'src.game.parents.space.ships.shuttles.trafficker.TraffickerSpaceShipBridgeObject'

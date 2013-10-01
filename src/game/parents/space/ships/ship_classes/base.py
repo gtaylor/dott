@@ -1,5 +1,4 @@
 from src.game.parents.space.hangar import HangarMixin
-from src.game.parents.space.ships import defines as ship_defines
 from src.game.parents.space.ships.interior.bridge import SpaceShipBridgeObject
 from src.game.parents.space.solar_system import InSpaceObject
 
@@ -23,15 +22,27 @@ class BaseSpaceShipObject(InSpaceObject):
     :py:class:`SpaceShipBridgeObject`.
     """
 
-    # This is the ship type that is displayed in contacts and messages.
+    # This is the full name of the ship type.
     ship_type_name = 'Unknown'
+    # The alphanumerical ship reference code.
+    ship_reference = 'UNK-NOWN'
     # Ship size class. IE: Shuttle, frigate, cruiser, etc.
-    ship_class = ship_defines.SHIP_CLASS_SHUTTLE
+    ship_class = 'Unknown'
+    ship_class_code = '?'
 
     # These parents are used to construct various interior objects in the ship.
     # Any None values here means said interior object does not exist
     # in this ship.
     bridge_parent = 'src.game.parents.space.ships.interior.bridge.SpaceShipBridgeObject'
+
+    @property
+    def display_name(self):
+        """
+        :rtype: basestring
+        :returns: The value to show on contacts for this ship.
+        """
+
+        return self.ship_type_name
 
     def can_object_enter(self, obj):
         """
@@ -128,3 +139,14 @@ class BaseSpaceShipObject(InSpaceObject):
 
         if self.location and hasattr(self.location, 'get_solar_system_obj'):
             return self.location.get_solar_system_obj()
+
+    def get_visible_contacts(self):
+        """
+        :rtype: list
+        :returns: A list of visible contacts in space (from the perspective
+            of the invoking ship).
+        """
+
+        assert not self.is_ship_landed(), "Attempting to get contacts while landed."
+        return [obj for obj in self.location.get_contents()
+                     if isinstance(obj, InSpaceObject)]

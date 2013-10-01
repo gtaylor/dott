@@ -46,7 +46,6 @@ class CmdDock(BaseCommand):
     def func(self, invoker, parsed_cmd):
         self.bridge = invoker.location
         self.ship = self.bridge.get_ship_obj()
-        self.current_place = self.ship.location
         is_landed = self.ship.is_ship_landed()
 
         if is_landed:
@@ -68,19 +67,19 @@ class CmdDock(BaseCommand):
         renders the dockable locations list for the current location.
         """
 
-        dockables = self.current_place.get_dockable_obj_list(self.ship)
+        dockables = self.ship.location.get_dockable_obj_list(self.ship)
 
         buf = "Dockable Locations -- %s\n" % (
             self.solar_system.get_appearance_name(invoker),
         )
-        buf += '-' * 78
+        buf = self._get_header_str("Dockable Locations near %s" %
+                                   self.ship.location.get_appearance_name(invoker))
         for place in dockables:
-            buf += "\n {id:>8}] {name}".format(
+            buf += "\n {id:>5}] {name}".format(
                 id=place.id,
                 name=place.get_appearance_name(invoker),
             )
-        buf += '\n'
-        buf += '-' * 78
+        buf += self._get_footer_str()
         invoker.emit_to(buf)
 
     def do_dock(self, invoker, parsed_cmd):
@@ -106,7 +105,7 @@ class CmdDock(BaseCommand):
             raise CommandError('No dock with that ID found.')
 
         dock_launch_to = dock_obj.get_launchto_location()
-        if not dock_launch_to or not self.current_place.id == dock_launch_to.id:
+        if not dock_launch_to or not self.ship.location.id == dock_launch_to.id:
             # Attempting to land in a dock in another solar system.
             raise CommandError('No dock with that ID found.')
 
@@ -148,22 +147,54 @@ class CmdStatus(BaseCommand):
         ship_location = solar_system.get_appearance_name(invoker)
         ship_id = '[%s]' % ship.id
 
-        retval = (
-            "Ship Name: {ship_name:>30} ID: {ship_id:>10} Ship Type: {ship_type} ({ship_class})\n"
-            "State: {ship_status:>15} Ship Location: {ship_location}\n\n"
-            "  Armor: [=================     ] 80%\n"
+        buf = self._get_footer_str() + "\n"
+        buf += (
+            "Ship Name: {ship_name:<22} ID: {ship_id:<7} Ship Type: {ship_type} ({ship_reference})\n"
+            "State: {ship_status:<15} Ship Location: {ship_location}\n\n"
             " Shield: [======================] 100%\n"
-            "   Hull: [======================] 100%\n"
+            "   Hull: [======================] 100%"
         ).format(
-            ship_name='Implement me!',
+            ship_name=ship.display_name,
             ship_id=ship_id,
             ship_type=ship.ship_type_name,
-            ship_class=ship.ship_class,
+            ship_reference=ship.ship_reference,
             ship_status=ship_status,
             ship_location=ship_location,
         )
+        buf += self._get_footer_str()
 
-        invoker.emit_to(retval)
+        invoker.emit_to(buf)
+
+
+class CmdContacts(BaseCommand):
+    """
+    Shows other objects in the same location in space.
+    """
+
+    name = 'contacts'
+    aliases = ['con']
+
+    #noinspection PyUnusedLocal
+    def func(self, invoker, parsed_cmd):
+        bridge = invoker.location
+        ship = bridge.get_ship_obj()
+        solar_system = ship.get_solar_system_obj()
+
+        if ship.is_ship_landed():
+            raise CommandError("What contacts? You aren't in space.")
+
+        buf = self._get_header_str("Contacts near %s" % ship.location.get_appearance_name(invoker))
+        for contact in ship.get_visible_contacts():
+            buf += (
+                "\n {id:>5}]{ship_class_code:<1}  {ship_reference:<10} "
+                "{display_name:<20} S:[==========] H:[==========]  S:".format(
+                id=contact.id,
+                ship_class_code=contact.ship_class_code,
+                ship_reference=contact.ship_reference,
+                display_name=contact.display_name))
+        buf += self._get_footer_str()
+
+        invoker.emit_to(buf)
 
 
 #noinspection PyAttributeOutsideInit
@@ -203,18 +234,14 @@ class CmdWarp(BaseCommand):
 
         places = self.solar_system.get_places_obj_list()
 
-        buf = "Warpable Locations -- %s\n" % (
-            self.solar_system.get_appearance_name(invoker),
-        )
-        buf += '-' * 78
+        buf = self._get_header_str("Warpable Locations in %s" % self.solar_system.get_appearance_name(invoker))
         for place in places:
-            buf += "\n {marker} {id:>5}] {name}".format(
-                marker='>>' if self.current_place.id == place.id else '  ',
+            buf += "\n {id:>5}] {name:<25} {marker}".format(
+                marker='<-- You are here' if self.current_place.id == place.id else '  ',
                 id=place.id,
                 name=place.get_appearance_name(invoker),
             )
-        buf += '\n'
-        buf += '-' * 78
+        buf += self._get_footer_str()
         invoker.emit_to(buf)
 
     def do_warp_to(self, invoker, parsed_cmd):
@@ -272,6 +299,7 @@ class CmdWarp(BaseCommand):
 
 class ShipBridgeCommandTable(CommandTable):
     commands = [
+        CmdContacts(),
         CmdDock(),
         CmdLaunch(),
         CmdStatus(),
