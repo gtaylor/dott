@@ -148,7 +148,8 @@ class BaseObject(object):
             # Looks like a BaseObject sub-class. Grab the object ID.
             setattr(self, attrib_name, obj_or_id.id)
 
-    def get_attributes(self):
+    @property
+    def attributes(self):
         """
         Redirects to the object's attributes dict.
 
@@ -156,22 +157,6 @@ class BaseObject(object):
         """
 
         return self._attributes
-
-    def set_attributes(self, attrib_dict):
-        """
-        Sets this object's attribute dict.
-
-        :param dict attrib_dict: The attrib dict to set.
-        """
-
-        if not isinstance(attrib_dict, dict):
-            raise Exception(
-                "BaseObject.set_attributes() passed an invalid type: %s (%s)" % (
-                    attrib_dict, type(attrib_dict)))
-        else:
-            # Looks like a BaseObject sub-class. Grab the object ID.
-            self._attributes = attrib_dict
-    attributes = property(get_attributes, set_attributes)
 
     def get_location(self):
         """
