@@ -95,7 +95,8 @@ class BaseSpaceShipObject(InSpaceObject):
             if isinstance(obj, SpaceShipBridgeObject):
                 return obj
 
-        raise ShipError("No bridge found for ship #s." % self.id)
+        raise ShipError("No bridge found for %s" % self.get_appearance_name(
+            None, force_admin_view=True))
 
     def emit_to_interior(self, message):
         """

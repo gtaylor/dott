@@ -494,6 +494,8 @@ class BaseObject(object):
         :param iterable objects: A list of ``BaseObject`` sub-class instances
             to attempt to match to.
         :param str query: The string to match against.
+        :rtype: BaseObject
+        :returns: The best match object for the given query.
         """
 
         if not objects:
@@ -507,21 +509,13 @@ class BaseObject(object):
                 return obj
 
         processor = lambda x: fuzz_utils.full_process(x)
-        scorer = QRatio
-        results = list()
 
         for choice in objects:
             processed = processor(choice.name)
-            score = scorer(query, processed)
-            result = (choice, score)
-            if score > 0:
-                results.append(result)
+            if query in processed:
+                return choice
 
-        if not results:
-            return None
-        else:
-            results.sort(key=lambda i: i[1], reverse=True)
-            return results[0][0]
+        return None
 
     def _find_object_id_match(self, desc):
         """

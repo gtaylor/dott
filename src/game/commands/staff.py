@@ -63,24 +63,19 @@ class CmdFind(BaseCommand):
         if search_str.strip() == '':
             raise CommandError('@find requires a name to search for.')
 
-        invoker.emit_to('\nSearching for "%s"' % search_str)
-
         # Performs a global fuzzy name match. Returns a generator.
         matches = mud_service.object_store.global_name_search(search_str)
 
         # Buffer for returning everything at once.
-        retval = ''
         match_counter = 0
+        buf = self._get_header_str('Searching for "%s"' % search_str)
         for match in matches:
-            retval += '\n  #%s %s %s' % (
-                str(match.id).ljust(6),
-                match.base_type.ljust(8),
-                match.name[:80]
-            )
+            buf += '\n  %s' % match.get_appearance_name(invoker)
             match_counter += 1
-        # Send the results in one burst.
-        invoker.emit_to(retval)
-        invoker.emit_to('\nMatches found: %d' % match_counter)
+        buf += self._get_footer_str(pad_char='-')
+        buf += '\n  Matches found: %d' % match_counter
+        buf += self._get_footer_str()
+        invoker.emit_to(buf)
 
 
 class CmdDig(BaseCommand):

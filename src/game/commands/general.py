@@ -64,8 +64,8 @@ class CmdExamine(BaseCommand):
 
         attributes_str = ' Parent: %s (%s)\n' % (obj.parent, obj.base_type)
 
-        if self.aliases:
-            attributes_str += ' Aliases: %s\n' % ', '.join(self.aliases)
+        if obj.aliases:
+            attributes_str += ' Aliases: %s\n' % ', '.join(obj.aliases)
 
         if obj.location:
             attributes_str += ' Location: %s\n' % obj.location.get_appearance_name(invoker)

@@ -5,6 +5,8 @@ class PlayerObject(ThingObject):
     """
     All players inherit this parent class. It further extends ThingObject with
     player-specific behavior.
+
+    src.game.parents.base_objects.player.PlayerObject
     """
 
     @property
@@ -54,6 +56,8 @@ class PlayerObject(ThingObject):
 class AdminPlayerObject(PlayerObject):
     """
     Parent for admin players. Changes or overrides some behaviors.
+
+    src.game.parents.base_objects.player.AdminPlayerObject
     """
 
     def is_admin(self):

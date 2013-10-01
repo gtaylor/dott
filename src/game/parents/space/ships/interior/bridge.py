@@ -69,9 +69,6 @@ class CmdDock(BaseCommand):
 
         dockables = self.ship.location.get_dockable_obj_list(self.ship)
 
-        buf = "Dockable Locations -- %s\n" % (
-            self.solar_system.get_appearance_name(invoker),
-        )
         buf = self._get_header_str("Dockable Locations near %s" %
                                    self.ship.location.get_appearance_name(invoker))
         for place in dockables:
@@ -135,6 +132,7 @@ class CmdStatus(BaseCommand):
     """
 
     name = 'status'
+    aliases = ['st']
 
     #noinspection PyUnusedLocal
     def func(self, invoker, parsed_cmd):

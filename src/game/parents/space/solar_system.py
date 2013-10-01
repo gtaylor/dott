@@ -27,6 +27,8 @@ class SolarSystemPlaceObject(ThingObject):
     """
     An object in space that may be warped to. These are more or less 'rooms'
     within the solar system.
+
+    src.game.parents.space.solar_system.SolarSystemPlaceObject
     """
 
     def get_solar_system_obj(self):
