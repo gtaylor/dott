@@ -1,12 +1,12 @@
 from src.daemons.server.ansi import ANSI_NORMAL
-from src.game.parents.space.hangar import HangarMixin
-from src.game.parents.space.solar_system import SolarSystemPlaceObject
 from src.daemons.server.commands.cmdtable import CommandTable
 from src.daemons.server.commands.command import BaseCommand
-from src.game.parents.space.ships.interior.base import SpaceShipInteriorObject
 from src.daemons.server.commands.exceptions import CommandError
 from src.daemons.server.objects.exceptions import NoSuchObject
 from src.game.parents.utils.text_elements import progress_bar_str
+from src.game.parents.space.solar_system import SolarSystemPlaceObject
+from src.game.parents.space.ships.interior.base import SpaceShipInteriorObject
+from src.game.player_orgs.standings import get_standing_value_cosmetics
 
 
 class CmdLaunch(BaseCommand):
@@ -144,7 +144,6 @@ class CmdStatus(BaseCommand):
 
         max_shield_hp = ship.get_max_shield_hp()
         current_shield_hp = ship.get_current_shield_hp()
-        print "SHIELD HP", current_shield_hp, max_shield_hp
         shield_bar, shield_perc, shield_color = progress_bar_str(
             24, max_shield_hp, current_shield_hp)
         max_hull_hp = ship.get_max_hull_hp()
@@ -171,11 +170,20 @@ class CmdStatus(BaseCommand):
             hull_bar=hull_bar,
             hull_perc=hull_perc,
             hull_color=hull_color,
-            escape_color=ANSI_NORMAL,
-        )
+            escape_color=ANSI_NORMAL)
         buf += self._get_footer_str(pad_char='-')
-        buf += '\n Reactor Utilization: 3 of 10 units'
-        buf += '\n Shields: 1   Engines: 1   Weapons: 1   Drones: 1   Specials: 0'
+        buf += '\n Reactor Utilization: {power_util} of {max_power} units'.format(
+            power_util=ship.get_total_power_unit_usage(),
+            max_power=ship.get_max_power_units())
+        buf += (
+            '\n Shields: {shield_units:<3} Engines: {engine_units:<3} '
+            'Weapons: {weapon_units:<3} Drones: {drone_units:<3} '
+            'Specials: {special_units:<3}'.format(
+            shield_units=ship.get_shield_power_unit_usage(),
+            engine_units=ship.get_engine_power_unit_usage(),
+            weapon_units=ship.get_weapon_power_unit_usage(),
+            drone_units=ship.get_drone_power_unit_usage(),
+            special_units=ship.get_specials_power_unit_usage()))
         buf += self._get_footer_str()
         buf += '\n----- Weapon ----------- [##] Power --- Status ||--- Ammo Type ---- Rounds'
         buf += '\n {weapon_name:<23} [{weapon_num:>2}] 1 unit    {cycle_state:<6}'.format(
@@ -206,16 +214,43 @@ class CmdContacts(BaseCommand):
 
         buf = self._get_header_str("Contacts near %s" % ship.location.get_appearance_name(invoker))
         for contact in ship.get_visible_contacts():
+            shield_bar, shield_perc, shield_color = progress_bar_str(
+                12, contact.get_max_shield_hp(), contact.get_current_shield_hp())
+            hull_bar, hull_perc, hull_color = progress_bar_str(
+                12, contact.get_max_hull_hp(), contact.get_current_hull_hp())
+            standing_val = contact.check_ship_standing(ship)
+            standing_str, standing_color = get_standing_value_cosmetics(standing_val)
+            status_flags = self._get_short_status_flags(contact)
+
             buf += (
-                "\n {id:>5}]{ship_class_code:<1}  {ship_reference:<10} "
-                "{display_name:<20} S:[==========] H:[==========]  S:".format(
-                id=contact.id,
-                ship_class_code=contact.ship_class_code,
-                ship_reference=contact.ship_reference,
-                display_name=contact.display_name))
+                "\n {standing_color}{id:>5}]{ship_class_code:<1}  {ship_reference:<10} "
+                "{display_name:<20} S:{shield_bar} H:{hull_bar}  "
+                "S:{status_flags}{escape_color}".format(
+                    standing_color=standing_color,
+                    id=contact.id,
+                    ship_class_code=contact.ship_class_code,
+                    ship_reference=contact.ship_reference,
+                    display_name=contact.display_name,
+                    shield_bar=shield_bar,
+                    hull_bar=hull_bar,
+                    status_flags=status_flags,
+                    escape_color=ANSI_NORMAL))
         buf += self._get_footer_str()
 
         invoker.emit_to(buf)
+
+    def _get_short_status_flags(self, contact):
+        """
+        :rtype: basestring
+        :returns: A short string containing various status flags. Each character
+            in the string represents another state/condition that is readable
+            on the contacts list.
+        """
+
+        buf = ""
+        if contact.is_ship_destroyed():
+            buf += "D"
+        return buf
 
 
 #noinspection PyAttributeOutsideInit

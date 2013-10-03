@@ -72,6 +72,9 @@ class SolarSystemPlaceObject(ThingObject):
         # BaseObject sub-classes, and run some checks to make sure we can
         # dock there.
         for space_obj_id, hangar_ids in grouped_hangars.items():
+            if space_obj_id == invoker_ship.id:
+                # The invoker can't dock in itself.
+                continue
             space_obj_hangar_objs = []
             for hangar_id in hangar_ids:
                 hangar_obj = self.mud_service.object_store.get_object(hangar_id)

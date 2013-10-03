@@ -41,5 +41,5 @@ def progress_bar_str(char_limit, max_value, current_value):
 
     buf = ANSI_HI_WHITE + '[' + bar_color
     buf += ('=' * bar_width) + (' ' * (max_bar_width - bar_width))
-    buf += ANSI_HI_WHITE + ']'
+    buf += ANSI_HI_WHITE + ']' + ANSI_NORMAL
     return buf, int(math.floor(perc * 100)), bar_color

@@ -149,7 +149,34 @@ class BaseSpaceShipObject(InSpaceObject):
         """
 
         assert not self.is_ship_landed(), "Attempting to get contacts while landed."
-        return [obj for obj in self.location.get_contents() if isinstance(obj, InSpaceObject)]
+        return [obj for obj in self.location.get_contents()
+                if isinstance(obj, InSpaceObject) and obj.id != self.id]
+
+    def check_ship_standing(self, inquiring_ship):
+        """
+        Used by other ships to check their standing with this ship.
+
+        :param BaseSpaceShipObject inquiring_ship: The ship that wants to
+            know their standing to this one.
+        :rtype: float
+        :returns: A scale between 0.0 and 1.0, with 0.0 being extremely
+            hostile, 0.5 being neutral, and 1.0 being extremely friendly.
+        """
+
+        # TODO: Make this work.
+        return 0.5
+
+    #
+    ## Ship vitals
+
+    def is_ship_destroyed(self):
+        """
+        :rtype: bool
+        :returns: True if this ship is destroyed, False if not.
+        """
+
+        # TODO: Make this work.
+        return False
 
     def get_max_shield_hp(self):
         """
@@ -157,6 +184,7 @@ class BaseSpaceShipObject(InSpaceObject):
         :returns: The maximum shield HPs for this ship, as currently configured.
         """
 
+        # TODO: Make this work.
         return 100
 
     def get_current_shield_hp(self):
@@ -165,6 +193,7 @@ class BaseSpaceShipObject(InSpaceObject):
         :returns: The current shield HPs for this ship.
         """
 
+        # TODO: Make this work.
         return 80
 
     def get_max_hull_hp(self):
@@ -173,6 +202,7 @@ class BaseSpaceShipObject(InSpaceObject):
         :returns: The maximum hull HPs for this ship, as currently configured.
         """
 
+        # TODO: Make this work.
         return 100
 
     def get_current_hull_hp(self):
@@ -181,4 +211,72 @@ class BaseSpaceShipObject(InSpaceObject):
         :returns: The current hull HPs for this ship.
         """
 
+        # TODO: Make this work.
         return 50
+
+    def get_max_power_units(self):
+        """
+        :rtype: int
+        :returns: The maximum number of power units the ship is capable of
+            producing in its current state.
+        """
+
+        # TODO: Make this work.
+        return 10
+
+    def get_total_power_unit_usage(self):
+        """
+        :rtype: int
+        :returns: The current power usage in power units.
+        """
+
+        return self.get_shield_power_unit_usage() + \
+            self.get_engine_power_unit_usage() + \
+            self.get_weapon_power_unit_usage() + \
+            self.get_drone_power_unit_usage() + \
+            self.get_specials_power_unit_usage()
+
+    def get_shield_power_unit_usage(self):
+        """
+        :rtype: int
+        :returns: The current shield system power usage in power units.
+        """
+
+        # TODO: Make this work.
+        return 0
+
+    def get_engine_power_unit_usage(self):
+        """
+        :rtype: int
+        :returns: The current engine system power usage in power units.
+        """
+
+        # TODO: Make this work.
+        return 0
+
+    def get_weapon_power_unit_usage(self):
+        """
+        :rtype: int
+        :returns: The current weapon system power usage in power units.
+        """
+
+        # TODO: Make this work.
+        return 0
+
+    def get_drone_power_unit_usage(self):
+        """
+        :rtype: int
+        :returns: The current drone system power usage in power units.
+        """
+
+        # TODO: Make this work.
+        return 0
+
+    def get_specials_power_unit_usage(self):
+        """
+        :rtype: int
+        :returns: The current special system power usage in power units.
+        """
+
+        # TODO: Make this work.
+        return 0
