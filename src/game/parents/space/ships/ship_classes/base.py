@@ -149,5 +149,36 @@ class BaseSpaceShipObject(InSpaceObject):
         """
 
         assert not self.is_ship_landed(), "Attempting to get contacts while landed."
-        return [obj for obj in self.location.get_contents()
-                     if isinstance(obj, InSpaceObject)]
+        return [obj for obj in self.location.get_contents() if isinstance(obj, InSpaceObject)]
+
+    def get_max_shield_hp(self):
+        """
+        :rtype: int
+        :returns: The maximum shield HPs for this ship, as currently configured.
+        """
+
+        return 100
+
+    def get_current_shield_hp(self):
+        """
+        :rtype: int
+        :returns: The current shield HPs for this ship.
+        """
+
+        return 80
+
+    def get_max_hull_hp(self):
+        """
+        :rtype: int
+        :returns: The maximum hull HPs for this ship, as currently configured.
+        """
+
+        return 100
+
+    def get_current_hull_hp(self):
+        """
+        :rtype: int
+        :returns: The current hull HPs for this ship.
+        """
+
+        return 50

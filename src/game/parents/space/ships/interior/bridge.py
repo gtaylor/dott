@@ -1,3 +1,4 @@
+from src.daemons.server.ansi import ANSI_NORMAL
 from src.game.parents.space.hangar import HangarMixin
 from src.game.parents.space.solar_system import SolarSystemPlaceObject
 from src.daemons.server.commands.cmdtable import CommandTable
@@ -5,6 +6,7 @@ from src.daemons.server.commands.command import BaseCommand
 from src.game.parents.space.ships.interior.base import SpaceShipInteriorObject
 from src.daemons.server.commands.exceptions import CommandError
 from src.daemons.server.objects.exceptions import NoSuchObject
+from src.game.parents.utils.text_elements import progress_bar_str
 
 
 class CmdLaunch(BaseCommand):
@@ -140,12 +142,22 @@ class CmdStatus(BaseCommand):
         ship_location = solar_system.get_appearance_name(invoker)
         ship_id = '[%s]' % ship.id
 
+        max_shield_hp = ship.get_max_shield_hp()
+        current_shield_hp = ship.get_current_shield_hp()
+        print "SHIELD HP", current_shield_hp, max_shield_hp
+        shield_bar, shield_perc, shield_color = progress_bar_str(
+            24, max_shield_hp, current_shield_hp)
+        max_hull_hp = ship.get_max_hull_hp()
+        current_hull_hp = ship.get_current_hull_hp()
+        hull_bar, hull_perc, hull_color = progress_bar_str(
+            24, max_hull_hp, current_hull_hp)
+
         buf = self._get_footer_str() + "\n"
         buf += (
             "Ship Name: {ship_name:<22} ID: {ship_id:<7} Ship Type: {ship_type} ({ship_reference})\n"
             "State: {ship_status:<15} Ship Location: {ship_location}\n\n"
-            " Shield: [======================] 100%"
-            "   Hull: [======================] 100%"
+            " Shield: {shield_bar} {shield_color}{shield_perc}%{escape_color}"
+            "   Hull: {hull_bar} {hull_color}{hull_perc}%{escape_color}"
         ).format(
             ship_name=ship.display_name,
             ship_id=ship_id,
@@ -153,6 +165,13 @@ class CmdStatus(BaseCommand):
             ship_reference=ship.ship_reference,
             ship_status=ship_status,
             ship_location=ship_location,
+            shield_bar=shield_bar,
+            shield_color=shield_color,
+            shield_perc=shield_perc,
+            hull_bar=hull_bar,
+            hull_perc=hull_perc,
+            hull_color=hull_color,
+            escape_color=ANSI_NORMAL,
         )
         buf += self._get_footer_str(pad_char='-')
         buf += '\n Reactor Utilization: 3 of 10 units'
