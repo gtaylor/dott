@@ -18,6 +18,9 @@ class HangarMixin(object):
         :returns: The object that this hangar is attached to in space.
         """
 
+        #noinspection PyUnresolvedReferences
+        assert self.zone, "No zone set on Hangar."
+        #noinspection PyUnresolvedReferences
         return self.zone
 
     def get_launchto_location(self):
@@ -29,19 +32,8 @@ class HangarMixin(object):
             from here will be moved to in space. If a None is returned, ships
             should not be able to launch.
         """
-        inspace_obj = self.get_inspace_obj()
-        launch_loc_is_place_obj = isinstance(inspace_obj, SolarSystemPlaceObject)
-        if launch_loc_is_place_obj:
-            return inspace_obj
 
-        # This is a station or a ship. Take its location.
-        containing_ship_location = launch_loc_is_place_obj.location
-        # Determine whether the ship/station is somewhere ships can launch from.
-        can_launch = isinstance(containing_ship_location, SolarSystemPlaceObject)
-        if can_launch:
-            return containing_ship_location
-
-        return None
+        return self.get_inspace_obj().location
 
     def get_solar_system_obj(self):
         """
@@ -51,6 +43,7 @@ class HangarMixin(object):
         :returns: The solar system the hangar is in, or ``None`` if we can't
             figure it out.
         """
+
         launch_to = self.get_launchto_location()
         if launch_to:
             return launch_to.get_solar_system_obj()

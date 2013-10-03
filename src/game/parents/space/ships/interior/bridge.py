@@ -67,15 +67,21 @@ class CmdDock(BaseCommand):
         renders the dockable locations list for the current location.
         """
 
-        dockables = self.ship.location.get_dockable_obj_list(self.ship)
+        object_store = invoker.mud_service.object_store
+        grouped_hangars, _ = self.ship.location.get_dockable_obj_list(self.ship)
 
         buf = self._get_header_str("Dockable Locations near %s" %
                                    self.ship.location.get_appearance_name(invoker))
-        for place in dockables:
-            buf += "\n {id:>5}] {name}".format(
-                id=place.id,
-                name=place.get_appearance_name(invoker),
+        for inspace_obj_id, hangar_objs in grouped_hangars.items():
+            inspace_obj = object_store.get_object(inspace_obj_id)
+            buf += "\n {name}".format(
+                name=inspace_obj.get_appearance_name(invoker),
             )
+            for hangar_obj in hangar_objs:
+                buf += "\n {id:>5}] {name}".format(
+                    id=hangar_obj.id,
+                    name=hangar_obj.get_appearance_name(invoker),
+                )
         buf += self._get_footer_str()
         invoker.emit_to(buf)
 
@@ -85,35 +91,24 @@ class CmdDock(BaseCommand):
         dock.
         """
 
-        service = invoker.mud_service
+        object_store = invoker.mud_service.object_store
 
         try:
             dock_id = int(parsed_cmd.argument_string)
         except (TypeError, ValueError):
             raise CommandError('Invalid docking location ID.')
 
-        try:
-            dock_obj = service.object_store.get_object(dock_id)
-        except NoSuchObject:
+        _, flat_hangar_id_list = self.ship.location.get_dockable_obj_list(self.ship)
+        if dock_id not in flat_hangar_id_list:
             raise CommandError('No dock with that ID found.')
 
-        if not isinstance(dock_obj, HangarMixin):
-            # Attempting to warp to a non-place.
-            raise CommandError('No dock with that ID found.')
-
-        dock_launch_to = dock_obj.get_launchto_location()
-        if not dock_launch_to or not self.ship.location.id == dock_launch_to.id:
-            # Attempting to land in a dock in another solar system.
-            raise CommandError('No dock with that ID found.')
-
-        invoker.emit_to('Docking in %s' % (
-            dock_obj.get_appearance_name(invoker),
-        ))
+        dock_obj = object_store.get_object(dock_id)
+        invoker.emit_to('Docking in %s' % dock_obj.get_appearance_name(invoker))
         # TODO: Emit to others in system that ship is beginning to land/dock.
         self.ship.emit_to_interior(
             'A docking tone sounds as the ship begins its approach.'
         )
-        # TODO: A CallLater based on ship manueverabiliy.
+        # TODO: A CallLater based on ship maneuverability.
         # TODO: Emit to others in system that ship has landed.
         self.ship.move_to(dock_obj)
         self.ship.emit_to_interior(
@@ -149,7 +144,7 @@ class CmdStatus(BaseCommand):
         buf += (
             "Ship Name: {ship_name:<22} ID: {ship_id:<7} Ship Type: {ship_type} ({ship_reference})\n"
             "State: {ship_status:<15} Ship Location: {ship_location}\n\n"
-            " Shield: [======================] 100%\n"
+            " Shield: [======================] 100%"
             "   Hull: [======================] 100%"
         ).format(
             ship_name=ship.display_name,
@@ -159,7 +154,16 @@ class CmdStatus(BaseCommand):
             ship_status=ship_status,
             ship_location=ship_location,
         )
+        buf += self._get_footer_str(pad_char='-')
+        buf += '\n Reactor Utilization: 3 of 10 units'
+        buf += '\n Shields: 1   Engines: 1   Weapons: 1   Drones: 1   Specials: 0'
         buf += self._get_footer_str()
+        buf += '\n----- Weapon ----------- [##] Power --- Status ||--- Ammo Type ---- Rounds'
+        buf += '\n {weapon_name:<23} [{weapon_num:>2}] 1 unit    {cycle_state:<6}'.format(
+            weapon_num=1,
+            weapon_name='Small Ion Cannon',
+            cycle_state='Ready')
+        buf += self._get_footer_str(pad_char='-')
 
         invoker.emit_to(buf)
 

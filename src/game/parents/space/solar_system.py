@@ -48,27 +48,48 @@ class SolarSystemPlaceObject(ThingObject):
         Return a list of RoomHangarObject or ThingHangarObject objects that
         the invoking ship can dock/land in.
 
-        :rtype: list
-        :returns: A list of HangarMixin sub-classed instances that are dockable.
+        :rtype: tuple
+        :returns: A tuple in the format of (grouped_hangars, flat_hangar_id_list).
+            The first is a dict whose keys are in-space object IDs with the
+            values being hangar objects. The latter is a flat list of hangar
+            dockable IDs.
         """
 
-        zone_members = self.mud_service.object_store.find_objects_in_zone(self)
-        dockable_objs = []
-        for obj in zone_members:
-            if hasattr(obj, 'get_launchto_location'):
-                dockable_objs.append(obj)
-        # TODO: Factor in friendly ships with hangars.
-        return dockable_objs
+        # Keys are in-space objects, values will eventually be their hangar objects.
+        grouped_hangars = {}
+        inspace_objs = self.get_contents()
+        # Look through each object's DOCKABLE_IDS attribute to see what the
+        # possibilities are.
+        for obj in inspace_objs:
+            obj_dockables = obj.attributes.get('DOCKABLE_IDS', [])
+            if not obj_dockables:
+                continue
+            grouped_hangars[obj.id] = obj_dockables
 
+        # This will be a flattened list of hangar IDs the ship can dock to.
+        flat_hangar_id_list = []
+        # Now go through the dict of grouped hangar IDs, convert them to
+        # BaseObject sub-classes, and run some checks to make sure we can
+        # dock there.
+        for space_obj_id, hangar_ids in grouped_hangars.items():
+            space_obj_hangar_objs = []
+            for hangar_id in hangar_ids:
+                hangar_obj = self.mud_service.object_store.get_object(hangar_id)
+                if not hasattr(hangar_obj, 'get_launchto_location'):
+                    # Probably not a hangar after all.
+                    continue
+                space_obj_hangar_objs.append(hangar_obj)
+                flat_hangar_id_list.append(hangar_obj.id)
 
-class PlanetObject(SolarSystemPlaceObject):
-    """
-    Planets are stationary objects in space that may be landed on.
+            if space_obj_hangar_objs:
+                # We had found results for this in-space object. Replace its
+                # old list of IDs with a list of objects.
+                grouped_hangars[space_obj_id] = space_obj_hangar_objs
+            else:
+                # This object had no dockable matches. Delete its key.
+                del grouped_hangars[space_obj_id]
 
-    src.game.parents.space.solar_system.PlanetObject
-    """
-
-    pass
+        return grouped_hangars, flat_hangar_id_list
 
 
 class InSpaceObject(ThingObject):
@@ -78,3 +99,15 @@ class InSpaceObject(ThingObject):
     """
 
     display_name = "InSpaceObject"
+
+
+class PlanetObject(InSpaceObject):
+    """
+    Planets are stationary objects in space that may be landed on.
+
+    src.game.parents.space.solar_system.PlanetObject
+    """
+
+    @property
+    def display_name(self):
+        return self.name

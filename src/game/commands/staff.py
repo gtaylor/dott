@@ -332,7 +332,7 @@ class CmdZmo(BaseCommand):
 
         buf = self._get_header_str('ZMO Summary: %s' % zmo.get_appearance_name(invoker))
         if not members:
-            buf += 'No members in zone.'
+            buf += '\nNo members in zone.'
         else:
             buf += '\n Member base types --'
             for btype, btcount in base_type_counter.items():
